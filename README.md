@@ -28,6 +28,8 @@ witness that can be independently recomputed.
 - Independently verifiable numerical witnesses.
 - An experimental Qiskit semi-Clifford tester based on Pauli-conjugation
   circuits and Bell-basis sampling.
+- Qiskit GSC discovery and \(n\)-circuit candidate-witness verification based
+  on the full observed Pauli support of each conjugate.
 - Packaging, tests, continuous integration, and contribution guidance.
 
 ## Quick start
@@ -48,6 +50,7 @@ Install the optional Qiskit implementation with:
 ```bash
 python -m pip install -e ".[qiskit]"
 python examples/qiskit_semi_clifford.py
+python examples/qiskit_gsc.py
 ```
 
 ## Python API
@@ -103,10 +106,35 @@ proposed Lagrangian basis uses only \(n\). Sampler jobs can be batched for
 backend limits. Negative results from a nonexhaustive input set are explicitly
 marked as incomplete.
 
+## Experimental Qiskit GSC tester
+
+The GSC tester reuses the same circuits but retains every Bell outcome rather
+than only the dominant Pauli. Given input and output Lagrangian bases, it checks
+whether the empirical Pauli support of each conjugated input generator stays
+inside the output Lagrangian:
+
+```python
+from generalized_semi_clifford import run_gsc_witness_test
+
+result = run_gsc_witness_test(
+    unitary,
+    input_basis,
+    output_basis,
+    shots=2048,
+    leakage_threshold=0.01,
+)
+```
+
+Candidate verification uses \(n\) circuits. Small-qubit discovery enumerates
+all input/output Lagrangians, but reuses each Pauli-conjugation experiment and
+only constructs circuits for Paulis appearing in the canonical input bases: 3,
+13, and 47 circuits for one, two, and three qubits, respectively.
+
 ## Roadmap
 
 1. Add an exact arithmetic backend for algebraic gate sets.
-2. Replace input/output-pair enumeration with a support-derived candidate search.
+2. Replace quadratic input/output-Lagrangian enumeration with a support-derived
+   output-subspace construction.
 3. Prove completeness/soundness bounds for the circuit-based semi-Clifford
    tester and replace exhaustive Pauli enumeration with sampling where possible.
 4. Add stabilizer-tableau and sparse Pauli-transfer representations.

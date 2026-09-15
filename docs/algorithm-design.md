@@ -51,6 +51,8 @@ input/output pairs and uses dense matrices, it defaults to at most three qubits.
 - `tester.py`: result types, exhaustive orchestration, and witness verification.
 - `semi_clifford_qiskit.py`: oracle-style conjugation circuits, Bell-count
   decoding, and finite-shot Lagrangian-witness search.
+- `gsc_qiskit.py`: full Pauli-support decoding, GSC discovery, and candidate
+  Pauli-MASA verification.
 
 ## Circuit-based semi-Clifford prototype
 
@@ -102,6 +104,29 @@ promise formulation, concentration bounds, and completeness/soundness proofs.
 When a candidate input Lagrangian basis is already known, the witness-testing
 entry point checks it using only \(n\) conjugation circuits. Exhaustive discovery
 can submit circuits in configurable batches to accommodate sampler limits.
+
+## Circuit-based generalized semi-Clifford prototype
+
+For candidate input and output Lagrangians \(L,S\), it is enough to test a
+basis \(p_1,\ldots,p_n\) of \(L\). If every Pauli coefficient of
+\(UP_{p_i}U^\dagger\) is supported inside \(S\), then products of those images
+show that
+
+\[
+U\mathcal A_LU^\dagger\subseteq\mathcal A_S.
+\]
+
+Both algebras have dimension \(2^n\), so the inclusion is equality. Bell
+sampling gives the relevant Pauli-coefficient probabilities without forming a
+dense matrix. The empirical leakage for one generator is the measured
+probability mass outside \(S\); a candidate pair is accepted when the maximum
+generator leakage is below the configured threshold.
+
+Witness verification therefore needs only \(n\) circuits. Exhaustive discovery
+currently enumerates the 3, 15, or 135 possible Lagrangians on each side, but
+each required Pauli circuit is executed only once and reused. A future search
+should construct the output isotropic subspace directly from sampled supports,
+removing the quadratic Lagrangian-pair loop.
 
 ## Performance plan
 

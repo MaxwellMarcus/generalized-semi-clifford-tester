@@ -15,10 +15,9 @@ from __future__ import annotations
 
 from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass
-from itertools import combinations
 from typing import Any
 
-from .lagrangian import PauliLabel
+from .lagrangian import PauliLabel, lagrangian_from_basis
 from .pauli import all_pauli_labels
 
 
@@ -209,7 +208,9 @@ def build_semi_clifford_test_circuits(
     return tuple(experiments)
 
 
-def _bell_bitstring_to_pauli(bitstring: str, num_qubits: int) -> PauliLabel:
+def bell_bitstring_to_pauli(bitstring: str, num_qubits: int) -> PauliLabel:
+    """Decode the Qiskit Bell register into an ``(x | z)`` Pauli label."""
+
     compact = bitstring.replace(" ", "")
     if len(compact) != 2 * num_qubits or any(bit not in "01" for bit in compact):
         raise ValueError(f"expected a {2 * num_qubits}-bit Bell outcome, got {bitstring!r}")
@@ -235,7 +236,7 @@ def bell_counts_to_observation(
     dominant_bitstring, dominant_count = max(counts.items(), key=lambda item: item[1])
     return PauliConjugationObservation(
         input_pauli=label,
-        dominant_output_pauli=_bell_bitstring_to_pauli(dominant_bitstring, num_qubits),
+        dominant_output_pauli=bell_bitstring_to_pauli(dominant_bitstring, num_qubits),
         dominant_probability=dominant_count / shots,
         shots=shots,
         counts=tuple(sorted(counts.items())),
@@ -386,18 +387,7 @@ def _validate_input_lagrangian_basis(
     *,
     num_qubits: int,
 ) -> tuple[PauliLabel, ...]:
-    basis = tuple(_validate_pauli_label(label) for label in input_basis)
-    if len(basis) != num_qubits:
-        raise ValueError(f"a Lagrangian basis must contain exactly {num_qubits} labels")
-    if any(len(label) != 2 * num_qubits for label in basis):
-        raise ValueError("input basis Pauli width does not match the unitary")
-    if any(not any(label) for label in basis):
-        raise ValueError("a Lagrangian basis cannot contain the identity")
-    if _binary_rank(basis) != num_qubits:
-        raise ValueError("input basis Paulis must be linearly independent")
-    if any(symplectic_pairing(left, right) for left, right in combinations(basis, 2)):
-        raise ValueError("input basis Paulis must commute pairwise")
-    return basis
+    return lagrangian_from_basis(input_basis, num_qubits).basis
 
 
 def run_semi_clifford_sampling_test(

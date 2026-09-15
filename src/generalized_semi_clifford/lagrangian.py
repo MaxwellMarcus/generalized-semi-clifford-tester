@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
 from functools import cache
 from itertools import combinations
@@ -126,4 +127,37 @@ def is_lagrangian(labels: tuple[PauliLabel, ...], num_qubits: int) -> bool:
     return not any(
         _symplectic_pairing(left, right, num_qubits)
         for left, right in combinations(vector_set, 2)
+    )
+
+
+def lagrangian_from_basis(
+    basis: Iterable[Sequence[int]],
+    num_qubits: int,
+) -> Lagrangian:
+    """Validate and canonicalize a basis of a binary Lagrangian."""
+
+    if num_qubits < 1:
+        raise ValueError("num_qubits must be positive")
+    normalized = tuple(tuple(label) for label in basis)
+    width = 2 * num_qubits
+    if len(normalized) != num_qubits:
+        raise ValueError(f"a Lagrangian basis must contain exactly {num_qubits} labels")
+    if any(
+        len(label) != width or any(bit not in (0, 1) for bit in label)
+        for label in normalized
+    ):
+        raise ValueError("a Lagrangian basis must contain binary labels of width 2n")
+    vectors = tuple(_label_to_int(label) for label in normalized)
+    reduced = _row_reduce(vectors, width)
+    if len(reduced) != num_qubits:
+        raise ValueError("Lagrangian basis Paulis must be linearly independent")
+    if any(
+        _symplectic_pairing(left, right, num_qubits)
+        for left, right in combinations(reduced, 2)
+    ):
+        raise ValueError("Lagrangian basis Paulis must commute pairwise")
+    return Lagrangian(
+        num_qubits=num_qubits,
+        basis=tuple(_int_to_label(vector, width) for vector in reduced),
+        elements=tuple(_int_to_label(vector, width) for vector in _span(reduced)),
     )
