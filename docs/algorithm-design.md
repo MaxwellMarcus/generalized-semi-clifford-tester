@@ -49,6 +49,43 @@ input/output pairs and uses dense matrices, it defaults to at most three qubits.
 - `pauli.py`: phase-aware Pauli representations and conjugation actions.
 - `lagrangian.py`: isotropic/Lagrangian subspace enumeration and validation.
 - `tester.py`: result types, exhaustive orchestration, and witness verification.
+- `semi_clifford_qiskit.py`: oracle-style conjugation circuits, Bell-count
+  decoding, and finite-shot Lagrangian-witness search.
+
+## Circuit-based semi-Clifford prototype
+
+For an exact unitary oracle, define
+
+\[
+K_U=\{p\in\mathbb F_2^{2n}:UP_pU^\dagger\text{ is a Pauli}\}.
+\]
+
+The set \(K_U\) is a binary subspace: products of two successful Pauli
+conjugates are again Pauli conjugates. The unitary \(U\) is semi-Clifford if
+and only if \(K_U\) contains an \(n\)-dimensional isotropic subspace. Such a
+subspace is automatically Lagrangian in \(\mathbb F_2^{2n}\).
+
+For each input Pauli \(P\), the Qiskit prototype:
+
+1. prepares \(n\) Bell pairs, giving a maximally entangled state \(|\Phi\rangle\);
+2. applies \(U^\dagger\), then \(P\), then \(U\) to one half;
+3. applies the inverse Bell preparation and measures; and
+4. interprets the result as a sampled output Pauli \(Q\).
+
+The probability of output \(Q\) is
+
+\[
+\left|2^{-n}\operatorname{tr}(Q^\dagger UPU^\dagger)\right|^2,
+\]
+
+so an exact Pauli conjugate gives one deterministic Bell outcome. After
+thresholding the empirical dominant probabilities, a backtracking search finds
+\(n\) corresponding input/output labels that are independently linearly
+independent and pairwise symplectically orthogonal.
+
+The implementation currently checks every nonidentity input Pauli and applies
+an empirical probability threshold. A full property tester still requires a
+promise formulation, concentration bounds, and completeness/soundness proofs.
 
 ## Performance plan
 

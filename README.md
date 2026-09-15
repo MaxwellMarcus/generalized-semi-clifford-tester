@@ -26,6 +26,8 @@ witness that can be independently recomputed.
 - Dense Pauli matrices in a documented binary \((x\mid z)\) convention.
 - A bounded naïve GSC tester with `GSC`, `NOT_GSC`, and `UNKNOWN` outcomes.
 - Independently verifiable numerical witnesses.
+- An experimental Qiskit semi-Clifford tester based on Pauli-conjugation
+  circuits and Bell-basis sampling.
 - Packaging, tests, continuous integration, and contribution guidance.
 
 ## Quick start
@@ -39,6 +41,13 @@ python -m pip install -e ".[dev]"
 python examples/check_symplectic.py
 python examples/naive_tester.py
 python -m pytest
+```
+
+Install the optional Qiskit implementation with:
+
+```bash
+python -m pip install -e ".[qiskit]"
+python examples/qiskit_semi_clifford.py
 ```
 
 ## Python API
@@ -59,13 +68,42 @@ The default three-qubit limit is a complexity guard, not a mathematical
 restriction on the definition. See `docs/algorithm-design.md` for the exact
 criterion and scaling discussion.
 
+## Experimental Qiskit semi-Clifford tester
+
+```python
+from qiskit import QuantumCircuit
+
+from generalized_semi_clifford import run_semi_clifford_sampling_test
+
+unitary = QuantumCircuit(2)
+unitary.h(0)
+unitary.cx(0, 1)
+unitary.t(1)
+
+result = run_semi_clifford_sampling_test(unitary, shots=1024, seed=7)
+print(result.has_candidate_witness)
+print(result.witness)
+```
+
+For every nonidentity Pauli \(P\), this prototype prepares the Choi state of
+\(UPU^\dagger\) and measures it in the Pauli Bell basis. It then searches the
+high-probability Pauli conjugates for \(n\) independent commuting input/output
+pairs. Such a basis is a candidate Lagrangian witness for semi-Cliffordness.
+
+This is a finite-shot experiment, not an exact proof or a completed property-
+testing theorem. It currently uses \(4^n-1\) circuits, so it is intended for
+small examples while the sampling strategy and statistical guarantees are
+developed.
+
 ## Roadmap
 
 1. Add an exact arithmetic backend for algebraic gate sets.
 2. Replace input/output-pair enumeration with a support-derived candidate search.
-3. Add stabilizer-tableau and sparse Pauli-transfer representations.
-4. Validate against a larger corpus of known examples and counterexamples.
-5. Benchmark scaling and document practical complexity limits.
+3. Prove completeness/soundness bounds for the circuit-based semi-Clifford
+   tester and replace exhaustive Pauli enumeration with sampling where possible.
+4. Add stabilizer-tableau and sparse Pauli-transfer representations.
+5. Validate against a larger corpus of known examples and counterexamples.
+6. Benchmark scaling and document practical complexity limits.
 
 See `docs/algorithm-design.md` for the acceptance criteria and proposed module
 boundaries.
