@@ -11,6 +11,7 @@ from typing import TypeAlias
 
 PauliLabel: TypeAlias = tuple[int, ...]
 MAX_EXHAUSTIVE_QUBITS = 3
+MAX_LAGRANGIAN_QUBITS = 4
 
 
 @dataclass(frozen=True)
@@ -74,42 +75,53 @@ def _span(basis: tuple[int, ...]) -> tuple[int, ...]:
 def enumerate_lagrangians(num_qubits: int) -> tuple[Lagrangian, ...]:
     """Exhaustively enumerate binary Lagrangians.
 
-    The combination-based algorithm is intentionally transparent and enforces
-    the package's three-qubit safety limit.
+    Every ``n``-dimensional binary subspace has a unique reduced-row-echelon
+    basis. Enumerating those canonical bases avoids the enormous duplication
+    in choosing arbitrary vector tuples, making four-qubit enumeration
+    practical while retaining a firm safety limit.
     """
 
     if num_qubits < 1:
         raise ValueError("num_qubits must be positive")
-    if num_qubits > MAX_EXHAUSTIVE_QUBITS:
+    if num_qubits > MAX_LAGRANGIAN_QUBITS:
         raise ValueError(
-            f"naive enumeration is limited to {MAX_EXHAUSTIVE_QUBITS} qubits"
+            f"Lagrangian enumeration is limited to {MAX_LAGRANGIAN_QUBITS} qubits"
         )
     width = 2 * num_qubits
-    subspaces: dict[tuple[int, ...], tuple[int, ...]] = {}
-    for candidate in combinations(range(1, 1 << width), num_qubits):
-        basis = _row_reduce(candidate, width)
-        if len(basis) != num_qubits:
-            continue
-        if any(
-            _symplectic_pairing(left, right, num_qubits)
-            for left, right in combinations(basis, 2)
-        ):
-            continue
-        elements = _span(basis)
-        subspaces.setdefault(elements, basis)
+    subspaces: list[Lagrangian] = []
+    for pivots in combinations(range(width), num_qubits):
+        pivot_set = set(pivots)
+        free_positions = tuple(
+            (row, column)
+            for row, pivot in enumerate(pivots)
+            for column in range(pivot + 1, width)
+            if column not in pivot_set
+        )
+        for assignment in range(1 << len(free_positions)):
+            basis = [1 << pivot for pivot in pivots]
+            for bit, (row, column) in enumerate(free_positions):
+                if assignment >> bit & 1:
+                    basis[row] |= 1 << column
+            basis_tuple = tuple(basis)
+            if any(
+                _symplectic_pairing(left, right, num_qubits)
+                for left, right in combinations(basis_tuple, 2)
+            ):
+                continue
+            subspaces.append(
+                Lagrangian(
+                    num_qubits=num_qubits,
+                    basis=tuple(_int_to_label(vector, width) for vector in basis_tuple),
+                    elements=tuple(
+                        _int_to_label(vector, width) for vector in _span(basis_tuple)
+                    ),
+                )
+            )
 
     expected = lagrangian_count(num_qubits)
     if len(subspaces) != expected:
         raise AssertionError(f"expected {expected} Lagrangians, found {len(subspaces)}")
-
-    return tuple(
-        Lagrangian(
-            num_qubits=num_qubits,
-            basis=tuple(_int_to_label(vector, width) for vector in basis),
-            elements=tuple(_int_to_label(vector, width) for vector in elements),
-        )
-        for elements, basis in sorted(subspaces.items())
-    )
+    return tuple(subspaces)
 
 
 def is_lagrangian(labels: tuple[PauliLabel, ...], num_qubits: int) -> bool:
@@ -160,4 +172,45 @@ def lagrangian_from_basis(
         num_qubits=num_qubits,
         basis=tuple(_int_to_label(vector, width) for vector in reduced),
         elements=tuple(_int_to_label(vector, width) for vector in _span(reduced)),
+    )
+
+
+def lagrangian_containing(
+    labels: Iterable[Sequence[int]],
+    num_qubits: int,
+) -> Lagrangian | None:
+    """Extend an isotropic label span to a Lagrangian, or return ``None``.
+
+    The extension scans binary Pauli labels and is intended for the package's
+    small-qubit discovery routines. It avoids enumerating every Lagrangian.
+    """
+
+    if num_qubits < 1:
+        raise ValueError("num_qubits must be positive")
+    width = 2 * num_qubits
+    normalized = tuple(tuple(label) for label in labels)
+    if any(
+        len(label) != width or any(bit not in (0, 1) for bit in label)
+        for label in normalized
+    ):
+        raise ValueError("labels must be binary Pauli labels of width 2n")
+    basis = list(_row_reduce(tuple(_label_to_int(label) for label in normalized), width))
+    if len(basis) > num_qubits or any(
+        _symplectic_pairing(left, right, num_qubits)
+        for left, right in combinations(basis, 2)
+    ):
+        return None
+
+    for candidate in range(1, 1 << width):
+        if len(basis) == num_qubits:
+            break
+        if any(_symplectic_pairing(candidate, existing, num_qubits) for existing in basis):
+            continue
+        if len(_row_reduce((*basis, candidate), width)) == len(basis) + 1:
+            basis.append(candidate)
+    if len(basis) != num_qubits:
+        raise AssertionError("failed to extend an isotropic subspace to a Lagrangian")
+    return lagrangian_from_basis(
+        tuple(_int_to_label(vector, width) for vector in basis),
+        num_qubits,
     )

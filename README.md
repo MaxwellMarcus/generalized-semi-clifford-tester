@@ -21,8 +21,9 @@ witness that can be independently recomputed.
 - Exact matrix arithmetic over \(\mathbb F_2\).
 - Construction of the standard binary symplectic form.
 - Validation of candidate symplectic matrices.
-- Exhaustive enumeration of the 3, 15, and 135 Lagrangians for one, two, and
-  three qubits.
+- Canonical RREF enumeration of the 3, 15, 135, and 2,295 Lagrangians for one
+  through four qubits; the dense numerical tester retains its three-qubit
+  default limit.
 - Dense Pauli matrices in a documented binary \((x\mid z)\) convention.
 - A bounded naïve GSC tester with `GSC`, `NOT_GSC`, and `UNKNOWN` outcomes.
 - Independently verifiable numerical witnesses.
@@ -128,13 +129,15 @@ result = run_gsc_witness_test(
 Candidate verification uses \(n\) circuits. Small-qubit discovery enumerates
 all input/output Lagrangians, but reuses each Pauli-conjugation experiment and
 only constructs circuits for Paulis appearing in the canonical input bases: 3,
-13, and 47 circuits for one, two, and three qubits, respectively.
+13, 47, and 165 circuits for one through four qubits, respectively. Exact-
+support cases construct the forced output Lagrangian directly; noisy cases fall
+back to exhaustive output-Lagrangian scoring.
 
 ## Roadmap
 
 1. Add an exact arithmetic backend for algebraic gate sets.
-2. Replace quadratic input/output-Lagrangian enumeration with a support-derived
-   output-subspace construction.
+2. Replace the noisy-data exhaustive output-Lagrangian fallback with a more
+   scalable support-aware optimization.
 3. Prove completeness/soundness bounds for the circuit-based semi-Clifford
    tester and replace exhaustive Pauli enumeration with sampling where possible.
 4. Add stabilizer-tableau and sparse Pauli-transfer representations.

@@ -17,6 +17,7 @@ from .lagrangian import (
     Lagrangian,
     PauliLabel,
     enumerate_lagrangians,
+    lagrangian_containing,
     lagrangian_from_basis,
 )
 from .semi_clifford_qiskit import (
@@ -104,14 +105,71 @@ def find_gsc_sampling_witness(
         raise ValueError("candidate Lagrangian collections must not be empty")
 
     best_leakage = 1.0
-    input_lagrangians_checked = 0
+    allowed_output_elements = {output.elements for output in outputs}
     candidate_pairs_checked = 0
+    eligible_inputs: list[
+        tuple[Lagrangian, tuple[PauliConjugationObservation, ...]]
+    ] = []
     for input_lagrangian in inputs:
         if any(label not in by_input for label in input_lagrangian.basis):
             continue
-        input_lagrangians_checked += 1
         basis_observations = tuple(by_input[label] for label in input_lagrangian.basis)
+        eligible_inputs.append((input_lagrangian, basis_observations))
+
+    # First try the output subspace forced by every outcome heavier than the
+    # entire allowed leakage budget. This reduces an exact-support search from
+    # all LxS pairs to at most one constructed S per input Lagrangian.
+    constructed_outputs: dict[tuple[PauliLabel, ...], Lagrangian | None] = {}
+    for input_index, (input_lagrangian, basis_observations) in enumerate(
+        eligible_inputs,
+        start=1,
+    ):
+        required_output_labels = {
+            label
+            for observation in basis_observations
+            for label, probability in output_pauli_probabilities(observation).items()
+            if probability > leakage_threshold
+        }
+        constructed_output = lagrangian_containing(
+            required_output_labels,
+            input_lagrangian.num_qubits,
+        )
+        constructed_outputs[input_lagrangian.elements] = constructed_output
+        if (
+            constructed_output is not None
+            and constructed_output.elements in allowed_output_elements
+        ):
+            candidate_pairs_checked += 1
+            leakage = max(
+                empirical_lagrangian_leakage(observation, constructed_output)
+                for observation in basis_observations
+            )
+            best_leakage = min(best_leakage, leakage)
+            if leakage <= leakage_threshold:
+                return (
+                    CircuitGSCWitness(
+                        input_lagrangian=input_lagrangian,
+                        output_lagrangian=constructed_output,
+                        maximum_empirical_leakage=leakage,
+                    ),
+                    best_leakage,
+                    input_index,
+                    candidate_pairs_checked,
+                )
+
+    # With noisy data, the forced heavy-label span may not determine the best
+    # output Lagrangian. Fall back to the complete candidate-pair search.
+    for input_index, (input_lagrangian, basis_observations) in enumerate(
+        eligible_inputs,
+        start=1,
+    ):
+        constructed_output = constructed_outputs[input_lagrangian.elements]
         for output_lagrangian in outputs:
+            if (
+                constructed_output is not None
+                and output_lagrangian.elements == constructed_output.elements
+            ):
+                continue
             if output_lagrangian.num_qubits != input_lagrangian.num_qubits:
                 raise ValueError("input and output Lagrangians must use the same qubit count")
             candidate_pairs_checked += 1
@@ -128,10 +186,10 @@ def find_gsc_sampling_witness(
                         maximum_empirical_leakage=leakage,
                     ),
                     best_leakage,
-                    input_lagrangians_checked,
+                    input_index,
                     candidate_pairs_checked,
                 )
-    return None, best_leakage, input_lagrangians_checked, candidate_pairs_checked
+    return None, best_leakage, len(eligible_inputs), candidate_pairs_checked
 
 
 def _unitary_num_qubits(unitary: Any) -> int:

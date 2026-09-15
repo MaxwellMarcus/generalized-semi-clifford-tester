@@ -13,6 +13,7 @@ from .lagrangian import (
     Lagrangian,
     PauliLabel,
     enumerate_lagrangians,
+    lagrangian_containing,
     lagrangian_count,
     lagrangian_from_basis,
 )
@@ -56,6 +57,7 @@ __all__ = [
     "identity",
     "is_symplectic",
     "lagrangian_count",
+    "lagrangian_containing",
     "lagrangian_from_basis",
     "matmul",
     "maximum_isotropic_dimension",

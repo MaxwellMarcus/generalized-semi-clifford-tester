@@ -123,10 +123,13 @@ probability mass outside \(S\); a candidate pair is accepted when the maximum
 generator leakage is below the configured threshold.
 
 Witness verification therefore needs only \(n\) circuits. Exhaustive discovery
-currently enumerates the 3, 15, or 135 possible Lagrangians on each side, but
-each required Pauli circuit is executed only once and reused. A future search
-should construct the output isotropic subspace directly from sampled supports,
-removing the quadratic Lagrangian-pair loop.
+enumerates the 3, 15, 135, or 2,295 input Lagrangians through four qubits, but
+each required Pauli circuit is executed only once and reused. For each input
+candidate, every output label carrying more probability than the total leakage
+budget is forced to lie in the output MASA. If their span is isotropic, the
+implementation extends it directly to an output Lagrangian and tests that one
+candidate first. It falls back to complete output-Lagrangian scoring only when
+finite-shot or noisy data does not yield a successful constructed candidate.
 
 ## Performance plan
 
