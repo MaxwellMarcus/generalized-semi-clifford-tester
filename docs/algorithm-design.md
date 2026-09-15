@@ -65,6 +65,19 @@ conjugates are again Pauli conjugates. The unitary \(U\) is semi-Clifford if
 and only if \(K_U\) contains an \(n\)-dimensional isotropic subspace. Such a
 subspace is automatically Lagrangian in \(\mathbb F_2^{2n}\).
 
+If \(B\) is a basis of \(K_U\), let \(G=BJB^\mathsf T\) be the restriction of
+the standard symplectic form. The maximum isotropic dimension inside \(K_U\)
+is
+
+\[
+\dim K_U-\frac{1}{2}\operatorname{rank}_{\mathbb F_2}(G).
+\]
+
+Thus exact data admits a polynomial-time containment test after \(K_U\) has
+been identified. The finite-shot implementation instead uses backtracking on
+individually accepted labels, because taking the span of a noisy accepted set
+could silently introduce untested Paulis.
+
 For each input Pauli \(P\), the Qiskit prototype:
 
 1. prepares \(n\) Bell pairs, giving a maximally entangled state \(|\Phi\rangle\);
@@ -86,6 +99,9 @@ independent and pairwise symplectically orthogonal.
 The implementation currently checks every nonidentity input Pauli and applies
 an empirical probability threshold. A full property tester still requires a
 promise formulation, concentration bounds, and completeness/soundness proofs.
+When a candidate input Lagrangian basis is already known, the witness-testing
+entry point checks it using only \(n\) conjugation circuits. Exhaustive discovery
+can submit circuits in configurable batches to accommodate sampler limits.
 
 ## Performance plan
 

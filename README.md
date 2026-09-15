@@ -73,7 +73,10 @@ criterion and scaling discussion.
 ```python
 from qiskit import QuantumCircuit
 
-from generalized_semi_clifford import run_semi_clifford_sampling_test
+from generalized_semi_clifford import (
+    run_semi_clifford_sampling_test,
+    run_semi_clifford_witness_test,
+)
 
 unitary = QuantumCircuit(2)
 unitary.h(0)
@@ -83,6 +86,10 @@ unitary.t(1)
 result = run_semi_clifford_sampling_test(unitary, shots=1024, seed=7)
 print(result.has_candidate_witness)
 print(result.witness)
+
+# If theory supplies a candidate input Lagrangian, verify it with only n circuits.
+candidate = ((1, 0, 0, 0), (0, 1, 0, 0))  # X on qubits 0 and 1
+verification = run_semi_clifford_witness_test(unitary, candidate, shots=1024)
 ```
 
 For every nonidentity Pauli \(P\), this prototype prepares the Choi state of
@@ -91,9 +98,10 @@ high-probability Pauli conjugates for \(n\) independent commuting input/output
 pairs. Such a basis is a candidate Lagrangian witness for semi-Cliffordness.
 
 This is a finite-shot experiment, not an exact proof or a completed property-
-testing theorem. It currently uses \(4^n-1\) circuits, so it is intended for
-small examples while the sampling strategy and statistical guarantees are
-developed.
+testing theorem. Exhaustive discovery uses \(4^n-1\) circuits, while checking a
+proposed Lagrangian basis uses only \(n\). Sampler jobs can be batched for
+backend limits. Negative results from a nonexhaustive input set are explicitly
+marked as incomplete.
 
 ## Roadmap
 

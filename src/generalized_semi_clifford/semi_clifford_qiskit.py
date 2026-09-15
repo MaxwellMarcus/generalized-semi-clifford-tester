@@ -15,6 +15,7 @@ from __future__ import annotations
 
 from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass
+from itertools import combinations
 from typing import Any
 
 from .lagrangian import PauliLabel
@@ -50,6 +51,7 @@ class SemiCliffordSamplingResult:
     pauli_probability_threshold: float
     observations: tuple[PauliConjugationObservation, ...]
     witness: SemiCliffordWitness | None
+    exhaustive_pauli_search: bool
 
     @property
     def has_candidate_witness(self) -> bool:
@@ -166,26 +168,44 @@ def build_semi_clifford_test_circuits(
     unitary: Any,
     *,
     unitary_dagger: Any | None = None,
+    input_paulis: Iterable[Sequence[int]] | None = None,
 ) -> tuple[tuple[PauliLabel, Any], ...]:
-    """Build one conjugation-test circuit for every nonidentity Pauli."""
+    """Build conjugation-test circuits for selected nonidentity Paulis.
+
+    If ``input_paulis`` is omitted, all ``4**n - 1`` nonidentity Paulis are
+    used. Repeated labels are removed while preserving input order.
+    """
 
     instruction = _as_instruction(unitary, name="unitary")
     num_qubits = instruction.num_qubits
     if num_qubits < 1:
         raise ValueError("unitary must act on at least one qubit")
+    if input_paulis is None:
+        labels = tuple(label for label in all_pauli_labels(num_qubits) if any(label))
+    else:
+        unique_labels: dict[PauliLabel, None] = {}
+        for candidate in input_paulis:
+            label = _validate_pauli_label(candidate)
+            if len(label) != 2 * num_qubits:
+                raise ValueError("input Pauli qubit count does not match the unitary")
+            if not any(label):
+                raise ValueError("the identity cannot contribute to a Lagrangian basis")
+            unique_labels.setdefault(label, None)
+        labels = tuple(unique_labels)
+        if not labels:
+            raise ValueError("input_paulis must contain at least one nonidentity Pauli")
     experiments = []
-    for label in all_pauli_labels(num_qubits):
-        if any(label):
-            experiments.append(
-                (
+    for label in labels:
+        experiments.append(
+            (
+                label,
+                build_pauli_conjugation_test_circuit(
+                    instruction,
                     label,
-                    build_pauli_conjugation_test_circuit(
-                        instruction,
-                        label,
-                        unitary_dagger=unitary_dagger,
-                    ),
-                )
+                    unitary_dagger=unitary_dagger,
+                ),
             )
+        )
     return tuple(experiments)
 
 
@@ -237,6 +257,42 @@ def _binary_rank(labels: Iterable[PauliLabel]) -> int:
         pivot_bit = 1 << (pivot.bit_length() - 1)
         rows = [row ^ pivot if row & pivot_bit else row for row in rows if row != pivot]
     return rank
+
+
+def maximum_isotropic_dimension(
+    labels: Iterable[Sequence[int]],
+    *,
+    num_qubits: int,
+) -> int:
+    """Return the largest isotropic dimension in the span of ``labels``.
+
+    This criterion is intended for an exact subspace such as ideal ``K_U``.
+    It must not be applied to a noisy accepted set whose span has not itself
+    been verified: taking that span could manufacture untested conjugations.
+    """
+
+    if num_qubits < 1:
+        raise ValueError("num_qubits must be positive")
+    normalized = tuple(_validate_pauli_label(label) for label in labels)
+    if any(len(label) != 2 * num_qubits for label in normalized):
+        raise ValueError("Pauli label width does not match num_qubits")
+
+    # Extract an independent basis greedily over F_2.
+    basis: list[PauliLabel] = []
+    for label in normalized:
+        if _binary_rank((*basis, label)) > len(basis):
+            basis.append(label)
+    dimension = len(basis)
+    if dimension == 0:
+        return 0
+
+    restricted_form = tuple(
+        tuple(symplectic_pairing(left, right) for right in basis) for left in basis
+    )
+    restricted_rank = _binary_rank(restricted_form)
+    if restricted_rank % 2:
+        raise AssertionError("an alternating bilinear form must have even rank")
+    return dimension - restricted_rank // 2
 
 
 def symplectic_pairing(left: Sequence[int], right: Sequence[int]) -> int:
@@ -325,6 +381,25 @@ def find_lagrangian_witness(
     )
 
 
+def _validate_input_lagrangian_basis(
+    input_basis: Iterable[Sequence[int]],
+    *,
+    num_qubits: int,
+) -> tuple[PauliLabel, ...]:
+    basis = tuple(_validate_pauli_label(label) for label in input_basis)
+    if len(basis) != num_qubits:
+        raise ValueError(f"a Lagrangian basis must contain exactly {num_qubits} labels")
+    if any(len(label) != 2 * num_qubits for label in basis):
+        raise ValueError("input basis Pauli width does not match the unitary")
+    if any(not any(label) for label in basis):
+        raise ValueError("a Lagrangian basis cannot contain the identity")
+    if _binary_rank(basis) != num_qubits:
+        raise ValueError("input basis Paulis must be linearly independent")
+    if any(symplectic_pairing(left, right) for left, right in combinations(basis, 2)):
+        raise ValueError("input basis Paulis must commute pairwise")
+    return basis
+
+
 def run_semi_clifford_sampling_test(
     unitary: Any,
     *,
@@ -333,22 +408,33 @@ def run_semi_clifford_sampling_test(
     shots: int = 1024,
     pauli_probability_threshold: float = 0.99,
     seed: int | None = None,
+    input_paulis: Iterable[Sequence[int]] | None = None,
+    batch_size: int | None = None,
 ) -> SemiCliffordSamplingResult:
-    """Run all Pauli conjugation circuits and search for a candidate witness.
+    """Run Pauli conjugation circuits and search for a candidate witness.
 
     ``sampler`` may be any Qiskit SamplerV2 implementation.  If omitted, the
-    local :class:`qiskit.primitives.StatevectorSampler` is used.
+    local :class:`qiskit.primitives.StatevectorSampler` is used. Omitting
+    ``input_paulis`` performs exhaustive discovery; passing selected labels is
+    an incomplete search unless they comprise every nonidentity Pauli.
     """
 
     if shots < 1:
         raise ValueError("shots must be positive")
     if not 0 < pauli_probability_threshold <= 1:
         raise ValueError("pauli_probability_threshold must lie in (0, 1]")
+    if batch_size is not None and batch_size < 1:
+        raise ValueError("batch_size must be positive")
     experiments = build_semi_clifford_test_circuits(
         unitary,
         unitary_dagger=unitary_dagger,
+        input_paulis=input_paulis,
     )
     num_qubits = len(experiments[0][0]) // 2
+    exhaustive_labels = {
+        label for label in all_pauli_labels(num_qubits) if any(label)
+    }
+    exhaustive_pauli_search = {label for label, _ in experiments} == exhaustive_labels
     if sampler is None:
         try:
             from qiskit.primitives import StatevectorSampler
@@ -358,11 +444,16 @@ def run_semi_clifford_sampling_test(
             ) from exc
         sampler = StatevectorSampler(seed=seed)
 
-    job_result = sampler.run([circuit for _, circuit in experiments], shots=shots).result()
-    observations = tuple(
-        bell_counts_to_observation(label, publication_result.data.bell.get_counts())
-        for (label, _), publication_result in zip(experiments, job_result, strict=True)
-    )
+    effective_batch_size = batch_size or len(experiments)
+    observations_list: list[PauliConjugationObservation] = []
+    for start in range(0, len(experiments), effective_batch_size):
+        batch = experiments[start : start + effective_batch_size]
+        job_result = sampler.run([circuit for _, circuit in batch], shots=shots).result()
+        observations_list.extend(
+            bell_counts_to_observation(label, publication_result.data.bell.get_counts())
+            for (label, _), publication_result in zip(batch, job_result, strict=True)
+        )
+    observations = tuple(observations_list)
     witness = find_lagrangian_witness(
         observations,
         num_qubits=num_qubits,
@@ -374,4 +465,33 @@ def run_semi_clifford_sampling_test(
         pauli_probability_threshold=pauli_probability_threshold,
         observations=observations,
         witness=witness,
+        exhaustive_pauli_search=exhaustive_pauli_search,
+    )
+
+
+def run_semi_clifford_witness_test(
+    unitary: Any,
+    input_basis: Iterable[Sequence[int]],
+    *,
+    unitary_dagger: Any | None = None,
+    sampler: Any | None = None,
+    shots: int = 1024,
+    pauli_probability_threshold: float = 0.99,
+    seed: int | None = None,
+) -> SemiCliffordSamplingResult:
+    """Test a proposed input Lagrangian using only ``n`` quantum circuits."""
+
+    instruction = _as_instruction(unitary, name="unitary")
+    basis = _validate_input_lagrangian_basis(
+        input_basis,
+        num_qubits=instruction.num_qubits,
+    )
+    return run_semi_clifford_sampling_test(
+        instruction,
+        unitary_dagger=unitary_dagger,
+        sampler=sampler,
+        shots=shots,
+        pauli_probability_threshold=pauli_probability_threshold,
+        seed=seed,
+        input_paulis=basis,
     )

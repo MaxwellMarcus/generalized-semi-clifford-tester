@@ -11,7 +11,9 @@ from generalized_semi_clifford.semi_clifford_qiskit import (  # noqa: E402
     bell_counts_to_observation,
     build_pauli_conjugation_test_circuit,
     find_lagrangian_witness,
+    maximum_isotropic_dimension,
     run_semi_clifford_sampling_test,
+    run_semi_clifford_witness_test,
     symplectic_pairing,
 )
 
@@ -51,6 +53,13 @@ def test_find_lagrangian_witness_requires_commuting_independent_pairs() -> None:
     assert len(witness.input_basis) == 2
 
 
+def test_maximum_isotropic_dimension_uses_restricted_symplectic_rank() -> None:
+    full_one_qubit_space = ((1, 0), (0, 1))
+    commuting_two_qubit_space = ((1, 0, 0, 0), (0, 1, 0, 0))
+    assert maximum_isotropic_dimension(full_one_qubit_space, num_qubits=1) == 1
+    assert maximum_isotropic_dimension(commuting_two_qubit_space, num_qubits=2) == 2
+
+
 def test_bell_counts_decode_x_and_z_coordinates() -> None:
     # For one qubit, Qiskit displays classical bits as xz.
     x_observation = bell_counts_to_observation((0, 1), {"10": 32})
@@ -80,6 +89,33 @@ def test_full_sampling_test_finds_identity_witness() -> None:
     assert result.has_candidate_witness
     assert result.witness is not None
     assert len(result.witness.input_basis) == 2
+    assert result.exhaustive_pauli_search
+
+
+def test_candidate_witness_test_uses_only_basis_circuits() -> None:
+    from qiskit import QuantumCircuit
+
+    identity = QuantumCircuit(2)
+    result = run_semi_clifford_witness_test(
+        identity,
+        ((1, 0, 0, 0), (0, 1, 0, 0)),
+        shots=16,
+        seed=5,
+    )
+    assert result.has_candidate_witness
+    assert len(result.observations) == 2
+    assert not result.exhaustive_pauli_search
+
+
+def test_candidate_witness_rejects_noncommuting_input_basis() -> None:
+    from qiskit import QuantumCircuit
+
+    identity = QuantumCircuit(2)
+    with pytest.raises(ValueError, match="commute"):
+        run_semi_clifford_witness_test(
+            identity,
+            ((1, 0, 0, 0), (0, 0, 1, 0)),
+        )
 
 
 def test_full_sampling_test_rejects_generic_single_qubit_rotation() -> None:

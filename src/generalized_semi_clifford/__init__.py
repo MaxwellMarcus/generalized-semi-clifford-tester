@@ -9,7 +9,9 @@ from .semi_clifford_qiskit import (
     build_pauli_conjugation_test_circuit,
     build_semi_clifford_test_circuits,
     find_lagrangian_witness,
+    maximum_isotropic_dimension,
     run_semi_clifford_sampling_test,
+    run_semi_clifford_witness_test,
     symplectic_pairing,
 )
 from .symplectic import identity, is_symplectic, matmul, standard_form, transpose
@@ -34,7 +36,9 @@ __all__ = [
     "is_symplectic",
     "lagrangian_count",
     "matmul",
+    "maximum_isotropic_dimension",
     "run_semi_clifford_sampling_test",
+    "run_semi_clifford_witness_test",
     "standard_form",
     "symplectic_pairing",
     "transpose",
