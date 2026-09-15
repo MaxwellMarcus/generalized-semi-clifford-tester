@@ -25,6 +25,7 @@ from .semi_clifford_qiskit import (
     bell_bitstring_to_pauli,
     run_semi_clifford_sampling_test,
 )
+from .statistics import binomial_proportion_upper_bound
 
 
 @dataclass(frozen=True)
@@ -49,12 +50,29 @@ class GSCSamplingResult:
     input_lagrangians_checked: int
     candidate_pairs_checked: int
     search_mode: str
+    confidence_level: float | None = None
+    maximum_leakage_upper_bound: float | None = None
 
     @property
     def has_candidate_witness(self) -> bool:
         """Return whether the sampled data supports a Pauli-MASA witness."""
 
         return self.witness is not None
+
+    @property
+    def has_confidence_certified_witness(self) -> bool:
+        """Return whether a fixed witness meets the threshold with confidence.
+
+        Certification is only available from :func:`run_gsc_witness_test`.
+        Discovery chooses a witness from the same samples and therefore needs
+        independent confirmation before this claim is statistically valid.
+        """
+
+        return (
+            self.witness is not None
+            and self.maximum_leakage_upper_bound is not None
+            and self.maximum_leakage_upper_bound <= self.leakage_threshold
+        )
 
 
 def output_pauli_probabilities(
@@ -85,6 +103,49 @@ def empirical_lagrangian_leakage(
         if label in allowed
     )
     return max(0.0, min(1.0, 1.0 - inside_probability))
+
+
+def lagrangian_leakage_upper_bound(
+    observations: Iterable[PauliConjugationObservation],
+    output_lagrangian: Lagrangian,
+    *,
+    confidence_level: float,
+) -> float:
+    """Bound every generator's leakage with familywise confidence.
+
+    Each generator is a binomial experiment whose event is an output label
+    outside ``output_lagrangian``.  One-sided exact Clopper--Pearson bounds are
+    combined with a Bonferroni correction.  Consequently, all returned
+    per-generator bounds hold simultaneously with probability at least
+    ``confidence_level`` for a witness fixed independently of these samples.
+    """
+
+    samples = tuple(observations)
+    if not samples:
+        raise ValueError("observations must not be empty")
+    if not 0 < confidence_level < 1:
+        raise ValueError("confidence_level must lie strictly between zero and one")
+    allowed = set(output_lagrangian.elements)
+    per_test_failure_probability = (1.0 - confidence_level) / len(samples)
+    per_test_confidence = 1.0 - per_test_failure_probability
+    bounds = []
+    for observation in samples:
+        if len(observation.input_pauli) != 2 * output_lagrangian.num_qubits:
+            raise ValueError("observation and output Lagrangian qubit counts differ")
+        outside_count = sum(
+            count
+            for bitstring, count in observation.counts
+            if bell_bitstring_to_pauli(bitstring, output_lagrangian.num_qubits)
+            not in allowed
+        )
+        bounds.append(
+            binomial_proportion_upper_bound(
+                outside_count,
+                observation.shots,
+                confidence_level=per_test_confidence,
+            )
+        )
+    return max(bounds)
 
 
 def find_gsc_sampling_witness(
@@ -259,9 +320,16 @@ def run_gsc_witness_test(
     sampler: Any | None = None,
     shots: int = 1024,
     leakage_threshold: float = 0.01,
+    confidence_level: float = 0.95,
     seed: int | None = None,
 ) -> GSCSamplingResult:
-    """Check a proposed GSC Pauli-MASA pair using only ``n`` circuits."""
+    """Check a fixed GSC Pauli-MASA pair using only ``n`` circuits.
+
+    In addition to the empirical decision, the result contains a simultaneous
+    one-sided confidence bound for the maximum generator leakage.  The bound
+    is statistically valid when the proposed witness was fixed independently
+    of these samples; use fresh samples after exploratory discovery.
+    """
 
     num_qubits = _unitary_num_qubits(unitary)
     input_lagrangian = lagrangian_from_basis(input_basis, num_qubits)
@@ -281,6 +349,11 @@ def run_gsc_witness_test(
         output_lagrangians=(output_lagrangian,),
         leakage_threshold=leakage_threshold,
     )
+    leakage_upper_bound = lagrangian_leakage_upper_bound(
+        sampling.observations,
+        output_lagrangian,
+        confidence_level=confidence_level,
+    )
     return GSCSamplingResult(
         num_qubits=num_qubits,
         shots_per_pauli=shots,
@@ -291,4 +364,6 @@ def run_gsc_witness_test(
         input_lagrangians_checked=inputs_checked,
         candidate_pairs_checked=pairs_checked,
         search_mode="candidate-witness-verification",
+        confidence_level=confidence_level,
+        maximum_leakage_upper_bound=leakage_upper_bound,
     )

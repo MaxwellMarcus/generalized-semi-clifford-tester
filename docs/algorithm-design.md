@@ -122,6 +122,14 @@ dense matrix. The empirical leakage for one generator is the measured
 probability mass outside \(S\); a candidate pair is accepted when the maximum
 generator leakage is below the configured threshold.
 
+For a witness fixed before collecting verification data, each generator's
+outside-support count is binomial. The implementation computes an exact
+one-sided Clopper--Pearson upper bound and applies a Bonferroni correction over
+the \(n\) generators. Thus all generator leakage bounds hold simultaneously at
+the requested familywise confidence level. This certifies an approximate
+fixed witness at the chosen leakage tolerance; it does not prove zero leakage
+or exact GSC membership from finitely many shots.
+
 Witness verification therefore needs only \(n\) circuits. Exhaustive discovery
 enumerates the 3, 15, 135, or 2,295 input Lagrangians through four qubits, but
 each required Pauli circuit is executed only once and reused. For each input
@@ -130,6 +138,10 @@ budget is forced to lie in the output MASA. If their span is isotropic, the
 implementation extends it directly to an output Lagrangian and tests that one
 candidate first. It falls back to complete output-Lagrangian scoring only when
 finite-shot or noisy data does not yield a successful constructed candidate.
+Because discovery selects a witness adaptively from the observed data, its
+samples do not receive the fixed-witness confidence interpretation. A candidate
+found during discovery must be verified on fresh samples (or analyzed with a
+separate multiple-testing correction).
 
 ## Performance plan
 

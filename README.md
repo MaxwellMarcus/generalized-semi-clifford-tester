@@ -115,15 +115,25 @@ whether the empirical Pauli support of each conjugated input generator stays
 inside the output Lagrangian:
 
 ```python
-from generalized_semi_clifford import run_gsc_witness_test
+from generalized_semi_clifford import run_gsc_witness_test, zero_event_shots_required
+
+shots = zero_event_shots_required(
+    0.01,
+    confidence_level=0.95,
+    simultaneous_tests=len(input_basis),
+)
 
 result = run_gsc_witness_test(
     unitary,
     input_basis,
     output_basis,
-    shots=2048,
+    shots=shots,
     leakage_threshold=0.01,
 )
+
+print(result.has_candidate_witness)
+print(result.maximum_leakage_upper_bound)
+print(result.has_confidence_certified_witness)
 ```
 
 Candidate verification uses \(n\) circuits. Small-qubit discovery enumerates
@@ -132,6 +142,13 @@ only constructs circuits for Paulis appearing in the canonical input bases: 3,
 13, 47, and 165 circuits for one through four qubits, respectively. Exact-
 support cases construct the forced output Lagrangian directly; noisy cases fall
 back to exhaustive output-Lagrangian scoring.
+
+Fixed-witness verification also reports an exact one-sided binomial upper
+bound on maximum leakage, Bonferroni-corrected across the `n` generators. This
+confidence statement is valid when the witness was chosen independently of
+the verification samples. After exploratory discovery, verify the returned
+witness with a fresh `run_gsc_witness_test` call; reusing the discovery samples
+would introduce selection bias.
 
 ## Roadmap
 
@@ -145,7 +162,8 @@ back to exhaustive output-Lagrangian scoring.
 6. Benchmark scaling and document practical complexity limits.
 
 See `docs/algorithm-design.md` for the acceptance criteria and proposed module
-boundaries.
+boundaries, and `docs/status-and-roadmap.md` for the current audit and
+prioritized work list.
 
 ## License and citation
 

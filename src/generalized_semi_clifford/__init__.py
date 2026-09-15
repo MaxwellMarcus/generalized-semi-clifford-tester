@@ -5,6 +5,7 @@ from .gsc_qiskit import (
     GSCSamplingResult,
     empirical_lagrangian_leakage,
     find_gsc_sampling_witness,
+    lagrangian_leakage_upper_bound,
     output_pauli_probabilities,
     run_gsc_sampling_test,
     run_gsc_witness_test,
@@ -31,6 +32,7 @@ from .semi_clifford_qiskit import (
     run_semi_clifford_witness_test,
     symplectic_pairing,
 )
+from .statistics import binomial_proportion_upper_bound, zero_event_shots_required
 from .symplectic import identity, is_symplectic, matmul, standard_form, transpose
 from .tester import GSCStatus, GSCWitness, NaiveGSCResult, check_gsc_naive, verify_gsc_witness
 
@@ -47,6 +49,7 @@ __all__ = [
     "SemiCliffordWitness",
     "bell_bitstring_to_pauli",
     "bell_counts_to_observation",
+    "binomial_proportion_upper_bound",
     "build_pauli_conjugation_test_circuit",
     "build_semi_clifford_test_circuits",
     "check_gsc_naive",
@@ -59,6 +62,7 @@ __all__ = [
     "lagrangian_count",
     "lagrangian_containing",
     "lagrangian_from_basis",
+    "lagrangian_leakage_upper_bound",
     "matmul",
     "maximum_isotropic_dimension",
     "output_pauli_probabilities",
@@ -70,5 +74,6 @@ __all__ = [
     "symplectic_pairing",
     "transpose",
     "verify_gsc_witness",
+    "zero_event_shots_required",
 ]
-__version__ = "0.3.0"
+__version__ = "0.4.0"

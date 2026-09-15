@@ -6,10 +6,36 @@ import pytest
 qiskit = pytest.importorskip("qiskit")
 
 from generalized_semi_clifford import (  # noqa: E402
+    binomial_proportion_upper_bound,
     run_gsc_sampling_test,
     run_gsc_witness_test,
     run_semi_clifford_sampling_test,
+    zero_event_shots_required,
 )
+
+
+def test_exact_binomial_upper_bound_for_zero_events() -> None:
+    bound = binomial_proportion_upper_bound(0, 100, confidence_level=0.95)
+    assert bound == pytest.approx(1.0 - 0.05 ** (1.0 / 100))
+
+
+def test_zero_event_shot_planner_meets_familywise_target() -> None:
+    shots = zero_event_shots_required(
+        0.01,
+        confidence_level=0.95,
+        simultaneous_tests=3,
+    )
+    per_test_confidence = 1.0 - 0.05 / 3
+    assert binomial_proportion_upper_bound(
+        0,
+        shots,
+        confidence_level=per_test_confidence,
+    ) <= 0.01
+    assert binomial_proportion_upper_bound(
+        0,
+        shots - 1,
+        confidence_level=per_test_confidence,
+    ) > 0.01
 
 
 def _permutation_circuit(permutation: list[int]):
@@ -33,6 +59,27 @@ def test_gsc_discovery_finds_identity_masas() -> None:
     assert result.witness is not None
     assert result.witness.maximum_empirical_leakage == 0.0
     assert result.search_mode == "exhaustive-lagrangian-discovery"
+    assert result.maximum_leakage_upper_bound is None
+    assert not result.has_confidence_certified_witness
+
+
+def test_fixed_identity_witness_gets_familywise_confidence_bound() -> None:
+    from qiskit import QuantumCircuit
+
+    identity = QuantumCircuit(2)
+    z_basis = ((0, 0, 1, 0), (0, 0, 0, 1))
+    result = run_gsc_witness_test(
+        identity,
+        z_basis,
+        z_basis,
+        shots=1024,
+        leakage_threshold=0.01,
+        confidence_level=0.95,
+        seed=4,
+    )
+    assert result.maximum_leakage_upper_bound is not None
+    assert result.maximum_leakage_upper_bound < 0.01
+    assert result.has_confidence_certified_witness
 
 
 def test_permutation_gate_has_diagonal_gsc_witness() -> None:
