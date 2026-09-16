@@ -75,6 +75,50 @@ class GSCSamplingResult:
         )
 
 
+@dataclass(frozen=True)
+class GSCDiscoveryVerificationResult:
+    """Separate exploratory discovery from fixed-witness verification.
+
+    ``discovery`` and ``verification`` always come from distinct sampler runs.
+    The verification result is absent when discovery finds no candidate. Shot
+    costs count all circuit executions in each phase.
+    """
+
+    discovery: GSCSamplingResult
+    verification: GSCSamplingResult | None
+    discovery_shot_cost: int
+    verification_shot_cost: int
+
+    def __post_init__(self) -> None:
+        expected_discovery_cost = sum(
+            observation.shots for observation in self.discovery.observations
+        )
+        expected_verification_cost = (
+            0
+            if self.verification is None
+            else sum(observation.shots for observation in self.verification.observations)
+        )
+        if self.discovery_shot_cost != expected_discovery_cost:
+            raise ValueError("discovery_shot_cost must match the discovery observations")
+        if self.verification_shot_cost != expected_verification_cost:
+            raise ValueError("verification_shot_cost must match the verification observations")
+
+    @property
+    def has_discovered_candidate(self) -> bool:
+        """Whether the exploratory phase selected a candidate witness."""
+
+        return self.discovery.has_candidate_witness
+
+    @property
+    def has_confidence_certified_witness(self) -> bool:
+        """Whether fresh verification certified the selected fixed witness."""
+
+        return (
+            self.verification is not None
+            and self.verification.has_confidence_certified_witness
+        )
+
+
 def output_pauli_probabilities(
     observation: PauliConjugationObservation,
 ) -> dict[PauliLabel, float]:
@@ -366,4 +410,62 @@ def run_gsc_witness_test(
         search_mode="candidate-witness-verification",
         confidence_level=confidence_level,
         maximum_leakage_upper_bound=leakage_upper_bound,
+    )
+
+
+def run_gsc_discovery_then_verification(
+    unitary: Any,
+    *,
+    unitary_dagger: Any | None = None,
+    discovery_sampler: Any | None = None,
+    verification_sampler: Any | None = None,
+    discovery_shots: int = 1024,
+    verification_shots: int = 1024,
+    leakage_threshold: float = 0.01,
+    confidence_level: float = 0.95,
+    discovery_seed: int | None = None,
+    verification_seed: int | None = None,
+    discovery_batch_size: int | None = None,
+) -> GSCDiscoveryVerificationResult:
+    """Discover a GSC candidate, then verify it using a fresh sampler run.
+
+    The exploratory counts are used only to choose a candidate. When one is
+    found, its bases are passed to :func:`run_gsc_witness_test`, which obtains
+    new counts and applies the fixed-witness confidence bound. Custom samplers
+    must likewise return new observations on each ``run`` call.
+    """
+
+    discovery = run_gsc_sampling_test(
+        unitary,
+        unitary_dagger=unitary_dagger,
+        sampler=discovery_sampler,
+        shots=discovery_shots,
+        leakage_threshold=leakage_threshold,
+        seed=discovery_seed,
+        batch_size=discovery_batch_size,
+    )
+    verification = None
+    if discovery.witness is not None:
+        verification = run_gsc_witness_test(
+            unitary,
+            discovery.witness.input_lagrangian.basis,
+            discovery.witness.output_lagrangian.basis,
+            unitary_dagger=unitary_dagger,
+            sampler=verification_sampler,
+            shots=verification_shots,
+            leakage_threshold=leakage_threshold,
+            confidence_level=confidence_level,
+            seed=verification_seed,
+        )
+    return GSCDiscoveryVerificationResult(
+        discovery=discovery,
+        verification=verification,
+        discovery_shot_cost=sum(
+            observation.shots for observation in discovery.observations
+        ),
+        verification_shot_cost=(
+            0
+            if verification is None
+            else sum(observation.shots for observation in verification.observations)
+        ),
     )

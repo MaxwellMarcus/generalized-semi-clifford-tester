@@ -146,9 +146,29 @@ back to exhaustive output-Lagrangian scoring.
 Fixed-witness verification also reports an exact one-sided binomial upper
 bound on maximum leakage, Bonferroni-corrected across the `n` generators. This
 confidence statement is valid when the witness was chosen independently of
-the verification samples. After exploratory discovery, verify the returned
-witness with a fresh `run_gsc_witness_test` call; reusing the discovery samples
-would introduce selection bias.
+the verification samples. After exploratory discovery, verification must use
+fresh samples; reusing the discovery counts would introduce selection bias.
+The convenience workflow enforces this separation and reports each phase's
+total shot cost:
+
+```python
+from generalized_semi_clifford import run_gsc_discovery_then_verification
+
+result = run_gsc_discovery_then_verification(
+    unitary,
+    discovery_shots=256,
+    verification_shots=2048,
+    leakage_threshold=0.01,
+    confidence_level=0.95,
+)
+print(result.discovery_shot_cost, result.verification_shot_cost)
+print(result.has_confidence_certified_witness)
+```
+
+The discovery phase may select a candidate but never receives a confidence
+claim. Only the separate verification run can set
+`has_confidence_certified_witness`; a failed verification is evidence against
+that candidate rather than a general non-GSC conclusion.
 
 ## Roadmap
 

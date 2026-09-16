@@ -1,6 +1,6 @@
 # Status and roadmap
 
-Last audited: 2026-09-15.
+Last audited: 2026-09-16.
 
 ## What works now
 
@@ -42,8 +42,8 @@ The key conceptual distinction is now represented in the API:
   confidence bound for a target leakage and confidence level.
 - [ ] Formalize the tolerant testing promise and prove completeness/soundness
   for fixed-witness verification.
-- [ ] Design statistically valid discovery: use held-out verification samples
-  or account for adaptive multiple testing.
+- [x] Provide discovery followed by held-out fixed-witness verification, with
+  separate results and shot accounting for both phases.
 
 ### P1: improve the algorithm rather than only brute force
 

@@ -2,11 +2,13 @@
 
 from .gsc_qiskit import (
     CircuitGSCWitness,
+    GSCDiscoveryVerificationResult,
     GSCSamplingResult,
     empirical_lagrangian_leakage,
     find_gsc_sampling_witness,
     lagrangian_leakage_upper_bound,
     output_pauli_probabilities,
+    run_gsc_discovery_then_verification,
     run_gsc_sampling_test,
     run_gsc_witness_test,
 )
@@ -38,6 +40,7 @@ from .tester import GSCStatus, GSCWitness, NaiveGSCResult, check_gsc_naive, veri
 
 __all__ = [
     "CircuitGSCWitness",
+    "GSCDiscoveryVerificationResult",
     "GSCStatus",
     "GSCSamplingResult",
     "GSCWitness",
@@ -66,6 +69,7 @@ __all__ = [
     "matmul",
     "maximum_isotropic_dimension",
     "output_pauli_probabilities",
+    "run_gsc_discovery_then_verification",
     "run_gsc_sampling_test",
     "run_gsc_witness_test",
     "run_semi_clifford_sampling_test",

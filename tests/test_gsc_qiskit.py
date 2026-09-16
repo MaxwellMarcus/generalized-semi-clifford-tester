@@ -7,6 +7,7 @@ qiskit = pytest.importorskip("qiskit")
 
 from generalized_semi_clifford import (  # noqa: E402
     binomial_proportion_upper_bound,
+    run_gsc_discovery_then_verification,
     run_gsc_sampling_test,
     run_gsc_witness_test,
     run_semi_clifford_sampling_test,
@@ -80,6 +81,61 @@ def test_fixed_identity_witness_gets_familywise_confidence_bound() -> None:
     assert result.maximum_leakage_upper_bound is not None
     assert result.maximum_leakage_upper_bound < 0.01
     assert result.has_confidence_certified_witness
+
+
+def test_discovery_then_verification_uses_fresh_samples_and_reports_costs() -> None:
+    from qiskit import QuantumCircuit
+
+    result = run_gsc_discovery_then_verification(
+        QuantumCircuit(2),
+        discovery_shots=32,
+        verification_shots=1024,
+        leakage_threshold=0.01,
+        confidence_level=0.95,
+        discovery_seed=4,
+        verification_seed=5,
+        discovery_batch_size=4,
+    )
+
+    assert result.has_discovered_candidate
+    assert result.verification is not None
+    assert result.has_confidence_certified_witness
+    assert result.discovery.search_mode == "exhaustive-lagrangian-discovery"
+    assert result.verification.search_mode == "candidate-witness-verification"
+    assert result.discovery.observations is not result.verification.observations
+    assert result.discovery_shot_cost == 13 * 32
+    assert result.verification_shot_cost == 2 * 1024
+
+
+def test_discovery_then_verification_keeps_rejected_candidate_without_claim(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from qiskit import QuantumCircuit
+
+    import generalized_semi_clifford.gsc_qiskit as gsc_qiskit
+
+    original_verification = gsc_qiskit.run_gsc_witness_test
+
+    def reject_with_wrong_output(unitary, input_basis, output_basis, **kwargs):
+        del output_basis
+        z_basis = ((0, 0, 1, 0), (0, 0, 0, 1))
+        return original_verification(unitary, input_basis, z_basis, **kwargs)
+
+    monkeypatch.setattr(gsc_qiskit, "run_gsc_witness_test", reject_with_wrong_output)
+    result = run_gsc_discovery_then_verification(
+        QuantumCircuit(2),
+        discovery_shots=16,
+        verification_shots=64,
+        leakage_threshold=0.01,
+        discovery_seed=2,
+        verification_seed=3,
+    )
+
+    assert result.has_discovered_candidate
+    assert result.verification is not None
+    assert not result.verification.has_candidate_witness
+    assert not result.has_confidence_certified_witness
+    assert result.verification_shot_cost == 2 * 64
 
 
 def test_permutation_gate_has_diagonal_gsc_witness() -> None:

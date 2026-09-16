@@ -143,6 +143,12 @@ samples do not receive the fixed-witness confidence interpretation. A candidate
 found during discovery must be verified on fresh samples (or analyzed with a
 separate multiple-testing correction).
 
+`run_gsc_discovery_then_verification` makes that split explicit. It performs
+two sampler runs, retains both results, and reports the discovery and
+verification shot costs separately. Discovery counts are never passed into the
+fixed-witness bound. Independence still relies on the supplied backend or
+custom samplers producing fresh observations for successive jobs.
+
 ## Performance plan
 
 Start with transparent exhaustive algorithms at small qubit counts. Add optimized

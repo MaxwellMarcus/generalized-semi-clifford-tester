@@ -1,6 +1,6 @@
 # Running TODO — Generalized Semi-Clifford Tester
 
-Last updated: 2026-09-15
+Last updated: 2026-09-16
 
 This is the operational queue for incremental development. Keep
 `docs/status-and-roadmap.md` as the higher-level scientific roadmap. Each
@@ -9,20 +9,12 @@ one coherent unit.
 
 ## Current focus
 
-- [ ] **Add held-out verification after GSC discovery.** Separate exploratory
-  discovery shots from fresh verification shots so an adaptively selected
-  witness can receive the existing fixed-witness confidence guarantee.
-  Acceptance criteria:
-  - expose an explicit discovery-then-verification API;
-  - never reuse discovery counts for the confidence claim;
-  - report discovery and verification shot costs separately;
-  - cover acceptance and rejection paths with deterministic tests;
-  - document exactly what the confidence statement does and does not prove.
+- [ ] **Add unit tests for every validation branch in `statistics.py`.** Cover
+  all-leakage observations and invalid confidence/shot-planning arguments with
+  focused deterministic cases.
 
 ## Next
 
-- [ ] Add unit tests for every validation branch in `statistics.py`, including
-  all-leakage observations and invalid confidence/shot-planning arguments.
 - [ ] Add benchmark tooling that records qubits, Lagrangian count, circuits,
   shots, candidate pairs, classical runtime, and peak memory.
 - [ ] Add analytically justified fixtures for GSC, semi-Clifford,
@@ -52,6 +44,8 @@ one coherent unit.
 
 ## Completed
 
+- [x] 2026-09-16 — Add discovery followed by fresh fixed-witness verification,
+  including separate shot costs and explicit acceptance/rejection results.
 - [x] 2026-09-15 — Add fixed-witness Clopper–Pearson leakage bounds with a
   familywise correction across generators.
 - [x] 2026-09-15 — Add zero-event shot planning for a target leakage and
