@@ -1,6 +1,6 @@
 # Running TODO — Generalized Semi-Clifford Tester
 
-Last updated: 2026-09-16
+Last updated: 2026-09-17
 
 This is the operational queue for incremental development. Keep
 `docs/status-and-roadmap.md` as the higher-level scientific roadmap. Each
@@ -9,14 +9,12 @@ one coherent unit.
 
 ## Current focus
 
-- [ ] **Add unit tests for every validation branch in `statistics.py`.** Cover
-  all-leakage observations and invalid confidence/shot-planning arguments with
-  focused deterministic cases.
+- [ ] **Add benchmark tooling that records qubits, Lagrangian count, circuits,
+  shots, candidate pairs, classical runtime, and peak memory.** Start with a
+  reproducible small-qubit JSON record and regression-test its schema.
 
 ## Next
 
-- [ ] Add benchmark tooling that records qubits, Lagrangian count, circuits,
-  shots, candidate pairs, classical runtime, and peak memory.
 - [ ] Add analytically justified fixtures for GSC, semi-Clifford,
   GSC-but-not-semi-Clifford, and deliberately wrong witnesses.
 - [ ] Replace the noisy all-pairs output-Lagrangian fallback with a
@@ -44,6 +42,8 @@ one coherent unit.
 
 ## Completed
 
+- [x] 2026-09-17 — Cover every validation branch in `statistics.py`, including
+  all-leakage observations and invalid confidence and shot-planning inputs.
 - [x] 2026-09-16 — Add discovery followed by fresh fixed-witness verification,
   including separate shot costs and explicit acceptance/rejection results.
 - [x] 2026-09-15 — Add fixed-witness Clopper–Pearson leakage bounds with a
