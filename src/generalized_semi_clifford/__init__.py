@@ -1,5 +1,12 @@
 """Foundational tools for generalized semi-Clifford analysis."""
 
+from .benchmarking import (
+    GSC_BENCHMARK_SCHEMA,
+    GSCBenchmarkRecord,
+    GSCBenchmarkRun,
+    build_gsc_benchmark_record,
+    run_gsc_sampling_benchmark,
+)
 from .gsc_qiskit import (
     CircuitGSCWitness,
     GSCDiscoveryVerificationResult,
@@ -40,6 +47,9 @@ from .tester import GSCStatus, GSCWitness, NaiveGSCResult, check_gsc_naive, veri
 
 __all__ = [
     "CircuitGSCWitness",
+    "GSC_BENCHMARK_SCHEMA",
+    "GSCBenchmarkRecord",
+    "GSCBenchmarkRun",
     "GSCDiscoveryVerificationResult",
     "GSCStatus",
     "GSCSamplingResult",
@@ -55,6 +65,7 @@ __all__ = [
     "binomial_proportion_upper_bound",
     "build_pauli_conjugation_test_circuit",
     "build_semi_clifford_test_circuits",
+    "build_gsc_benchmark_record",
     "check_gsc_naive",
     "empirical_lagrangian_leakage",
     "enumerate_lagrangians",
@@ -71,6 +82,7 @@ __all__ = [
     "output_pauli_probabilities",
     "run_gsc_discovery_then_verification",
     "run_gsc_sampling_test",
+    "run_gsc_sampling_benchmark",
     "run_gsc_witness_test",
     "run_semi_clifford_sampling_test",
     "run_semi_clifford_witness_test",

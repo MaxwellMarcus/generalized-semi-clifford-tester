@@ -1,6 +1,6 @@
 # Running TODO — Generalized Semi-Clifford Tester
 
-Last updated: 2026-09-17
+Last updated: 2026-09-18
 
 This is the operational queue for incremental development. Keep
 `docs/status-and-roadmap.md` as the higher-level scientific roadmap. Each
@@ -9,9 +9,9 @@ one coherent unit.
 
 ## Current focus
 
-- [ ] **Add benchmark tooling that records qubits, Lagrangian count, circuits,
-  shots, candidate pairs, classical runtime, and peak memory.** Start with a
-  reproducible small-qubit JSON record and regression-test its schema.
+- [ ] **Extend benchmark records with circuit depth and checked-in multi-qubit
+  baselines.** Keep machine-dependent timing and memory separate from exact
+  operation counts.
 
 ## Next
 
@@ -42,6 +42,9 @@ one coherent unit.
 
 ## Completed
 
+- [x] 2026-09-18 — Add a reproducible one-qubit benchmark runner and versioned
+  JSON schema for Lagrangians, circuits, shots, candidate pairs, runtime, and
+  Python peak memory.
 - [x] 2026-09-17 — Cover every validation branch in `statistics.py`, including
   all-leakage observations and invalid confidence and shot-planning inputs.
 - [x] 2026-09-16 — Add discovery followed by fresh fixed-witness verification,

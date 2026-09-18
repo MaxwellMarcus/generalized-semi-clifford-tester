@@ -1,6 +1,6 @@
 # Status and roadmap
 
-Last audited: 2026-09-16.
+Last audited: 2026-09-18.
 
 ## What works now
 
@@ -11,6 +11,7 @@ Last audited: 2026-09-16.
 | Semi-Clifford circuits | Bell-sampling conjugation circuits, exhaustive discovery, and `n`-circuit candidate verification | Finite-shot candidate evidence; exhaustive discovery uses `4**n - 1` circuits |
 | GSC circuits | Full sampled Pauli-support decoding, exhaustive discovery, and `n`-circuit fixed-witness verification | Discovery through 4 qubits; support-aware fast path with an exhaustive noisy fallback |
 | Statistics | Exact one-sided binomial leakage bounds with familywise confidence for a fixed GSC witness | Valid for a witness fixed independently of the verification samples |
+| Benchmark records | Versioned JSON for qubits, Lagrangians, circuits, shots, candidate pairs, wall time, and Python peak memory | Reproducible workload; runtime and memory remain machine-dependent measurements |
 
 The key conceptual distinction is now represented in the API:
 
@@ -52,8 +53,9 @@ The key conceptual distinction is now represented in the API:
 - [ ] Add a sparse Pauli-transfer representation and compare it with Bell
   sampling on simulated circuits.
 - [ ] Add a stabilizer-tableau path for Clifford-heavy circuits.
-- [ ] Separate and benchmark circuit count, circuit depth, shots, classical
-  runtime, and memory.
+- [ ] Add circuit-depth recording and multi-qubit benchmark baselines; the
+  version-one small-qubit record already captures counts, shots, runtime, and
+  Python peak memory.
 
 ### P2: broaden evidence and usability
 

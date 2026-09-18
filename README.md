@@ -170,6 +170,14 @@ claim. Only the separate verification run can set
 `has_confidence_certified_witness`; a failed verification is evidence against
 that candidate rather than a general non-GSC conclusion.
 
+For measured small-qubit scaling records, `run_gsc_sampling_benchmark` wraps a
+discovery run and emits a versioned JSON record containing the qubit and
+Lagrangian counts, circuits, shots, candidate pairs, elapsed host time, and
+Python-managed peak memory. The fixed one-qubit workload in
+`examples/benchmark_gsc.py` can be rerun with `python examples/benchmark_gsc.py`.
+Runtime includes sampling and post-processing, and peak memory uses
+`tracemalloc`; neither field is a hardware-independent complexity claim.
+
 ## Roadmap
 
 1. Add an exact arithmetic backend for algebraic gate sets.
