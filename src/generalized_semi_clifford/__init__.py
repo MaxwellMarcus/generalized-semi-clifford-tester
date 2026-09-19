@@ -2,8 +2,10 @@
 
 from .benchmarking import (
     GSC_BENCHMARK_SCHEMA,
+    GSCBenchmarkMeasurements,
     GSCBenchmarkRecord,
     GSCBenchmarkRun,
+    GSCBenchmarkWorkload,
     build_gsc_benchmark_record,
     run_gsc_sampling_benchmark,
 )
@@ -48,8 +50,10 @@ from .tester import GSCStatus, GSCWitness, NaiveGSCResult, check_gsc_naive, veri
 __all__ = [
     "CircuitGSCWitness",
     "GSC_BENCHMARK_SCHEMA",
+    "GSCBenchmarkMeasurements",
     "GSCBenchmarkRecord",
     "GSCBenchmarkRun",
+    "GSCBenchmarkWorkload",
     "GSCDiscoveryVerificationResult",
     "GSCStatus",
     "GSCSamplingResult",

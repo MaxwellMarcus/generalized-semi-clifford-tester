@@ -1,6 +1,6 @@
 # Running TODO — Generalized Semi-Clifford Tester
 
-Last updated: 2026-09-18
+Last updated: 2026-09-19
 
 This is the operational queue for incremental development. Keep
 `docs/status-and-roadmap.md` as the higher-level scientific roadmap. Each
@@ -9,14 +9,12 @@ one coherent unit.
 
 ## Current focus
 
-- [ ] **Extend benchmark records with circuit depth and checked-in multi-qubit
-  baselines.** Keep machine-dependent timing and memory separate from exact
-  operation counts.
+- [ ] **Add analytically justified fixtures for GSC, semi-Clifford,
+  GSC-but-not-semi-Clifford, and deliberately wrong witnesses.** Start with
+  independently checkable one- and two-qubit families.
 
 ## Next
 
-- [ ] Add analytically justified fixtures for GSC, semi-Clifford,
-  GSC-but-not-semi-Clifford, and deliberately wrong witnesses.
 - [ ] Replace the noisy all-pairs output-Lagrangian fallback with a
   support-aware candidate search and compare it against exhaustive scoring.
 - [ ] Add a sparse Pauli-transfer representation with dense cross-checks for
@@ -42,6 +40,9 @@ one coherent unit.
 
 ## Completed
 
+- [x] 2026-09-19 — Separate exact benchmark workload metrics from host
+  measurements, record source-circuit depth and operation counts, and check in
+  reproducible one- and two-qubit identity baselines.
 - [x] 2026-09-18 — Add a reproducible one-qubit benchmark runner and versioned
   JSON schema for Lagrangians, circuits, shots, candidate pairs, runtime, and
   Python peak memory.

@@ -172,11 +172,16 @@ that candidate rather than a general non-GSC conclusion.
 
 For measured small-qubit scaling records, `run_gsc_sampling_benchmark` wraps a
 discovery run and emits a versioned JSON record containing the qubit and
-Lagrangian counts, circuits, shots, candidate pairs, elapsed host time, and
-Python-managed peak memory. The fixed one-qubit workload in
+Lagrangian counts, circuits, shots, candidate pairs, exact untranspiled source-
+circuit depth and operation counts, elapsed host time, and Python-managed peak
+memory. Exact workload fields and machine-dependent measurements are separate
+objects in the version-two schema. The checked-in one- and two-qubit identity
+workloads in `benchmarks/identity-small-qubits.json` are regression baselines;
+they intentionally omit runtime and memory. The fixed one-qubit workload in
 `examples/benchmark_gsc.py` can be rerun with `python examples/benchmark_gsc.py`.
 Runtime includes sampling and post-processing, and peak memory uses
-`tracemalloc`; neither field is a hardware-independent complexity claim.
+`tracemalloc`; neither field is a hardware-independent complexity claim. The
+source depth is pre-transpilation circuit structure, not a hardware depth.
 
 ## Roadmap
 

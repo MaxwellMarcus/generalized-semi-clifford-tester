@@ -1,0 +1,53 @@
+{
+  "baselines": [
+    {
+      "candidate_pairs_checked": 1,
+      "circuits_executed": 3,
+      "lagrangian_count": 3,
+      "num_qubits": 1,
+      "shots_per_circuit": 8,
+      "source_circuit_depth_histogram": {
+        "8": 3
+      },
+      "source_circuit_depth_max": 8,
+      "source_circuit_depth_total": 24,
+      "source_operation_counts": {
+        "cx": 6,
+        "h": 6,
+        "measure": 6,
+        "queried_unitary": 3,
+        "queried_unitary_dagger": 3,
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "total_shots": 24
+    },
+    {
+      "candidate_pairs_checked": 1,
+      "circuits_executed": 13,
+      "lagrangian_count": 15,
+      "num_qubits": 2,
+      "shots_per_circuit": 8,
+      "source_circuit_depth_histogram": {
+        "8": 13
+      },
+      "source_circuit_depth_max": 8,
+      "source_circuit_depth_total": 104,
+      "source_operation_counts": {
+        "cx": 52,
+        "h": 52,
+        "measure": 52,
+        "queried_unitary": 13,
+        "queried_unitary_dagger": 13,
+        "x": 7,
+        "y": 5,
+        "z": 8
+      },
+      "total_shots": 104
+    }
+  ],
+  "schema": "generalized-semi-clifford/gsc-workload-baselines-v1",
+  "seed": 7,
+  "unitary": "identity"
+}
