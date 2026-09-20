@@ -1,6 +1,6 @@
 # Running TODO — Generalized Semi-Clifford Tester
 
-Last updated: 2026-09-19
+Last updated: 2026-09-20
 
 This is the operational queue for incremental development. Keep
 `docs/status-and-roadmap.md` as the higher-level scientific roadmap. Each
@@ -9,9 +9,10 @@ one coherent unit.
 
 ## Current focus
 
-- [ ] **Add analytically justified fixtures for GSC, semi-Clifford,
-  GSC-but-not-semi-Clifford, and deliberately wrong witnesses.** Start with
-  independently checkable one- and two-qubit families.
+- [ ] **Add an analytically justified GSC-but-not-semi-Clifford fixture.**
+  Establish the minimal qubit count, state the exact argument independently
+  of the numerical tester, and include a deliberately wrong classification
+  check.
 
 ## Next
 
@@ -40,6 +41,9 @@ one coherent unit.
 
 ## Completed
 
+- [x] 2026-09-20 — Add parameterized one- and two-qubit semi-Clifford/GSC
+  fixture families, a provable one-qubit non-GSC rotation, and deliberately
+  wrong Pauli-MASA witnesses.
 - [x] 2026-09-19 — Separate exact benchmark workload metrics from host
   measurements, record source-circuit depth and operation counts, and check in
   reproducible one- and two-qubit identity baselines.

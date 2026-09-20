@@ -27,6 +27,8 @@ witness that can be independently recomputed.
 - Dense Pauli matrices in a documented binary \((x\mid z)\) convention.
 - A bounded naïve GSC tester with `GSC`, `NOT_GSC`, and `UNKNOWN` outcomes.
 - Independently verifiable numerical witnesses.
+- Analytically justified one- and two-qubit fixture families, including
+  explicit valid and deliberately invalid Pauli-MASA witnesses.
 - An experimental Qiskit semi-Clifford tester based on Pauli-conjugation
   circuits and Bell-basis sampling.
 - Qiskit GSC discovery and \(n\)-circuit candidate-witness verification based
@@ -67,6 +69,24 @@ print(result.status, result.best_leakage)
 assert result.witness is not None
 assert verify_gsc_witness(t_gate, result.witness)
 ```
+
+The reusable fixture catalog keeps its mathematical claim separate from the
+floating-point check. It includes arbitrary one-qubit phase gates and
+two-qubit controlled-phase gates with fixed-Z witnesses, plus a one-qubit
+rotation whose Bloch action has three nonzero Pauli coefficients in every
+column and is therefore not GSC:
+
+```python
+from generalized_semi_clifford import analytic_gsc_fixtures
+
+for fixture in analytic_gsc_fixtures():
+    result = check_gsc_naive(fixture.unitary)
+    assert result.status is fixture.expected_status
+```
+
+These fixtures support regression testing; their concise algebraic
+justifications do not turn the package's floating-point result into an exact
+symbolic proof.
 
 The default three-qubit limit is a complexity guard, not a mathematical
 restriction on the definition. See `docs/algorithm-design.md` for the exact

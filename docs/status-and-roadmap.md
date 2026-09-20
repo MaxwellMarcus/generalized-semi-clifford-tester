@@ -1,6 +1,6 @@
 # Status and roadmap
 
-Last audited: 2026-09-19.
+Last audited: 2026-09-20.
 
 ## What works now
 
@@ -12,6 +12,7 @@ Last audited: 2026-09-19.
 | GSC circuits | Full sampled Pauli-support decoding, exhaustive discovery, and `n`-circuit fixed-witness verification | Discovery through 4 qubits; support-aware fast path with an exhaustive noisy fallback |
 | Statistics | Exact one-sided binomial leakage bounds with familywise confidence for a fixed GSC witness | Valid for a witness fixed independently of the verification samples |
 | Benchmark records | Versioned JSON separates exact source-circuit depth/operation counts from wall time and Python peak memory | Checked-in identity workloads cover one and two qubits; depth is pre-transpilation, while runtime and memory remain machine-dependent |
+| Analytic fixtures | Parameterized phase and controlled-phase families, a one-qubit non-GSC rotation, and rejected witnesses | GSC-but-not-semi-Clifford still needs a separately justified higher-qubit fixture |
 
 The key conceptual distinction is now represented in the API:
 
@@ -58,8 +59,9 @@ The key conceptual distinction is now represented in the API:
 
 ### P2: broaden evidence and usability
 
-- [ ] Add analytically derived GSC, semi-Clifford, non-semi-Clifford, and
-  non-GSC fixture families rather than isolated examples.
+- [ ] Add an analytically derived GSC-but-not-semi-Clifford fixture; one- and
+  two-qubit positive families, a one-qubit negative, and wrong witnesses are
+  already covered.
 - [ ] Demonstrate transpilation and execution against an IBM-compatible noisy
   backend or noise model.
 - [ ] Add an exact or symbolic backend for algebraic gate sets.

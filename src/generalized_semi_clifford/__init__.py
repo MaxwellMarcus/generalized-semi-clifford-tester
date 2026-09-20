@@ -1,5 +1,12 @@
 """Foundational tools for generalized semi-Clifford analysis."""
 
+from .analytic_fixtures import (
+    AnalyticGSCFixture,
+    analytic_gsc_fixtures,
+    one_qubit_equal_axis_rotation_fixture,
+    one_qubit_phase_fixture,
+    two_qubit_controlled_phase_fixture,
+)
 from .benchmarking import (
     GSC_BENCHMARK_SCHEMA,
     GSCBenchmarkMeasurements,
@@ -48,6 +55,7 @@ from .symplectic import identity, is_symplectic, matmul, standard_form, transpos
 from .tester import GSCStatus, GSCWitness, NaiveGSCResult, check_gsc_naive, verify_gsc_witness
 
 __all__ = [
+    "AnalyticGSCFixture",
     "CircuitGSCWitness",
     "GSC_BENCHMARK_SCHEMA",
     "GSCBenchmarkMeasurements",
@@ -67,6 +75,7 @@ __all__ = [
     "bell_bitstring_to_pauli",
     "bell_counts_to_observation",
     "binomial_proportion_upper_bound",
+    "analytic_gsc_fixtures",
     "build_pauli_conjugation_test_circuit",
     "build_semi_clifford_test_circuits",
     "build_gsc_benchmark_record",
@@ -84,6 +93,8 @@ __all__ = [
     "matmul",
     "maximum_isotropic_dimension",
     "output_pauli_probabilities",
+    "one_qubit_equal_axis_rotation_fixture",
+    "one_qubit_phase_fixture",
     "run_gsc_discovery_then_verification",
     "run_gsc_sampling_test",
     "run_gsc_sampling_benchmark",
@@ -93,6 +104,7 @@ __all__ = [
     "standard_form",
     "symplectic_pairing",
     "transpose",
+    "two_qubit_controlled_phase_fixture",
     "verify_gsc_witness",
     "zero_event_shots_required",
 ]
