@@ -1,6 +1,6 @@
 # Running TODO — Generalized Semi-Clifford Tester
 
-Last updated: 2026-09-20
+Last updated: 2026-09-21
 
 This is the operational queue for incremental development. Keep
 `docs/status-and-roadmap.md` as the higher-level scientific roadmap. Each
@@ -9,15 +9,12 @@ one coherent unit.
 
 ## Current focus
 
-- [ ] **Add an analytically justified GSC-but-not-semi-Clifford fixture.**
-  Establish the minimal qubit count, state the exact argument independently
-  of the numerical tester, and include a deliberately wrong classification
-  check.
+- [ ] **Replace the noisy all-pairs output-Lagrangian fallback with a
+  support-aware candidate search.** Cross-check candidate selection against
+  exhaustive scoring before changing the default path.
 
 ## Next
 
-- [ ] Replace the noisy all-pairs output-Lagrangian fallback with a
-  support-aware candidate search and compare it against exhaustive scoring.
 - [ ] Add a sparse Pauli-transfer representation with dense cross-checks for
   small qubit counts.
 - [ ] Demonstrate transpilation and execution with a documented Qiskit noise
@@ -41,6 +38,9 @@ one coherent unit.
 
 ## Completed
 
+- [x] 2026-09-21 — Add a minimal three-qubit GSC-but-not-semi-Clifford basis
+  permutation with an exact bit-level obstruction, a minimality argument, and
+  a deliberately rejected semi-Clifford classification.
 - [x] 2026-09-20 — Add parameterized one- and two-qubit semi-Clifford/GSC
   fixture families, a provable one-qubit non-GSC rotation, and deliberately
   wrong Pauli-MASA witnesses.

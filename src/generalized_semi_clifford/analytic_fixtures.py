@@ -36,11 +36,24 @@ class AnalyticGSCFixture:
     witness: GSCWitness | None
     rejected_witnesses: tuple[GSCWitness, ...]
     justification: str
+    basis_permutation: tuple[int, ...] | None = None
 
     def __post_init__(self) -> None:
         matrix = np.array(self.unitary, dtype=np.complex128, copy=True)
         matrix.setflags(write=False)
         object.__setattr__(self, "unitary", matrix)
+        if self.basis_permutation is not None:
+            permutation = tuple(self.basis_permutation)
+            dimension = matrix.shape[0]
+            if sorted(permutation) != list(range(dimension)):
+                raise ValueError(
+                    "basis_permutation must permute every computational-basis index"
+                )
+            expected = np.zeros_like(matrix)
+            expected[permutation, np.arange(dimension)] = 1
+            if not np.array_equal(matrix, expected):
+                raise ValueError("unitary does not implement basis_permutation")
+            object.__setattr__(self, "basis_permutation", permutation)
 
 
 def _validated_angle(angle: float) -> float:
@@ -122,11 +135,61 @@ def one_qubit_equal_axis_rotation_fixture() -> AnalyticGSCFixture:
     )
 
 
+def three_qubit_cyclic_permutation_fixture() -> AnalyticGSCFixture:
+    """Return a minimal-qubit GSC gate that is not semi-Clifford.
+
+    The permutation fixes basis indices 0 through 4 and cycles ``5 -> 6 -> 7
+    -> 5``.  Every basis permutation normalizes the diagonal matrix algebra,
+    so the Z-generated Pauli MASA supplies a GSC witness.
+
+    An exact bit-table calculation shows that ``Z_0`` is the only nonidentity
+    Pauli whose conjugate is a Pauli.  No three-dimensional Pauli Lagrangian
+    can lie in that one-dimensional set, so the gate is not semi-Clifford.
+    Three qubits are minimal: every permutation of one or two bits is affine,
+    hence Clifford, and Clifford multiplication preserves semi-Cliffordness.
+    """
+
+    permutation = (0, 1, 2, 3, 4, 6, 7, 5)
+    unitary = np.zeros((8, 8), dtype=np.complex128)
+    unitary[permutation, np.arange(8)] = 1
+    z_masa = lagrangian_from_basis(
+        (
+            (0, 0, 0, 1, 0, 0),
+            (0, 0, 0, 0, 1, 0),
+            (0, 0, 0, 0, 0, 1),
+        ),
+        3,
+    )
+    x_masa = lagrangian_from_basis(
+        (
+            (1, 0, 0, 0, 0, 0),
+            (0, 1, 0, 0, 0, 0),
+            (0, 0, 1, 0, 0, 0),
+        ),
+        3,
+    )
+    return AnalyticGSCFixture(
+        name="three-qubit cyclic permutation",
+        unitary=unitary,
+        expected_status=GSCStatus.GSC,
+        expected_semi_clifford=False,
+        witness=GSCWitness(z_masa, z_masa, 0.0),
+        rejected_witnesses=(GSCWitness(x_masa, z_masa, 0.0),),
+        justification=(
+            "The basis permutation normalizes the diagonal algebra, while exact "
+            "conjugation of all 63 nonidentity Paulis leaves only Z_0 Pauli-valued; "
+            "that one-dimensional set contains no three-qubit Lagrangian."
+        ),
+        basis_permutation=permutation,
+    )
+
+
 def analytic_gsc_fixtures() -> tuple[AnalyticGSCFixture, ...]:
-    """Return the package's deterministic one- and two-qubit fixture catalog."""
+    """Return the package's deterministic one- through three-qubit catalog."""
 
     return (
         one_qubit_phase_fixture(),
         two_qubit_controlled_phase_fixture(),
         one_qubit_equal_axis_rotation_fixture(),
+        three_qubit_cyclic_permutation_fixture(),
     )

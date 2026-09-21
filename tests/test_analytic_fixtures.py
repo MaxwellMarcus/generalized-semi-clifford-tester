@@ -12,6 +12,56 @@ from generalized_semi_clifford import (
     two_qubit_controlled_phase_fixture,
     verify_gsc_witness,
 )
+from generalized_semi_clifford.analytic_fixtures import (
+    three_qubit_cyclic_permutation_fixture,
+)
+from generalized_semi_clifford.lagrangian import enumerate_lagrangians
+from generalized_semi_clifford.pauli import all_pauli_labels
+
+
+def _permutation_pauli_image(
+    permutation: tuple[int, ...],
+    label: tuple[int, ...],
+) -> tuple[int, ...] | None:
+    """Conjugate a phase-free Pauli by a basis permutation over exact bits."""
+
+    num_qubits = len(label) // 2
+    dimension = 1 << num_qubits
+    inverse = [0] * dimension
+    for source, target in enumerate(permutation):
+        inverse[target] = source
+
+    def mask(bits: tuple[int, ...]) -> int:
+        return sum(bit << (num_qubits - 1 - index) for index, bit in enumerate(bits))
+
+    input_x = mask(label[:num_qubits])
+    input_z = mask(label[num_qubits:])
+    displacements = []
+    signs = []
+    for target in range(dimension):
+        source = inverse[target]
+        displacements.append(permutation[source ^ input_x] ^ target)
+        signs.append((input_z & source).bit_count() % 2)
+    if len(set(displacements)) != 1:
+        return None
+
+    output_x = displacements[0]
+    for output_z in range(dimension):
+        phases = {
+            sign ^ ((output_z & target).bit_count() % 2)
+            for target, sign in enumerate(signs)
+        }
+        if len(phases) == 1:
+            x_bits = tuple(
+                (output_x >> (num_qubits - 1 - index)) & 1
+                for index in range(num_qubits)
+            )
+            z_bits = tuple(
+                (output_z >> (num_qubits - 1 - index)) & 1
+                for index in range(num_qubits)
+            )
+            return x_bits + z_bits
+    return None
 
 
 @pytest.mark.parametrize(
@@ -58,8 +108,43 @@ def test_fixture_catalog_is_deterministic_and_matrices_are_read_only() -> None:
         "one-qubit phase",
         "two-qubit controlled phase",
         "one-qubit equal-axis rotation",
+        "three-qubit cyclic permutation",
     )
     assert all(not fixture.unitary.flags.writeable for fixture in fixtures)
+
+
+def test_cyclic_permutation_is_exactly_gsc_but_not_semi_clifford() -> None:
+    fixture = three_qubit_cyclic_permutation_fixture()
+    assert fixture.basis_permutation is not None
+    assert fixture.witness is not None
+
+    recognized = {
+        label
+        for label in all_pauli_labels(3)
+        if any(label)
+        and _permutation_pauli_image(fixture.basis_permutation, label) is not None
+    }
+
+    assert recognized == {(0, 0, 0, 1, 0, 0)}  # Z on the leftmost qubit.
+    assert not any(
+        all(label in recognized for label in lagrangian.elements if any(label))
+        for lagrangian in enumerate_lagrangians(3)
+    )
+    assert fixture.expected_status is GSCStatus.GSC
+    assert not fixture.expected_semi_clifford
+    assert verify_gsc_witness(fixture.unitary, fixture.witness)
+    assert check_gsc_naive(fixture.unitary).status is GSCStatus.GSC
+    assert all(
+        not verify_gsc_witness(fixture.unitary, witness)
+        for witness in fixture.rejected_witnesses
+    )
+
+
+def test_cyclic_permutation_rejects_wrong_semi_clifford_classification() -> None:
+    fixture = three_qubit_cyclic_permutation_fixture()
+
+    assert fixture.basis_permutation == (0, 1, 2, 3, 4, 6, 7, 5)
+    assert fixture.expected_semi_clifford is not True
 
 
 @pytest.mark.parametrize("angle", [math.inf, -math.inf, math.nan])
