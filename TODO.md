@@ -1,6 +1,6 @@
 # Running TODO — Generalized Semi-Clifford Tester
 
-Last updated: 2026-09-21
+Last updated: 2026-09-22
 
 This is the operational queue for incremental development. Keep
 `docs/status-and-roadmap.md` as the higher-level scientific roadmap. Each
@@ -9,14 +9,12 @@ one coherent unit.
 
 ## Current focus
 
-- [ ] **Replace the noisy all-pairs output-Lagrangian fallback with a
-  support-aware candidate search.** Cross-check candidate selection against
-  exhaustive scoring before changing the default path.
+- [ ] **Add a sparse Pauli-transfer representation with dense cross-checks.**
+  Start with exact small-qubit coefficient extraction and preserve numerical
+  tolerance metadata.
 
 ## Next
 
-- [ ] Add a sparse Pauli-transfer representation with dense cross-checks for
-  small qubit counts.
 - [ ] Demonstrate transpilation and execution with a documented Qiskit noise
   model, including the effect on leakage confidence bounds.
 - [ ] Add a CLI that emits machine-readable JSON results without overstating
@@ -38,6 +36,9 @@ one coherent unit.
 
 ## Completed
 
+- [x] 2026-09-22 — Replace positive noisy all-pairs output-Lagrangian scoring
+  with a threshold-complete observed-support index, cross-checked against
+  exhaustive scoring while preserving exact negative-result diagnostics.
 - [x] 2026-09-21 — Add a minimal three-qubit GSC-but-not-semi-Clifford basis
   permutation with an exact bit-level obstruction, a minimality argument, and
   a deliberately rejected semi-Clifford classification.

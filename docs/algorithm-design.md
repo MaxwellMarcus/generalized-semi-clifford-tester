@@ -136,8 +136,13 @@ each required Pauli circuit is executed only once and reused. For each input
 candidate, every output label carrying more probability than the total leakage
 budget is forced to lie in the output MASA. If their span is isotropic, the
 implementation extends it directly to an output Lagrangian and tests that one
-candidate first. It falls back to complete output-Lagrangian scoring only when
-finite-shot or noisy data does not yield a successful constructed candidate.
+candidate first. For noisy data, a support index intersects the output
+Lagrangians containing at least one observed nonidentity label whenever the
+identity mass alone cannot meet the leakage threshold. Every feasible output
+must survive this necessary condition, so the filtered search is complete for
+the configured threshold. Deterministic randomized regression cases compare
+the filter with exhaustive scoring. If no witness exists, a final exhaustive
+diagnostic pass preserves the exact best-leakage value reported by the API.
 Because discovery selects a witness adaptively from the observed data, its
 samples do not receive the fixed-witness confidence interpretation. A candidate
 found during discovery must be verified on fresh samples (or analyzed with a

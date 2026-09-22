@@ -40,7 +40,7 @@ def test_small_qubit_benchmark_json_schema_is_stable() -> None:
             "peak_memory_bytes": 4096,
         },
         "schema": GSC_BENCHMARK_SCHEMA,
-        "search_mode": "exhaustive-lagrangian-discovery",
+        "search_mode": "support-aware-lagrangian-discovery",
         "seed": 7,
         "workload": {
             "candidate_pairs_checked": 1,

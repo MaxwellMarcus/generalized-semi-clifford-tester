@@ -7,11 +7,21 @@ qiskit = pytest.importorskip("qiskit")
 
 from generalized_semi_clifford import (  # noqa: E402
     binomial_proportion_upper_bound,
+    enumerate_lagrangians,
     run_gsc_discovery_then_verification,
     run_gsc_sampling_test,
     run_gsc_witness_test,
     run_semi_clifford_sampling_test,
     zero_event_shots_required,
+)
+from generalized_semi_clifford.gsc_qiskit import (  # noqa: E402
+    _output_support_index,
+    _support_aware_output_indices,
+    empirical_lagrangian_leakage,
+    find_gsc_sampling_witness,
+)
+from generalized_semi_clifford.semi_clifford_qiskit import (  # noqa: E402
+    bell_counts_to_observation,
 )
 
 
@@ -59,7 +69,7 @@ def test_gsc_discovery_finds_identity_masas() -> None:
     assert result.has_candidate_witness
     assert result.witness is not None
     assert result.witness.maximum_empirical_leakage == 0.0
-    assert result.search_mode == "exhaustive-lagrangian-discovery"
+    assert result.search_mode == "support-aware-lagrangian-discovery"
     assert result.maximum_leakage_upper_bound is None
     assert not result.has_confidence_certified_witness
 
@@ -100,7 +110,7 @@ def test_discovery_then_verification_uses_fresh_samples_and_reports_costs() -> N
     assert result.has_discovered_candidate
     assert result.verification is not None
     assert result.has_confidence_certified_witness
-    assert result.discovery.search_mode == "exhaustive-lagrangian-discovery"
+    assert result.discovery.search_mode == "support-aware-lagrangian-discovery"
     assert result.verification.search_mode == "candidate-witness-verification"
     assert result.discovery.observations is not result.verification.observations
     assert result.discovery_shot_cost == 13 * 32
@@ -193,3 +203,78 @@ def test_gsc_witness_rejects_wrong_output_masa() -> None:
     )
     assert not result.has_candidate_witness
     assert result.best_empirical_leakage > 0.01
+
+
+def _bitstring_for_pauli(label: tuple[int, ...]) -> str:
+    num_qubits = len(label) // 2
+    classical_bits = label[num_qubits:] + label[:num_qubits]
+    return "".join(str(bit) for bit in reversed(classical_bits))
+
+
+def test_support_aware_candidates_are_complete_against_exhaustive_scoring() -> None:
+    rng = np.random.default_rng(20260922)
+    outputs = enumerate_lagrangians(2)
+    input_lagrangian = outputs[7]
+    support_index = _output_support_index(outputs)
+    paulis = tuple(
+        tuple((value >> bit) & 1 for bit in range(4)) for value in range(16)
+    )
+    saw_reduction = False
+
+    for _ in range(24):
+        observations = []
+        for input_pauli in input_lagrangian.basis:
+            raw_counts = rng.integers(0, 9, size=len(paulis))
+            if not raw_counts.any():
+                raw_counts[0] = 1
+            counts = {
+                _bitstring_for_pauli(label): int(count)
+                for label, count in zip(paulis, raw_counts, strict=True)
+                if count
+            }
+            observations.append(bell_counts_to_observation(input_pauli, counts))
+        samples = tuple(observations)
+
+        for threshold in (0.0, 0.1, 0.25, 0.5):
+            candidates = set(
+                _support_aware_output_indices(
+                    samples,
+                    outputs,
+                    leakage_threshold=threshold,
+                    support_index=support_index,
+                )
+            )
+            feasible = {
+                index
+                for index, output in enumerate(outputs)
+                if max(
+                    empirical_lagrangian_leakage(observation, output)
+                    for observation in samples
+                )
+                <= threshold
+            }
+            assert feasible <= candidates
+            saw_reduction |= len(candidates) < len(outputs)
+
+            witness, best, _, _ = find_gsc_sampling_witness(
+                samples,
+                input_lagrangians=(input_lagrangian,),
+                output_lagrangians=outputs,
+                leakage_threshold=threshold,
+            )
+            assert (witness is not None) == bool(feasible)
+            if witness is not None:
+                assert witness.output_lagrangian in tuple(
+                    outputs[index] for index in feasible
+                )
+            else:
+                exhaustive_best = min(
+                    max(
+                        empirical_lagrangian_leakage(observation, output)
+                        for observation in samples
+                    )
+                    for output in outputs
+                )
+                assert best == pytest.approx(exhaustive_best)
+
+    assert saw_reduction

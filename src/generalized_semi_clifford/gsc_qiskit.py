@@ -192,6 +192,51 @@ def lagrangian_leakage_upper_bound(
     return max(bounds)
 
 
+def _output_support_index(
+    output_lagrangians: tuple[Lagrangian, ...],
+) -> dict[PauliLabel, frozenset[int]]:
+    indices: dict[PauliLabel, set[int]] = {}
+    for output_index, output_lagrangian in enumerate(output_lagrangians):
+        for label in output_lagrangian.elements:
+            if any(label):
+                indices.setdefault(label, set()).add(output_index)
+    return {label: frozenset(items) for label, items in indices.items()}
+
+
+def _support_aware_output_indices(
+    observations: tuple[PauliConjugationObservation, ...],
+    output_lagrangians: tuple[Lagrangian, ...],
+    *,
+    leakage_threshold: float,
+    support_index: dict[PauliLabel, frozenset[int]],
+) -> tuple[int, ...]:
+    """Return a threshold-complete set of noisy output candidates.
+
+    Every output Lagrangian contains the identity. If an observation's
+    identity mass is smaller than ``1 - leakage_threshold``, any acceptable
+    output must also contain at least one observed nonidentity label. The union
+    of indexed Lagrangians containing those labels is therefore a necessary
+    candidate set. Intersecting that set across observations cannot discard a
+    threshold-feasible witness.
+    """
+
+    candidates = set(range(len(output_lagrangians)))
+    required_inside_probability = 1.0 - leakage_threshold
+    for observation in observations:
+        probabilities = output_pauli_probabilities(observation)
+        identity = (0,) * len(observation.input_pauli)
+        if probabilities.get(identity, 0.0) >= required_inside_probability:
+            continue
+        supported_outputs: set[int] = set()
+        for label, probability in probabilities.items():
+            if probability > 0.0 and any(label):
+                supported_outputs.update(support_index.get(label, ()))
+        candidates.intersection_update(supported_outputs)
+        if not candidates:
+            break
+    return tuple(index for index in range(len(output_lagrangians)) if index in candidates)
+
+
 def find_gsc_sampling_witness(
     observations: Iterable[PauliConjugationObservation],
     *,
@@ -211,6 +256,7 @@ def find_gsc_sampling_witness(
 
     best_leakage = 1.0
     allowed_output_elements = {output.elements for output in outputs}
+    support_index = _output_support_index(outputs)
     candidate_pairs_checked = 0
     eligible_inputs: list[
         tuple[Lagrangian, tuple[PauliConjugationObservation, ...]]
@@ -263,18 +309,30 @@ def find_gsc_sampling_witness(
                 )
 
     # With noisy data, the forced heavy-label span may not determine the best
-    # output Lagrangian. Fall back to the complete candidate-pair search.
+    # output Lagrangian. Use observed support to retain every threshold-feasible
+    # output while avoiding scores for candidates that cannot contain enough
+    # mass. A final exhaustive diagnostic pass runs only when no witness exists,
+    # preserving the exact historical best-leakage value on negative results.
     for input_index, (input_lagrangian, basis_observations) in enumerate(
         eligible_inputs,
         start=1,
     ):
         constructed_output = constructed_outputs[input_lagrangian.elements]
-        for output_lagrangian in outputs:
+        support_candidates = _support_aware_output_indices(
+            basis_observations,
+            outputs,
+            leakage_threshold=leakage_threshold,
+            support_index=support_index,
+        )
+        evaluated_indices: set[int] = set()
+        for output_index in support_candidates:
+            output_lagrangian = outputs[output_index]
             if (
                 constructed_output is not None
                 and output_lagrangian.elements == constructed_output.elements
             ):
                 continue
+            evaluated_indices.add(output_index)
             if output_lagrangian.num_qubits != input_lagrangian.num_qubits:
                 raise ValueError("input and output Lagrangians must use the same qubit count")
             candidate_pairs_checked += 1
@@ -294,6 +352,19 @@ def find_gsc_sampling_witness(
                     input_index,
                     candidate_pairs_checked,
                 )
+
+        for output_index, output_lagrangian in enumerate(outputs):
+            if output_index in evaluated_indices or (
+                constructed_output is not None
+                and output_lagrangian.elements == constructed_output.elements
+            ):
+                continue
+            candidate_pairs_checked += 1
+            leakage = max(
+                empirical_lagrangian_leakage(observation, output_lagrangian)
+                for observation in basis_observations
+            )
+            best_leakage = min(best_leakage, leakage)
     return None, best_leakage, len(eligible_inputs), candidate_pairs_checked
 
 
@@ -351,7 +422,7 @@ def run_gsc_sampling_test(
         best_empirical_leakage=best_leakage,
         input_lagrangians_checked=inputs_checked,
         candidate_pairs_checked=pairs_checked,
-        search_mode="exhaustive-lagrangian-discovery",
+        search_mode="support-aware-lagrangian-discovery",
     )
 
 
