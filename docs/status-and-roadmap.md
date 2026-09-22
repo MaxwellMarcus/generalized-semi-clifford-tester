@@ -1,6 +1,6 @@
 # Status and roadmap
 
-Last audited: 2026-09-20.
+Last audited: 2026-09-22.
 
 ## What works now
 
@@ -13,6 +13,8 @@ Last audited: 2026-09-20.
 | Statistics | Exact one-sided binomial leakage bounds with familywise confidence for a fixed GSC witness | Valid for a witness fixed independently of the verification samples |
 | Benchmark records | Versioned JSON separates exact source-circuit depth/operation counts from wall time and Python peak memory | Checked-in identity workloads cover one and two qubits; depth is pre-transpilation, while runtime and memory remain machine-dependent |
 | Analytic fixtures | Parameterized phase and controlled-phase families, a one-qubit non-GSC rotation, and rejected witnesses | GSC-but-not-semi-Clifford still needs a separately justified higher-qubit fixture |
+| Conjugation sampling | Short words at arbitrary bounded depth and recursive finite-subgroup escape without previous-group enumeration | Exact-oracle containment theorem counts group operations, not expanded U queries; dense frontend is numerical and limited to 3 qubits |
+| SC-distance evidence | Replayable hierarchy paths and an exhaustive unrestricted SC-distance fallback | Restricted and unrestricted targets are distinguished; floating-point margins are not interval certificates |
 
 The key conceptual distinction is now represented in the API:
 
@@ -49,6 +51,18 @@ The key conceptual distinction is now represented in the API:
 
 ### P1: improve the algorithm rather than only brute force
 
+- [x] Implement recursive conjugation-word sampling without full preceding-group access.
+- [x] Document a finite-subgroup escape argument for the Clifford-target route,
+  with exact finite-group regression tests and explicit work caps.
+- [x] Derive the current group-operation and expanded-query recurrences, and
+  distinguish these from runtime and finite-precision membership costs.
+- [ ] Independently review the new probability argument and verify the paper's
+  precise sufficient-criterion hypotheses against the implemented indexing.
+- [ ] Replace exponentially expanded conjugation words by an efficient compact
+  representation, or prove a short-word detection bound; group-operation
+  complexity alone does not establish a polynomial-query tester.
+- [ ] Supply a general exact or rigorously error-bounded membership backend;
+  floating-point results do not inherit the exact-oracle theorem automatically.
 - [ ] Replace noisy all-pairs output-MASA scoring with a support-aware search
   or optimization routine.
 - [ ] Add a sparse Pauli-transfer representation and compare it with Bell

@@ -27,6 +27,9 @@ witness that can be independently recomputed.
 - Dense Pauli matrices in a documented binary \((x\mid z)\) convention.
 - A bounded naïve GSC tester with `GSC`, `NOT_GSC`, and `UNKNOWN` outcomes.
 - Independently verifiable numerical witnesses.
+- Replayable conjugation-word sampling without enumerating earlier groups,
+  an exact-oracle randomized Clifford-containment algorithm, and a bounded
+  numerical GSC/SC-distance frontend (see below).
 - Analytically justified one- and two-qubit fixture families, including
   explicit valid and deliberately invalid Pauli-MASA witnesses.
 - An experimental Qiskit semi-Clifford tester based on Pauli-conjugation
@@ -202,6 +205,42 @@ they intentionally omit runtime and memory. The fixed one-qubit workload in
 Runtime includes sampling and post-processing, and peak memory uses
 `tracemalloc`; neither field is a hardware-independent complexity claim. The
 source depth is pre-transpilation circuit structure, not a hardware depth.
+
+## Conjugation sampling and SC-distance testing
+
+The new experimental frontend samples either `Gamma_2(U)` against `C_(k-2)`
+or `Gamma_(k-2)(U)` against `C_2`, using replayable words rather than full
+preceding groups:
+
+```python
+from generalized_semi_clifford import check_gsc_sandwich
+
+result = check_gsc_sandwich(t_gate, hierarchy_level=3, epsilon=0.01, seed=7)
+print(result.status, result.gsc_witness)
+```
+
+This three-qubit-limited numerical frontend returns a direct GSC witness,
+a distance bound from semi-Clifford gates, or `INCONCLUSIVE`. It distinguishes
+distance from **all** semi-Clifford gates from distance only within `C_k`.
+Passing short sampled words never supplies its positive GSC certificate.
+
+Separately, `test_clifford_conjugation_containment` implements a recursive
+finite-subgroup escape algorithm with a false-acceptance bound under **exact
+group operations and an exact Clifford membership oracle**. It needs no
+enumeration of any previous conjugation group. Its polynomial group-operation
+count at fixed depth does not yet imply polynomial physical queries to `U`:
+shared words can expand exponentially, and exact arithmetic costs remain an
+additional issue. Numerical backends do not receive an unconditional
+probability guarantee.
+
+See [the algorithm and proof notes](docs/conjugation-sampling.md) for the
+precise claims, explicit complexity recurrences, comparison with the
+property-testing literature, remaining research gaps, and API. At fixed
+error probability, the current recursive construction uses `O(n^4)`,
+`O(n^8)`, and `O(n^13)` abstract group operations for hierarchy levels
+4, 5, and 6, respectively; literal expanded seed-call bounds are exponential.
+These are not polynomial total-runtime or physical-query guarantees. Run
+`python examples/conjugation_sampling.py` for a small numerical demonstration.
 
 ## Roadmap
 
