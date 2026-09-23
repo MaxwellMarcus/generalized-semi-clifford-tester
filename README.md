@@ -242,6 +242,24 @@ error probability, the current recursive construction uses `O(n^4)`,
 These are not polynomial total-runtime or physical-query guarantees. Run
 `python examples/conjugation_sampling.py` for a small numerical demonstration.
 
+## Separate semi-Clifford tester
+
+`generalized_semi_clifford.sc_testing` implements the promised Choi/Bell-
+difference **semi-Clifford** tester. It is independent of the GSC algorithms
+above and is not a full GSC membership tester: GSC-but-not-SC gates may be
+rejected as non-SC, never as non-GSC.
+
+Under exact `U in C_k` and ideal independent sampling, it uses
+`O(4^(k-2) (n + log(1/delta)))` forward queries, no inverse queries, and
+polynomial non-oracle work at fixed k. The package includes a sample planner,
+streaming binary postprocessor, Qiskit Bell circuit, batched SamplerV2 runner,
+explicit assumption flags, and work caps. Default statevector simulation is
+classical and exponential, not an implementation of the quantum speedup.
+
+See the [standalone SC theorem and API](docs/semi-clifford/choi-tester.md).
+Run `python examples/choi_semi_clifford.py` for a local demonstration or
+`python -m pytest tests/sc_testing` for its separate test suite.
+
 ## Roadmap
 
 1. Add an exact arithmetic backend for algebraic gate sets.
