@@ -1,6 +1,6 @@
 # Status and roadmap
 
-Last audited: 2026-09-22.
+Last audited: 2026-09-23.
 
 ## What works now
 
@@ -12,6 +12,7 @@ Last audited: 2026-09-22.
 | GSC circuits | Full sampled Pauli-support decoding, exhaustive discovery, and `n`-circuit fixed-witness verification | Discovery through 4 qubits; support-aware fast path with an exhaustive noisy fallback |
 | Statistics | Exact one-sided binomial leakage bounds with familywise confidence for a fixed GSC witness | Valid for a witness fixed independently of the verification samples |
 | Benchmark records | Versioned JSON separates exact source-circuit depth/operation counts from wall time and Python peak memory | Checked-in identity workloads cover one and two qubits; depth is pre-transpilation, while runtime and memory remain machine-dependent |
+| Pauli transfer | Exhaustive dense-trace extraction with thresholded sparse columns and per-column discarded mass | Complex128 numerical arithmetic through three qubits by default; thresholded entries are not certified exact zeros |
 | Analytic fixtures | Parameterized phase and controlled-phase families, a one-qubit non-GSC rotation, and rejected witnesses | GSC-but-not-semi-Clifford still needs a separately justified higher-qubit fixture |
 | Conjugation sampling | Short words at arbitrary bounded depth and recursive finite-subgroup escape without previous-group enumeration | Exact-oracle containment theorem counts group operations, not expanded U queries; dense frontend is numerical and limited to 3 qubits |
 | SC-distance evidence | Replayable hierarchy paths and an exhaustive unrestricted SC-distance fallback | Restricted and unrestricted targets are distinguished; floating-point margins are not interval certificates |
@@ -65,8 +66,10 @@ The key conceptual distinction is now represented in the API:
   floating-point results do not inherit the exact-oracle theorem automatically.
 - [ ] Replace noisy all-pairs output-MASA scoring with a support-aware search
   or optimization routine.
-- [ ] Add a sparse Pauli-transfer representation and compare it with Bell
-  sampling on simulated circuits.
+- [x] Add a sparse Pauli-transfer representation with dense one- and two-qubit
+  cross-checks, explicit numerical tolerance, and discarded-mass metadata.
+- [ ] Compare the sparse transfer representation with Bell sampling on
+  documented simulated noisy circuits.
 - [ ] Add a stabilizer-tableau path for Clifford-heavy circuits.
 - [x] Add source-circuit depth recording and checked-in one- and two-qubit
   identity workload baselines, with host runtime and memory kept separately.

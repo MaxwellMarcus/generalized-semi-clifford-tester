@@ -1,6 +1,6 @@
 # Running TODO — Generalized Semi-Clifford Tester
 
-Last updated: 2026-09-22
+Last updated: 2026-09-23
 
 This is the operational queue for incremental development. Keep
 `docs/status-and-roadmap.md` as the higher-level scientific roadmap. Each
@@ -9,14 +9,12 @@ one coherent unit.
 
 ## Current focus
 
-- [ ] **Add a sparse Pauli-transfer representation with dense cross-checks.**
-  Start with exact small-qubit coefficient extraction and preserve numerical
-  tolerance metadata.
+- [ ] **Demonstrate execution with a documented Qiskit noise model.**
+  Compare sparse transfer predictions with simulated Bell-sampling leakage and
+  report the effect on confidence bounds without treating finite shots as exact.
 
 ## Next
 
-- [ ] Demonstrate transpilation and execution with a documented Qiskit noise
-  model, including the effect on leakage confidence bounds.
 - [ ] Add a CLI that emits machine-readable JSON results without overstating
   finite-shot conclusions.
 - [ ] Investigate an exact algebraic backend and write down the supported gate
@@ -36,6 +34,9 @@ one coherent unit.
 
 ## Completed
 
+- [x] 2026-09-23 — Add exhaustive small-qubit Pauli-transfer extraction with a
+  thresholded sparse representation, explicit arithmetic/tolerance and
+  discarded-mass metadata, and dense one- and two-qubit cross-checks.
 - [x] 2026-09-22 — Replace positive noisy all-pairs output-Lagrangian scoring
   with a threshold-complete observed-support index, cross-checked against
   exhaustive scoring while preserving exact negative-result diagnostics.

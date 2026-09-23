@@ -74,6 +74,12 @@ from .semi_clifford_qiskit import (
     run_semi_clifford_witness_test,
     symplectic_pairing,
 )
+from .sparse_transfer import (
+    SparsePauliCoefficient,
+    SparsePauliTransfer,
+    dense_pauli_transfer,
+    extract_sparse_pauli_transfer,
+)
 from .statistics import binomial_proportion_upper_bound, zero_event_shots_required
 from .symplectic import identity, is_symplectic, matmul, standard_form, transpose
 from .tester import GSCStatus, GSCWitness, NaiveGSCResult, check_gsc_naive, verify_gsc_witness
@@ -108,6 +114,8 @@ __all__ = [
     "PauliLabel",
     "SemiCliffordSamplingResult",
     "SemiCliffordWitness",
+    "SparsePauliCoefficient",
+    "SparsePauliTransfer",
     "bell_bitstring_to_pauli",
     "bell_counts_to_observation",
     "binomial_proportion_upper_bound",
@@ -117,9 +125,11 @@ __all__ = [
     "build_gsc_benchmark_record",
     "check_gsc_naive",
     "check_gsc_sandwich",
+    "dense_pauli_transfer",
     "empirical_lagrangian_leakage",
     "enumerate_lagrangians",
     "evaluate_conjugation_word",
+    "extract_sparse_pauli_transfer",
     "find_gsc_sampling_witness",
     "find_lagrangian_witness",
     "identity",
