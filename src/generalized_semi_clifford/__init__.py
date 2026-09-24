@@ -60,6 +60,10 @@ from .lagrangian import (
     lagrangian_count,
     lagrangian_from_basis,
 )
+from .noise_comparison import (
+    TransferSamplingComparison,
+    compare_sparse_transfer_with_sampling,
+)
 from .semi_clifford_qiskit import (
     PauliConjugationObservation,
     SemiCliffordSamplingResult,
@@ -114,10 +118,12 @@ __all__ = [
     "PauliLabel",
     "SemiCliffordSamplingResult",
     "SemiCliffordWitness",
+    "TransferSamplingComparison",
     "SparsePauliCoefficient",
     "SparsePauliTransfer",
     "bell_bitstring_to_pauli",
     "bell_counts_to_observation",
+    "compare_sparse_transfer_with_sampling",
     "binomial_proportion_upper_bound",
     "analytic_gsc_fixtures",
     "build_pauli_conjugation_test_circuit",
