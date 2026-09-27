@@ -1,6 +1,6 @@
 # Running TODO — Generalized Semi-Clifford Tester
 
-Last updated: 2026-09-24
+Last updated: 2026-09-27
 
 This is the operational queue for incremental development. Keep
 `docs/status-and-roadmap.md` as the higher-level scientific roadmap. Each
@@ -9,9 +9,10 @@ one coherent unit.
 
 ## Current focus
 
-- [ ] **Add a machine-readable command-line interface.**
-  Emit dense and circuit-test results as versioned JSON while preserving
-  finite-shot evidence, numerical tolerances, and `UNKNOWN` states.
+- [ ] **Formalize the fixed-witness tolerant-testing promise.**
+  State precise completeness and soundness hypotheses for finite-shot
+  verification, keeping the proven statistical guarantee separate from any
+  unproved property-testing claim.
 
 ## Next
 
@@ -31,6 +32,10 @@ one coherent unit.
   statistical conclusion is incomplete.
 
 ## Completed
+
+- [x] 2026-09-27 — Add a machine-readable CLI for dense and circuit tests,
+  with versioned deterministic JSON preserving numerical tolerances,
+  `UNKNOWN` outcomes, raw finite-shot evidence, and fresh-verification bounds.
 
 - [x] 2026-09-24 — Compare sparse-transfer leakage intervals with ideal and
   Aer depolarizing Bell sampling, keeping empirical leakage and simultaneous
