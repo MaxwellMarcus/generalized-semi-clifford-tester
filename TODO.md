@@ -1,6 +1,6 @@
 # Running TODO — Generalized Semi-Clifford Tester
 
-Last updated: 2026-09-27
+Last updated: 2026-09-28
 
 This is the operational queue for incremental development. Keep
 `docs/status-and-roadmap.md` as the higher-level scientific roadmap. Each
@@ -9,15 +9,13 @@ one coherent unit.
 
 ## Current focus
 
-- [ ] **Formalize the fixed-witness tolerant-testing promise.**
-  State precise completeness and soundness hypotheses for finite-shot
-  verification, keeping the proven statistical guarantee separate from any
-  unproved property-testing claim.
+- [ ] **Specify the supported domain for an exact algebraic backend.**
+  Compare candidate cyclotomic or symbolic representations, list the gate sets
+  they can represent exactly, and define how exact results coexist with the
+  current numerical API before implementing a backend.
 
 ## Next
 
-- [ ] Investigate an exact algebraic backend and write down the supported gate
-  domain before implementation.
 - [ ] Investigate the prime-qudit generalization only after the qubit API and
   correctness contract stabilize.
 
@@ -32,6 +30,11 @@ one coherent unit.
   statistical conclusion is incomplete.
 
 ## Completed
+
+- [x] 2026-09-28 — Formalize the fixed-witness tolerant-testing contract with
+  explicit sampling hypotheses, a familywise soundness proof, a
+  margin-dependent finite-sample completeness bound, and the exact zero-leakage
+  endpoint kept separate from finite-shot certification.
 
 - [x] 2026-09-27 — Add a machine-readable CLI for dense and circuit tests,
   with versioned deterministic JSON preserving numerical tolerances,

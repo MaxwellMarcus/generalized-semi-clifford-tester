@@ -130,6 +130,14 @@ the requested familywise confidence level. This certifies an approximate
 fixed witness at the chosen leakage tolerance; it does not prove zero leakage
 or exact GSC membership from finitely many shots.
 
+The complete fixed-witness contract, including the sampling hypotheses, the
+familywise soundness proof, and a finite-sample completeness bound that requires
+an explicit leakage margin, is stated in
+[`fixed-witness-tolerant-testing.md`](fixed-witness-tolerant-testing.md). In
+particular, there is no uniform high-power completeness claim at the threshold
+boundary, and approximate leakage on a generator basis is not presented as an
+exact or whole-algebra property-testing theorem.
+
 Witness verification therefore needs only \(n\) circuits. Exhaustive discovery
 enumerates the 3, 15, 135, or 2,295 input Lagrangians through four qubits, but
 each required Pauli circuit is executed only once and reused. For each input

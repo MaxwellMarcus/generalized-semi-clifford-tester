@@ -1,6 +1,6 @@
 # Status and roadmap
 
-Last audited: 2026-09-27.
+Last audited: 2026-09-28.
 
 ## What works now
 
@@ -10,7 +10,7 @@ Last audited: 2026-09-27.
 | Dense GSC tester | Exhaustive input/output Pauli-MASA search with independently checkable witnesses | Defaults to `UNKNOWN` above 3 qubits; complex128 with a stated tolerance |
 | Semi-Clifford circuits | Bell-sampling conjugation circuits, exhaustive discovery, and `n`-circuit candidate verification | Finite-shot candidate evidence; exhaustive discovery uses `4**n - 1` circuits |
 | GSC circuits | Full sampled Pauli-support decoding, exhaustive discovery, and `n`-circuit fixed-witness verification | Discovery through 4 qubits; support-aware fast path with an exhaustive noisy fallback |
-| Statistics | Exact one-sided binomial leakage bounds with familywise confidence for a fixed GSC witness | Valid for a witness fixed independently of the verification samples |
+| Statistics | Exact one-sided binomial leakage bounds with familywise confidence for a fixed GSC witness | Soundness and margin-dependent completeness are formalized under stationary i.i.d. within-generator sampling; finite shots do not prove zero leakage |
 | Benchmark records | Versioned JSON separates exact source-circuit depth/operation counts from wall time and Python peak memory | Checked-in identity workloads cover one and two qubits; depth is pre-transpilation, while runtime and memory remain machine-dependent |
 | Pauli transfer | Exhaustive dense-trace extraction with thresholded sparse columns and per-column discarded mass | Complex128 numerical arithmetic through three qubits by default; thresholded entries are not certified exact zeros |
 | Noise comparison | Ideal sparse-transfer leakage intervals beside finite-shot Bell-sampling leakage and simultaneous confidence bounds | Reproducible Aer depolarizing example, not a calibrated hardware model or exact membership claim |
@@ -47,8 +47,8 @@ The key conceptual distinction is now represented in the API:
 - [x] Add fixed-witness, familywise finite-shot leakage bounds.
 - [x] Add a zero-observed-leakage shot-planning helper that inverts the
   confidence bound for a target leakage and confidence level.
-- [ ] Formalize the tolerant testing promise and prove completeness/soundness
-  for fixed-witness verification.
+- [x] Formalize the tolerant testing promise and prove familywise soundness and
+  margin-dependent finite-sample completeness for fixed-witness verification.
 - [x] Provide discovery followed by held-out fixed-witness verification, with
   separate results and shot accounting for both phases.
 
