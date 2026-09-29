@@ -1,6 +1,6 @@
 # Status and roadmap
 
-Last audited: 2026-09-28.
+Last audited: 2026-09-29.
 
 ## What works now
 
@@ -15,6 +15,7 @@ Last audited: 2026-09-28.
 | Pauli transfer | Exhaustive dense-trace extraction with thresholded sparse columns and per-column discarded mass | Complex128 numerical arithmetic through three qubits by default; thresholded entries are not certified exact zeros |
 | Noise comparison | Ideal sparse-transfer leakage intervals beside finite-shot Bell-sampling leakage and simultaneous confidence bounds | Reproducible Aer depolarizing example, not a calibrated hardware model or exact membership claim |
 | Command line | Versioned JSON for dense `.npy` unitaries and OpenQASM 2 circuit discovery plus fresh verification | Preserves `UNKNOWN`, tolerances, raw counts, and confidence metadata; Qiskit is optional |
+| Exact backend design | Version-one domain and result contract specified for canonical elements of a declared cyclotomic field | Design only: representation, exact witness verification, and exhaustive search remain unimplemented milestones |
 | Analytic fixtures | Parameterized phase and controlled-phase families, a one-qubit non-GSC rotation, and rejected witnesses | GSC-but-not-semi-Clifford still needs a separately justified higher-qubit fixture |
 | Conjugation sampling | Short words at arbitrary bounded depth and recursive finite-subgroup escape without previous-group enumeration | Exact-oracle containment theorem counts group operations, not expanded U queries; dense frontend is numerical and limited to 3 qubits |
 | SC-distance evidence | Replayable hierarchy paths and an exhaustive unrestricted SC-distance fallback | Restricted and unrestricted targets are distinguished; floating-point margins are not interval certificates |
@@ -82,7 +83,11 @@ The key conceptual distinction is now represented in the API:
   two-qubit positive families, a one-qubit negative, and wrong witnesses are
   already covered.
 - [x] Demonstrate execution against a documented Qiskit Aer noise model.
-- [ ] Add an exact or symbolic backend for algebraic gate sets.
+- [x] Specify a cyclotomic exact-backend domain, supported gate vocabulary,
+  representation choice, result separation, and exact/`UNKNOWN` claim
+  boundary before implementation.
+- [ ] Implement the cyclotomic representation and fixed-gate layer, then exact
+  supplied-witness verification before adding a bounded exhaustive search.
 - [ ] Extend the binary implementation to prime-dimensional qudits.
 - [x] Add a command-line interface and machine-readable result export.
 
@@ -94,3 +99,8 @@ and can rigorously bound approximate leakage for a pre-specified witness, but
 it does not yet constitute a complete property tester for exact GSC membership.
 Negative finite-shot results are therefore evidence against the tested witness,
 not a general proof that the unitary is not generalized semi-Clifford.
+
+The planned exact backend is scoped in `exact-algebraic-backend.md`. That
+document is an implementation contract, not a shipped capability: current
+NumPy and Qiskit inputs remain numerical even when their values happen to be
+close to algebraic gates.

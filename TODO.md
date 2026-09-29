@@ -1,6 +1,6 @@
 # Running TODO — Generalized Semi-Clifford Tester
 
-Last updated: 2026-09-28
+Last updated: 2026-09-29
 
 This is the operational queue for incremental development. Keep
 `docs/status-and-roadmap.md` as the higher-level scientific roadmap. Each
@@ -9,15 +9,18 @@ one coherent unit.
 
 ## Current focus
 
-- [ ] **Specify the supported domain for an exact algebraic backend.**
-  Compare candidate cyclotomic or symbolic representations, list the gate sets
-  they can represent exactly, and define how exact results coexist with the
-  current numerical API before implementing a backend.
+- [ ] **Implement the minimal cyclotomic representation layer.**
+  Add an optional SymPy exact dependency, canonical `Q(zeta_m)` scalars and
+  matrices, fixed Clifford+T/permutation/controlled-phase constructors, common-
+  field embedding, adjoints, and exact unitarity tests. Do not add exhaustive
+  GSC claims until the independent witness-verification milestone is complete.
 
 ## Next
 
-- [ ] Investigate the prime-qudit generalization only after the qubit API and
-  correctness contract stabilize.
+- [ ] Add exact Pauli-conjugation coefficients and independent verification of
+  a supplied Lagrangian witness, preserving `UNKNOWN` under resource caps.
+- [ ] Specify odd-prime Weyl phase conventions and symplectic primitives only
+  after the qubit exact API and correctness contract stabilize.
 
 ## Maintenance
 
@@ -30,6 +33,11 @@ one coherent unit.
   statistical conclusion is incomplete.
 
 ## Completed
+
+- [x] 2026-09-29 — Specify a cyclotomic `Q(zeta_m)` exact-backend domain,
+  supported and rejected gate inputs, representation tradeoffs, a separate
+  exact result contract, exact/`UNKNOWN` claim boundaries, and independently
+  testable implementation milestones.
 
 - [x] 2026-09-28 — Formalize the fixed-witness tolerant-testing contract with
   explicit sampling hypotheses, a familywise soundness proof, a
