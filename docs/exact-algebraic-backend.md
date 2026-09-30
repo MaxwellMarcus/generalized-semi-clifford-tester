@@ -1,9 +1,11 @@
 # Exact algebraic backend: supported domain and API contract
 
-This note fixes the scope of the first exact backend before implementation. It
-does not claim that an exact backend exists today. The current dense tester
-continues to use `complex128`, a positive tolerance, and the claim boundaries
-documented in `algorithm-design.md`.
+This note fixes the scope of the exact backend. The first representation
+milestone is implemented in `generalized_semi_clifford.exact_cyclotomic`; it
+does not yet provide exact Pauli-conjugation coefficients, witness
+verification, or exhaustive GSC search. The current dense tester continues to
+use `complex128`, a positive tolerance, and the claim boundaries documented in
+`algorithm-design.md`.
 
 ## Decision
 
@@ -121,7 +123,7 @@ must inspect field zeros rather than floats.
 
 ## Implementation milestones
 
-1. Add an optional `exact` dependency and a small cyclotomic scalar/matrix
+1. **Complete:** add an optional `exact` dependency and a small cyclotomic scalar/matrix
    layer with fixed-gate constructors, common-field embedding, adjoint, and
    exact unitarity tests.
 2. Add exact Pauli-conjugation coefficients and independent verification of a
@@ -133,3 +135,19 @@ must inspect field zeros rather than floats.
 
 Each milestone is independently testable. In particular, completing the
 representation layer alone must not be advertised as an exact GSC tester.
+
+## Implemented representation API
+
+Install the optional dependency with
+`pip install generalized-semi-clifford-tester[exact]`, then import from
+`generalized_semi_clifford.exact_cyclotomic`. `CyclotomicField(m)` requires an
+explicit order divisible by eight. `CyclotomicScalar` stores a SymPy
+`AlgebraicField` domain element, and `CyclotomicMatrix` implements common-field
+matrix products, Kronecker products, adjoints, and entrywise exact unitarity
+tests.
+
+The fixed constructors cover `X`, `Y`, `Z`, `H`, `S`, `T`, `T`-dagger, CNOT,
+CZ, SWAP, Toffoli, CCZ, arbitrary basis permutations, and an all-controls
+root-of-unity phase. Cross-field operations embed into the declared
+`Q(zeta_lcm)` field. Python floats, complex values, malformed permutations,
+and non-cyclotomic symbolic values are rejected rather than guessed.

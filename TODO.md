@@ -1,6 +1,6 @@
 # Running TODO — Generalized Semi-Clifford Tester
 
-Last updated: 2026-09-29
+Last updated: 2026-09-30
 
 This is the operational queue for incremental development. Keep
 `docs/status-and-roadmap.md` as the higher-level scientific roadmap. Each
@@ -9,16 +9,15 @@ one coherent unit.
 
 ## Current focus
 
-- [ ] **Implement the minimal cyclotomic representation layer.**
-  Add an optional SymPy exact dependency, canonical `Q(zeta_m)` scalars and
-  matrices, fixed Clifford+T/permutation/controlled-phase constructors, common-
-  field embedding, adjoints, and exact unitarity tests. Do not add exhaustive
-  GSC claims until the independent witness-verification milestone is complete.
+- [ ] **Add exact Pauli coefficients and supplied-witness verification.**
+  Compute exact Pauli-conjugation coefficients from `CyclotomicMatrix`, verify
+  a supplied input/output Lagrangian pair independently, and preserve a
+  separate exact result contract. Do not add exhaustive GSC claims yet.
 
 ## Next
 
-- [ ] Add exact Pauli-conjugation coefficients and independent verification of
-  a supplied Lagrangian witness, preserving `UNKNOWN` under resource caps.
+- [ ] Add a bounded exhaustive exact search with explicit work caps and
+  `UNKNOWN` outcomes.
 - [ ] Specify odd-prime Weyl phase conventions and symplectic primitives only
   after the qubit exact API and correctness contract stabilize.
 
@@ -33,6 +32,11 @@ one coherent unit.
   statistical conclusion is incomplete.
 
 ## Completed
+
+- [x] 2026-09-30 — Implement canonical cyclotomic scalars and matrices over a
+  declared `Q(zeta_m)`, common-field embedding, exact adjoints, products,
+  tensors and unitarity, plus Clifford+T, permutation, and controlled-phase
+  constructors behind an optional SymPy dependency.
 
 - [x] 2026-09-29 — Specify a cyclotomic `Q(zeta_m)` exact-backend domain,
   supported and rejected gate inputs, representation tradeoffs, a separate
