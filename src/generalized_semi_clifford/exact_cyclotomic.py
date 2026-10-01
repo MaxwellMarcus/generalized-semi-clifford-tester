@@ -14,6 +14,8 @@ from math import lcm
 from numbers import Integral, Rational
 from typing import Any
 
+from .lagrangian import Lagrangian, PauliLabel, lagrangian_from_basis
+
 try:
     from sympy import QQ, Float, I, exp, pi, sqrt
     from sympy.polys.polyclasses import ANP
@@ -302,6 +304,50 @@ class CyclotomicMatrix:
         return self.adjoint() @ self == CyclotomicMatrix.identity(self.field, self.shape[0])
 
 
+@dataclass(frozen=True)
+class ExactPauliCoefficient:
+    """One exactly computed coefficient in a Pauli expansion."""
+
+    output_label: PauliLabel
+    value: CyclotomicScalar
+
+
+@dataclass(frozen=True)
+class ExactPauliExpansion:
+    """The complete exact Pauli expansion of one conjugated input Pauli."""
+
+    input_label: PauliLabel
+    coefficients: tuple[ExactPauliCoefficient, ...]
+
+    @property
+    def support(self) -> tuple[ExactPauliCoefficient, ...]:
+        """Return coefficients proved nonzero by exact field equality."""
+
+        return tuple(
+            coefficient
+            for coefficient in self.coefficients
+            if coefficient.value.value != coefficient.value.field.domain.zero
+        )
+
+
+@dataclass(frozen=True)
+class ExactWitnessVerification:
+    """Exact verification result for one caller-supplied Lagrangian pair.
+
+    This type records no search status: it verifies only the supplied pair and
+    makes no claim that a different witness does or does not exist.
+    """
+
+    field_order: int
+    arithmetic: str
+    num_qubits: int
+    input_lagrangian: Lagrangian
+    output_lagrangian: Lagrangian
+    images: tuple[ExactPauliExpansion, ...]
+    coefficients_computed: int
+    verified: bool
+
+
 def pauli_x(field: CyclotomicField) -> CyclotomicMatrix:
     return CyclotomicMatrix.from_rows(field, ((0, 1), (1, 0)))
 
@@ -313,6 +359,129 @@ def pauli_y(field: CyclotomicField) -> CyclotomicMatrix:
 
 def pauli_z(field: CyclotomicField) -> CyclotomicMatrix:
     return CyclotomicMatrix.from_rows(field, ((1, 0), (0, -1)))
+
+
+def exact_pauli_matrix(
+    field: CyclotomicField,
+    label: Sequence[int],
+) -> CyclotomicMatrix:
+    """Return the Hermitian tensor Pauli for an ``(x | z)`` binary label."""
+
+    label = tuple(label)
+    if not label or len(label) % 2 or any(bit not in (0, 1) for bit in label):
+        raise ValueError("a Pauli label must contain 2n binary entries")
+    num_qubits = len(label) // 2
+    matrix = CyclotomicMatrix.from_rows(field, ((1,),))
+    for qubit in range(num_qubits):
+        x, z = label[qubit], label[num_qubits + qubit]
+        local = {
+            (0, 0): CyclotomicMatrix.identity(field, 2),
+            (1, 0): pauli_x(field),
+            (0, 1): pauli_z(field),
+            (1, 1): pauli_y(field),
+        }[(x, z)]
+        matrix = matrix.tensor(local)
+    return matrix
+
+
+def _matrix_num_qubits(matrix: CyclotomicMatrix) -> int:
+    rows, columns = matrix.shape
+    if rows != columns or rows < 2 or rows & (rows - 1):
+        raise ValueError("matrix must be square with power-of-two dimension at least two")
+    return rows.bit_length() - 1
+
+
+def _all_pauli_labels(num_qubits: int) -> tuple[PauliLabel, ...]:
+    width = 2 * num_qubits
+    return tuple(
+        tuple((value >> index) & 1 for index in range(width))
+        for value in range(1 << width)
+    )
+
+
+def pauli_conjugation_coefficients(
+    unitary: CyclotomicMatrix,
+    input_label: Sequence[int],
+) -> ExactPauliExpansion:
+    """Compute every coefficient of ``U P U.adjoint()`` exactly.
+
+    Coefficients are returned in binary-label integer order, including exact
+    zeros. The input matrix must be an exactly validated unitary; approximate
+    matrices belong to the separate numerical API.
+    """
+
+    num_qubits = _matrix_num_qubits(unitary)
+    input_label = tuple(input_label)
+    if len(input_label) != 2 * num_qubits or any(bit not in (0, 1) for bit in input_label):
+        raise ValueError("input Pauli label must be binary and have width 2n")
+    if not unitary.is_unitary():
+        raise ValueError("exact Pauli coefficients require an exactly unitary matrix")
+
+    conjugated = unitary @ exact_pauli_matrix(unitary.field, input_label) @ unitary.adjoint()
+    dimension = 1 << num_qubits
+    coefficients = []
+    for output_label in _all_pauli_labels(num_qubits):
+        product = exact_pauli_matrix(unitary.field, output_label) @ conjugated
+        trace = sum(
+            (product.rows[index][index] for index in range(dimension)),
+            unitary.field.zero,
+        )
+        coefficients.append(
+            ExactPauliCoefficient(output_label, trace / dimension)
+        )
+    return ExactPauliExpansion(input_label, tuple(coefficients))
+
+
+def verify_exact_lagrangian_witness(
+    unitary: CyclotomicMatrix,
+    input_lagrangian: Lagrangian,
+    output_lagrangian: Lagrangian,
+) -> ExactWitnessVerification:
+    """Independently verify one exact input/output Pauli-MASA witness.
+
+    The Lagrangian bases and spans are revalidated rather than trusted. Only
+    the supplied pair is checked; a false result is not an exhaustive negative
+    GSC classification.
+    """
+
+    num_qubits = _matrix_num_qubits(unitary)
+    if not unitary.is_unitary():
+        raise ValueError("exact witness verification requires an exactly unitary matrix")
+    if not isinstance(input_lagrangian, Lagrangian) or not isinstance(
+        output_lagrangian, Lagrangian
+    ):
+        raise TypeError("input and output witnesses must be Lagrangian instances")
+    if (
+        input_lagrangian.num_qubits != num_qubits
+        or output_lagrangian.num_qubits != num_qubits
+    ):
+        raise ValueError("witness qubit counts must match the unitary")
+
+    canonical_input = lagrangian_from_basis(input_lagrangian.basis, num_qubits)
+    canonical_output = lagrangian_from_basis(output_lagrangian.basis, num_qubits)
+    if canonical_input != input_lagrangian or canonical_output != output_lagrangian:
+        raise ValueError("witness elements must equal the canonical span of their basis")
+
+    images = tuple(
+        pauli_conjugation_coefficients(unitary, label)
+        for label in canonical_input.basis
+    )
+    output_labels = set(canonical_output.elements)
+    verified = all(
+        coefficient.output_label in output_labels
+        for image in images
+        for coefficient in image.support
+    )
+    return ExactWitnessVerification(
+        field_order=unitary.field.order,
+        arithmetic="cyclotomic_exact",
+        num_qubits=num_qubits,
+        input_lagrangian=canonical_input,
+        output_lagrangian=canonical_output,
+        images=images,
+        coefficients_computed=num_qubits * (1 << (2 * num_qubits)),
+        verified=verified,
+    )
 
 
 def hadamard(field: CyclotomicField) -> CyclotomicMatrix:

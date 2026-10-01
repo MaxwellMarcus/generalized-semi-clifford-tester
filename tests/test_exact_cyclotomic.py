@@ -7,12 +7,14 @@ sympy = pytest.importorskip("sympy")
 from generalized_semi_clifford.exact_cyclotomic import (  # noqa: E402
     CyclotomicField,
     CyclotomicMatrix,
+    ExactWitnessVerification,
     ccz,
     cnot,
     common_cyclotomic_field,
     controlled_phase,
     cz,
     hadamard,
+    pauli_conjugation_coefficients,
     pauli_x,
     pauli_y,
     pauli_z,
@@ -21,7 +23,9 @@ from generalized_semi_clifford.exact_cyclotomic import (  # noqa: E402
     swap,
     t_gate,
     toffoli,
+    verify_exact_lagrangian_witness,
 )
+from generalized_semi_clifford.lagrangian import lagrangian_from_basis  # noqa: E402
 
 
 def test_field_rejects_implicit_approximate_inputs() -> None:
@@ -92,3 +96,48 @@ def test_permutation_validation_and_deliberately_nonunitary_matrix() -> None:
         permutation_gate(field, (0, 0))
     with pytest.raises(ValueError, match="equal length"):
         CyclotomicMatrix.from_rows(field, ((1, 0), (1,)))
+
+
+def test_exact_pauli_coefficients_retain_zeros_and_cyclotomic_support() -> None:
+    field = CyclotomicField(8)
+
+    hadamard_expansion = pauli_conjugation_coefficients(hadamard(field), (0, 1))
+    t_expansion = pauli_conjugation_coefficients(t_gate(field), (1, 0))
+
+    assert len(hadamard_expansion.coefficients) == 4
+    assert tuple(item.output_label for item in hadamard_expansion.support) == ((1, 0),)
+    assert hadamard_expansion.support[0].value == field.one
+    assert tuple(item.output_label for item in t_expansion.support) == ((1, 0), (1, 1))
+    assert all(item.value == field.scalar(1 / sympy.sqrt(2)) for item in t_expansion.support)
+
+
+def test_supplied_exact_witness_is_revalidated_without_an_exhaustive_claim() -> None:
+    field = CyclotomicField(8)
+    z_lagrangian = lagrangian_from_basis(((0, 1),), 1)
+    x_lagrangian = lagrangian_from_basis(((1, 0),), 1)
+
+    accepted = verify_exact_lagrangian_witness(hadamard(field), z_lagrangian, x_lagrangian)
+    rejected = verify_exact_lagrangian_witness(hadamard(field), z_lagrangian, z_lagrangian)
+
+    assert isinstance(accepted, ExactWitnessVerification)
+    assert accepted.verified
+    assert accepted.field_order == 8
+    assert accepted.arithmetic == "cyclotomic_exact"
+    assert accepted.coefficients_computed == 4
+    assert not hasattr(accepted, "tolerance")
+    assert not rejected.verified
+
+
+def test_exact_witness_rejects_nonunitaries_and_untrusted_spans() -> None:
+    field = CyclotomicField(8)
+    z_lagrangian = lagrangian_from_basis(((0, 1),), 1)
+    malformed = type(z_lagrangian)(1, z_lagrangian.basis, ((0, 0),))
+
+    with pytest.raises(ValueError, match="exactly unitary"):
+        verify_exact_lagrangian_witness(
+            CyclotomicMatrix.from_rows(field, ((1, 1), (0, 1))),
+            z_lagrangian,
+            z_lagrangian,
+        )
+    with pytest.raises(ValueError, match="canonical span"):
+        verify_exact_lagrangian_witness(hadamard(field), malformed, z_lagrangian)

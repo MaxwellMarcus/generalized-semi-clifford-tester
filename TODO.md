@@ -1,6 +1,6 @@
 # Running TODO — Generalized Semi-Clifford Tester
 
-Last updated: 2026-09-30
+Last updated: 2026-10-01
 
 This is the operational queue for incremental development. Keep
 `docs/status-and-roadmap.md` as the higher-level scientific roadmap. Each
@@ -9,15 +9,13 @@ one coherent unit.
 
 ## Current focus
 
-- [ ] **Add exact Pauli coefficients and supplied-witness verification.**
-  Compute exact Pauli-conjugation coefficients from `CyclotomicMatrix`, verify
-  a supplied input/output Lagrangian pair independently, and preserve a
-  separate exact result contract. Do not add exhaustive GSC claims yet.
+- [ ] **Add a bounded exhaustive exact search with explicit work caps.**
+  Enumerate input/output Lagrangian pairs only within declared qubit and
+  coefficient-work limits, return `UNKNOWN` whenever a cap interrupts the
+  search, and export a separate versioned exact result schema.
 
 ## Next
 
-- [ ] Add a bounded exhaustive exact search with explicit work caps and
-  `UNKNOWN` outcomes.
 - [ ] Specify odd-prime Weyl phase conventions and symplectic primitives only
   after the qubit exact API and correctness contract stabilize.
 
@@ -32,6 +30,11 @@ one coherent unit.
   statistical conclusion is incomplete.
 
 ## Completed
+
+- [x] 2026-10-01 — Compute complete exact Pauli-conjugation expansions over
+  the declared cyclotomic field and independently revalidate supplied
+  input/output Lagrangians, with a separate no-tolerance fixed-witness result
+  that makes no exhaustive-search claim.
 
 - [x] 2026-09-30 — Implement canonical cyclotomic scalars and matrices over a
   declared `Q(zeta_m)`, common-field embedding, exact adjoints, products,

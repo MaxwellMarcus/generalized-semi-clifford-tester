@@ -1,9 +1,9 @@
 # Exact algebraic backend: supported domain and API contract
 
 This note fixes the scope of the exact backend. The first representation
-milestone is implemented in `generalized_semi_clifford.exact_cyclotomic`; it
-does not yet provide exact Pauli-conjugation coefficients, witness
-verification, or exhaustive GSC search. The current dense tester continues to
+two milestones are implemented in `generalized_semi_clifford.exact_cyclotomic`:
+the representation layer and exact verification of a supplied Lagrangian
+pair. It does not yet provide exhaustive GSC search. The current dense tester continues to
 use `complex128`, a positive tolerance, and the claim boundaries documented in
 `algorithm-design.md`.
 
@@ -126,8 +126,8 @@ must inspect field zeros rather than floats.
 1. **Complete:** add an optional `exact` dependency and a small cyclotomic scalar/matrix
    layer with fixed-gate constructors, common-field embedding, adjoint, and
    exact unitarity tests.
-2. Add exact Pauli-conjugation coefficients and independent verification of a
-   supplied Lagrangian witness.
+2. **Complete:** add exact Pauli-conjugation coefficients and independent
+   verification of a supplied Lagrangian witness.
 3. Add the bounded exhaustive exact search and a separate versioned JSON
    schema that preserves field order, completeness, and `UNKNOWN` states.
 4. Benchmark one-, two-, and three-qubit fixtures before considering FLINT or
@@ -151,3 +151,12 @@ CZ, SWAP, Toffoli, CCZ, arbitrary basis permutations, and an all-controls
 root-of-unity phase. Cross-field operations embed into the declared
 `Q(zeta_lcm)` field. Python floats, complex values, malformed permutations,
 and non-cyclotomic symbolic values are rejected rather than guessed.
+
+`pauli_conjugation_coefficients` returns all `4**n` coefficients, including
+exact zeros, in deterministic binary-label order. `verify_exact_lagrangian_witness`
+reconstructs both supplied Lagrangians from their bases, validates the unitary
+entry by entry, and tests whether the exact support of every input-basis image
+is contained in the supplied output algebra. Its `ExactWitnessVerification`
+records the field order, arithmetic provenance, and coefficient work count,
+but deliberately has no tolerance or exhaustive-search status. A rejected pair
+means only that this pair is not a witness; it is not a negative GSC result.
