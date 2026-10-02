@@ -1,6 +1,6 @@
 # Running TODO — Generalized Semi-Clifford Tester
 
-Last updated: 2026-10-01
+Last updated: 2026-10-02
 
 This is the operational queue for incremental development. Keep
 `docs/status-and-roadmap.md` as the higher-level scientific roadmap. Each
@@ -9,10 +9,10 @@ one coherent unit.
 
 ## Current focus
 
-- [ ] **Add a bounded exhaustive exact search with explicit work caps.**
-  Enumerate input/output Lagrangian pairs only within declared qubit and
-  coefficient-work limits, return `UNKNOWN` whenever a cap interrupts the
-  search, and export a separate versioned exact result schema.
+- [ ] **Benchmark the bounded exact search on one-, two-, and three-qubit fixtures.**
+  Record exact workload counts separately from host runtime and memory, include
+  positive, completed-negative, and capped-`UNKNOWN` cases, and use the data to
+  assess whether an optimized exact-arithmetic backend is warranted.
 
 ## Next
 
@@ -30,6 +30,11 @@ one coherent unit.
   statistical conclusion is incomplete.
 
 ## Completed
+
+- [x] 2026-10-02 — Add bounded exhaustive exact Pauli-MASA search with qubit,
+  coefficient, and candidate-pair caps; preserve `UNKNOWN` on interruption;
+  independently revalidate positive witnesses; and export a versioned JSON-
+  serializable result schema.
 
 - [x] 2026-10-01 — Compute complete exact Pauli-conjugation expansions over
   the declared cyclotomic field and independently revalidate supplied

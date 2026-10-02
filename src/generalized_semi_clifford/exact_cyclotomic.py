@@ -1,20 +1,28 @@
-"""Exact matrices over a declared cyclotomic field.
+"""Exact matrices and bounded Pauli-MASA search over a cyclotomic field.
 
-This optional module is a representation layer, not an exact GSC tester.  It
-stores entries as SymPy ``AlgebraicField`` domain elements and never promotes
-floating-point values to exact scalars.
+This optional module stores entries as SymPy ``AlgebraicField`` domain
+elements and never promotes floating-point values to exact scalars. Its exact
+GSC classification is limited to completed, explicitly resource-bounded
+Pauli-MASA searches.
 """
 
 from __future__ import annotations
 
 from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
+from enum import Enum
 from functools import cached_property
 from math import lcm
 from numbers import Integral, Rational
 from typing import Any
 
-from .lagrangian import Lagrangian, PauliLabel, lagrangian_from_basis
+from .lagrangian import (
+    MAX_LAGRANGIAN_QUBITS,
+    Lagrangian,
+    PauliLabel,
+    enumerate_lagrangians,
+    lagrangian_from_basis,
+)
 
 try:
     from sympy import QQ, Float, I, exp, pi, sqrt
@@ -348,6 +356,86 @@ class ExactWitnessVerification:
     verified: bool
 
 
+EXACT_SEARCH_SCHEMA = "generalized-semi-clifford.exact-search.v1"
+
+
+class ExactSearchStatus(str, Enum):
+    """Outcomes from the resource-bounded exhaustive exact search."""
+
+    GSC = "gsc"
+    NOT_GSC = "not_gsc"
+    UNKNOWN = "unknown"
+
+
+@dataclass(frozen=True)
+class ExactSearchResult:
+    """Versioned result from :func:`search_exact_lagrangian_witness`.
+
+    ``search_complete`` means every input/output Lagrangian pair was rejected;
+    it is therefore true only for an exact ``NOT_GSC`` result. A positive
+    result instead carries an independently recomputed witness verification.
+    """
+
+    schema_version: str
+    status: ExactSearchStatus
+    field_order: int
+    arithmetic: str
+    num_qubits: int
+    search_complete: bool
+    max_qubits: int
+    max_coefficients: int
+    max_candidate_pairs: int
+    lagrangians_total: int | None
+    input_lagrangians_checked: int
+    candidate_pairs_checked: int
+    coefficients_computed: int
+    witness: ExactWitnessVerification | None
+    stop_reason: str | None
+    message: str
+
+    @property
+    def is_gsc(self) -> bool | None:
+        """Return a Boolean classification, or ``None`` for ``UNKNOWN``."""
+
+        if self.status is ExactSearchStatus.UNKNOWN:
+            return None
+        return self.status is ExactSearchStatus.GSC
+
+    def to_dict(self) -> dict[str, Any]:
+        """Return the stable, JSON-serializable version-one result schema."""
+
+        witness = None
+        if self.witness is not None:
+            witness = {
+                "verified": self.witness.verified,
+                "input_basis": [list(label) for label in self.witness.input_lagrangian.basis],
+                "output_basis": [list(label) for label in self.witness.output_lagrangian.basis],
+                "verification_coefficients_computed": self.witness.coefficients_computed,
+            }
+        return {
+            "schema_version": self.schema_version,
+            "status": self.status.value,
+            "field_order": self.field_order,
+            "arithmetic": self.arithmetic,
+            "num_qubits": self.num_qubits,
+            "search_complete": self.search_complete,
+            "limits": {
+                "max_qubits": self.max_qubits,
+                "max_coefficients": self.max_coefficients,
+                "max_candidate_pairs": self.max_candidate_pairs,
+            },
+            "work": {
+                "lagrangians_total": self.lagrangians_total,
+                "input_lagrangians_checked": self.input_lagrangians_checked,
+                "candidate_pairs_checked": self.candidate_pairs_checked,
+                "coefficients_computed": self.coefficients_computed,
+            },
+            "witness": witness,
+            "stop_reason": self.stop_reason,
+            "message": self.message,
+        }
+
+
 def pauli_x(field: CyclotomicField) -> CyclotomicMatrix:
     return CyclotomicMatrix.from_rows(field, ((0, 1), (1, 0)))
 
@@ -416,7 +504,16 @@ def pauli_conjugation_coefficients(
         raise ValueError("input Pauli label must be binary and have width 2n")
     if not unitary.is_unitary():
         raise ValueError("exact Pauli coefficients require an exactly unitary matrix")
+    return _pauli_conjugation_coefficients_validated(unitary, input_label)
 
+
+def _pauli_conjugation_coefficients_validated(
+    unitary: CyclotomicMatrix,
+    input_label: PauliLabel,
+) -> ExactPauliExpansion:
+    """Compute coefficients after shape, label, and unitarity validation."""
+
+    num_qubits = _matrix_num_qubits(unitary)
     conjugated = unitary @ exact_pauli_matrix(unitary.field, input_label) @ unitary.adjoint()
     dimension = 1 << num_qubits
     coefficients = []
@@ -463,7 +560,7 @@ def verify_exact_lagrangian_witness(
         raise ValueError("witness elements must equal the canonical span of their basis")
 
     images = tuple(
-        pauli_conjugation_coefficients(unitary, label)
+        _pauli_conjugation_coefficients_validated(unitary, label)
         for label in canonical_input.basis
     )
     output_labels = set(canonical_output.elements)
@@ -481,6 +578,167 @@ def verify_exact_lagrangian_witness(
         images=images,
         coefficients_computed=num_qubits * (1 << (2 * num_qubits)),
         verified=verified,
+    )
+
+
+def search_exact_lagrangian_witness(
+    unitary: CyclotomicMatrix,
+    *,
+    max_qubits: int = 3,
+    max_coefficients: int = 100_000,
+    max_candidate_pairs: int = 100_000,
+) -> ExactSearchResult:
+    """Search every Pauli-MASA pair subject to explicit exact-work caps.
+
+    A cap reached before a witness is independently verified returns
+    ``UNKNOWN``. ``NOT_GSC`` is returned only after every enumerated pair has
+    been rejected using exact field-zero tests.
+    """
+
+    for name, value in (
+        ("max_qubits", max_qubits),
+        ("max_coefficients", max_coefficients),
+        ("max_candidate_pairs", max_candidate_pairs),
+    ):
+        if not isinstance(value, int) or isinstance(value, bool) or value < 0:
+            raise ValueError(f"{name} must be a nonnegative integer")
+    if max_qubits < 1:
+        raise ValueError("max_qubits must be positive")
+
+    num_qubits = _matrix_num_qubits(unitary)
+    if not unitary.is_unitary():
+        raise ValueError("exact search requires an exactly unitary matrix")
+
+    def result(
+        status: ExactSearchStatus,
+        *,
+        search_complete: bool,
+        lagrangians_total: int | None,
+        input_lagrangians_checked: int,
+        candidate_pairs_checked: int,
+        coefficients_computed: int,
+        witness: ExactWitnessVerification | None = None,
+        stop_reason: str | None = None,
+        message: str,
+    ) -> ExactSearchResult:
+        return ExactSearchResult(
+            schema_version=EXACT_SEARCH_SCHEMA,
+            status=status,
+            field_order=unitary.field.order,
+            arithmetic="cyclotomic_exact",
+            num_qubits=num_qubits,
+            search_complete=search_complete,
+            max_qubits=max_qubits,
+            max_coefficients=max_coefficients,
+            max_candidate_pairs=max_candidate_pairs,
+            lagrangians_total=lagrangians_total,
+            input_lagrangians_checked=input_lagrangians_checked,
+            candidate_pairs_checked=candidate_pairs_checked,
+            coefficients_computed=coefficients_computed,
+            witness=witness,
+            stop_reason=stop_reason,
+            message=message,
+        )
+
+    search_limit = min(max_qubits, MAX_LAGRANGIAN_QUBITS)
+    if num_qubits > search_limit:
+        return result(
+            ExactSearchStatus.UNKNOWN,
+            search_complete=False,
+            lagrangians_total=None,
+            input_lagrangians_checked=0,
+            candidate_pairs_checked=0,
+            coefficients_computed=0,
+            stop_reason="qubit_cap",
+            message=f"n={num_qubits} exceeds the exact-search limit {search_limit}",
+        )
+
+    lagrangians = enumerate_lagrangians(num_qubits)
+    coefficients_per_image = 1 << (2 * num_qubits)
+    coefficients_computed = 0
+    candidate_pairs_checked = 0
+    input_lagrangians_checked = 0
+
+    for input_lagrangian in lagrangians:
+        images: list[ExactPauliExpansion] = []
+        for label in input_lagrangian.basis:
+            if coefficients_computed + coefficients_per_image > max_coefficients:
+                return result(
+                    ExactSearchStatus.UNKNOWN,
+                    search_complete=False,
+                    lagrangians_total=len(lagrangians),
+                    input_lagrangians_checked=input_lagrangians_checked,
+                    candidate_pairs_checked=candidate_pairs_checked,
+                    coefficients_computed=coefficients_computed,
+                    stop_reason="coefficient_cap",
+                    message="exact Pauli-coefficient work cap interrupted the search",
+                )
+            images.append(_pauli_conjugation_coefficients_validated(unitary, label))
+            coefficients_computed += coefficients_per_image
+
+        support = {
+            coefficient.output_label
+            for image in images
+            for coefficient in image.support
+        }
+        for output_lagrangian in lagrangians:
+            if candidate_pairs_checked >= max_candidate_pairs:
+                return result(
+                    ExactSearchStatus.UNKNOWN,
+                    search_complete=False,
+                    lagrangians_total=len(lagrangians),
+                    input_lagrangians_checked=input_lagrangians_checked,
+                    candidate_pairs_checked=candidate_pairs_checked,
+                    coefficients_computed=coefficients_computed,
+                    stop_reason="candidate_pair_cap",
+                    message="input/output candidate-pair cap interrupted the search",
+                )
+            candidate_pairs_checked += 1
+            if not support.issubset(output_lagrangian.elements):
+                continue
+
+            verification_work = num_qubits * coefficients_per_image
+            if coefficients_computed + verification_work > max_coefficients:
+                return result(
+                    ExactSearchStatus.UNKNOWN,
+                    search_complete=False,
+                    lagrangians_total=len(lagrangians),
+                    input_lagrangians_checked=input_lagrangians_checked,
+                    candidate_pairs_checked=candidate_pairs_checked,
+                    coefficients_computed=coefficients_computed,
+                    stop_reason="coefficient_cap",
+                    message="coefficient cap cannot fund independent witness verification",
+                )
+            witness = verify_exact_lagrangian_witness(
+                unitary,
+                input_lagrangian,
+                output_lagrangian,
+            )
+            coefficients_computed += witness.coefficients_computed
+            if not witness.verified:
+                raise AssertionError("independent exact witness verification disagreed with search")
+            return result(
+                ExactSearchStatus.GSC,
+                search_complete=False,
+                lagrangians_total=len(lagrangians),
+                input_lagrangians_checked=input_lagrangians_checked + 1,
+                candidate_pairs_checked=candidate_pairs_checked,
+                coefficients_computed=coefficients_computed,
+                witness=witness,
+                stop_reason="witness_found",
+                message="found and independently verified an exact Pauli-MASA witness",
+            )
+        input_lagrangians_checked += 1
+
+    return result(
+        ExactSearchStatus.NOT_GSC,
+        search_complete=True,
+        lagrangians_total=len(lagrangians),
+        input_lagrangians_checked=input_lagrangians_checked,
+        candidate_pairs_checked=candidate_pairs_checked,
+        coefficients_computed=coefficients_computed,
+        stop_reason="exhausted",
+        message="no Pauli-MASA pair passed the exhaustive exact search",
     )
 
 

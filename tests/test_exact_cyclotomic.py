@@ -1,3 +1,4 @@
+import json
 from fractions import Fraction
 
 import pytest
@@ -5,8 +6,10 @@ import pytest
 sympy = pytest.importorskip("sympy")
 
 from generalized_semi_clifford.exact_cyclotomic import (  # noqa: E402
+    EXACT_SEARCH_SCHEMA,
     CyclotomicField,
     CyclotomicMatrix,
+    ExactSearchStatus,
     ExactWitnessVerification,
     ccz,
     cnot,
@@ -20,6 +23,7 @@ from generalized_semi_clifford.exact_cyclotomic import (  # noqa: E402
     pauli_z,
     permutation_gate,
     phase_s,
+    search_exact_lagrangian_witness,
     swap,
     t_gate,
     toffoli,
@@ -141,3 +145,70 @@ def test_exact_witness_rejects_nonunitaries_and_untrusted_spans() -> None:
         )
     with pytest.raises(ValueError, match="canonical span"):
         verify_exact_lagrangian_witness(hadamard(field), malformed, z_lagrangian)
+
+
+def test_bounded_exact_search_finds_and_independently_verifies_witness() -> None:
+    field = CyclotomicField(8)
+
+    result = search_exact_lagrangian_witness(hadamard(field))
+
+    assert result.status is ExactSearchStatus.GSC
+    assert result.is_gsc is True
+    assert not result.search_complete
+    assert result.stop_reason == "witness_found"
+    assert result.witness is not None and result.witness.verified
+    assert result.coefficients_computed == 8
+    assert result.schema_version == EXACT_SEARCH_SCHEMA
+    payload = result.to_dict()
+    assert payload["status"] == "gsc"
+    assert payload["witness"]["verified"] is True
+    json.dumps(payload)
+
+
+def test_completed_exact_search_can_prove_no_pauli_masa_pair_exists() -> None:
+    field = CyclotomicField(8)
+    non_gsc = t_gate(field) @ hadamard(field) @ t_gate(field)
+
+    result = search_exact_lagrangian_witness(non_gsc)
+
+    assert result.status is ExactSearchStatus.NOT_GSC
+    assert result.is_gsc is False
+    assert result.search_complete
+    assert result.stop_reason == "exhausted"
+    assert result.input_lagrangians_checked == 3
+    assert result.candidate_pairs_checked == 9
+    assert result.coefficients_computed == 12
+    assert result.witness is None
+
+
+@pytest.mark.parametrize(
+    ("unitary_factory", "limits", "stop_reason"),
+    [
+        (lambda field: hadamard(field), {"max_coefficients": 3}, "coefficient_cap"),
+        (
+            lambda field: t_gate(field) @ hadamard(field) @ t_gate(field),
+            {"max_candidate_pairs": 2},
+            "candidate_pair_cap",
+        ),
+        (lambda field: cnot(field), {"max_qubits": 1}, "qubit_cap"),
+    ],
+)
+def test_exact_search_caps_preserve_unknown(unitary_factory, limits, stop_reason) -> None:
+    result = search_exact_lagrangian_witness(unitary_factory(CyclotomicField(8)), **limits)
+
+    assert result.status is ExactSearchStatus.UNKNOWN
+    assert result.is_gsc is None
+    assert not result.search_complete
+    assert result.stop_reason == stop_reason
+    assert result.witness is None
+
+
+def test_exact_search_rejects_invalid_caps_and_nonunitaries() -> None:
+    field = CyclotomicField(8)
+
+    with pytest.raises(ValueError, match="max_coefficients"):
+        search_exact_lagrangian_witness(hadamard(field), max_coefficients=-1)
+    with pytest.raises(ValueError, match="exactly unitary"):
+        search_exact_lagrangian_witness(
+            CyclotomicMatrix.from_rows(field, ((1, 1), (0, 1)))
+        )

@@ -1,11 +1,10 @@
 # Exact algebraic backend: supported domain and API contract
 
-This note fixes the scope of the exact backend. The first representation
-two milestones are implemented in `generalized_semi_clifford.exact_cyclotomic`:
-the representation layer and exact verification of a supplied Lagrangian
-pair. It does not yet provide exhaustive GSC search. The current dense tester continues to
-use `complex128`, a positive tolerance, and the claim boundaries documented in
-`algorithm-design.md`.
+This note fixes the scope of the exact backend. The representation, supplied-
+witness verification, and bounded exhaustive-search milestones are implemented
+in `generalized_semi_clifford.exact_cyclotomic`. The current dense tester
+continues to use `complex128`, a positive tolerance, and the claim boundaries
+documented in `algorithm-design.md`.
 
 ## Decision
 
@@ -128,8 +127,9 @@ must inspect field zeros rather than floats.
    exact unitarity tests.
 2. **Complete:** add exact Pauli-conjugation coefficients and independent
    verification of a supplied Lagrangian witness.
-3. Add the bounded exhaustive exact search and a separate versioned JSON
-   schema that preserves field order, completeness, and `UNKNOWN` states.
+3. **Complete:** add the bounded exhaustive exact search and a separate
+   versioned JSON schema that preserves field order, completeness, and
+   `UNKNOWN` states.
 4. Benchmark one-, two-, and three-qubit fixtures before considering FLINT or
    a custom representation.
 
@@ -160,3 +160,12 @@ is contained in the supplied output algebra. Its `ExactWitnessVerification`
 records the field order, arithmetic provenance, and coefficient work count,
 but deliberately has no tolerance or exhaustive-search status. A rejected pair
 means only that this pair is not a witness; it is not a negative GSC result.
+
+`search_exact_lagrangian_witness` enumerates deterministic input/output
+Lagrangian pairs under explicit qubit, coefficient, and candidate-pair caps.
+It returns the separate `ExactSearchResult` type and the stable
+`generalized-semi-clifford.exact-search.v1` dictionary schema. A cap produces
+`UNKNOWN`; `NOT_GSC` is possible only after every pair is rejected. Positive
+results contain an independently recomputed `ExactWitnessVerification` and
+record both search and verification coefficient work. Run
+`python examples/exact_search.py` for positive, negative, and capped results.

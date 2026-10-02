@@ -1,6 +1,6 @@
 # Status and roadmap
 
-Last audited: 2026-10-01.
+Last audited: 2026-10-02.
 
 ## What works now
 
@@ -15,7 +15,7 @@ Last audited: 2026-10-01.
 | Pauli transfer | Exhaustive dense-trace extraction with thresholded sparse columns and per-column discarded mass | Complex128 numerical arithmetic through three qubits by default; thresholded entries are not certified exact zeros |
 | Noise comparison | Ideal sparse-transfer leakage intervals beside finite-shot Bell-sampling leakage and simultaneous confidence bounds | Reproducible Aer depolarizing example, not a calibrated hardware model or exact membership claim |
 | Command line | Versioned JSON for dense `.npy` unitaries and OpenQASM 2 circuit discovery plus fresh verification | Preserves `UNKNOWN`, tolerances, raw counts, and confidence metadata; Qiskit is optional |
-| Exact cyclotomic layer | Canonical arithmetic over a declared `Q(zeta_m)`, complete exact Pauli expansions, and independent supplied-witness verification | No exhaustive search yet; a rejected supplied pair is not a negative GSC classification |
+| Exact cyclotomic layer | Canonical arithmetic over a declared `Q(zeta_m)`, complete exact Pauli expansions, supplied-witness verification, and resource-bounded exhaustive Pauli-MASA search | Exact `NOT_GSC` requires full pair exhaustion; any qubit, coefficient, or pair cap returns `UNKNOWN` |
 | Analytic fixtures | Parameterized phase and controlled-phase families, a one-qubit non-GSC rotation, and rejected witnesses | GSC-but-not-semi-Clifford still needs a separately justified higher-qubit fixture |
 | Conjugation sampling | Short words at arbitrary bounded depth and recursive finite-subgroup escape without previous-group enumeration | Exact-oracle containment theorem counts group operations, not expanded U queries; dense frontend is numerical and limited to 3 qubits |
 | SC-distance evidence | Replayable hierarchy paths and an exhaustive unrestricted SC-distance fallback | Restricted and unrestricted targets are distinguished; floating-point margins are not interval certificates |
@@ -89,6 +89,9 @@ The key conceptual distinction is now represented in the API:
 - [x] Implement the cyclotomic representation and fixed-gate layer.
 - [x] Add exact Pauli-conjugation coefficients and independently verify a
   supplied witness before adding a bounded exhaustive search.
+- [x] Add bounded exhaustive exact search with explicit work caps, independent
+  positive-witness revalidation, and a versioned result schema preserving
+  `UNKNOWN`.
 - [ ] Extend the binary implementation to prime-dimensional qudits.
 - [x] Add a command-line interface and machine-readable result export.
 
@@ -102,7 +105,8 @@ Negative finite-shot results are therefore evidence against the tested witness,
 not a general proof that the unitary is not generalized semi-Clifford.
 
 The exact backend contract is scoped in `exact-algebraic-backend.md`. Exact
-fixed-witness verification is now shipped for explicitly constructed
-`CyclotomicMatrix` inputs, but exhaustive exact search remains planned. NumPy
-and Qiskit inputs remain numerical even when their values happen to be close
-to algebraic gates.
+fixed-witness verification and bounded exhaustive Pauli-MASA search are shipped
+for explicitly constructed `CyclotomicMatrix` inputs. A negative result is
+exact only when the search reports complete; a resource cap preserves
+`UNKNOWN`. NumPy and Qiskit inputs remain numerical even when their values
+happen to be close to algebraic gates.
