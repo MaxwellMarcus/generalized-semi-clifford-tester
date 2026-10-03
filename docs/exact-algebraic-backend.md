@@ -158,8 +158,11 @@ reconstructs both supplied Lagrangians from their bases, validates the unitary
 entry by entry, and tests whether the exact support of every input-basis image
 is contained in the supplied output algebra. Its `ExactWitnessVerification`
 records the field order, arithmetic provenance, and coefficient work count,
-but deliberately has no tolerance or exhaustive-search status. A rejected pair
-means only that this pair is not a witness; it is not a negative GSC result.
+but deliberately has no tolerance or exhaustive-search status. Bases are
+canonicalized before use, while the stored element tuple must still equal the
+reconstructed span; this accepts valid enumerated bases without trusting
+caller-supplied elements. A rejected pair means only that this pair is not a
+witness; it is not a negative GSC result.
 
 `search_exact_lagrangian_witness` enumerates deterministic input/output
 Lagrangian pairs under explicit qubit, coefficient, and candidate-pair caps.

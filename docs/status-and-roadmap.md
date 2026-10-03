@@ -1,6 +1,6 @@
 # Status and roadmap
 
-Last audited: 2026-10-02.
+Last audited: 2026-10-03.
 
 ## What works now
 
@@ -15,7 +15,7 @@ Last audited: 2026-10-02.
 | Pauli transfer | Exhaustive dense-trace extraction with thresholded sparse columns and per-column discarded mass | Complex128 numerical arithmetic through three qubits by default; thresholded entries are not certified exact zeros |
 | Noise comparison | Ideal sparse-transfer leakage intervals beside finite-shot Bell-sampling leakage and simultaneous confidence bounds | Reproducible Aer depolarizing example, not a calibrated hardware model or exact membership claim |
 | Command line | Versioned JSON for dense `.npy` unitaries and OpenQASM 2 circuit discovery plus fresh verification | Preserves `UNKNOWN`, tolerances, raw counts, and confidence metadata; Qiskit is optional |
-| Exact cyclotomic layer | Canonical arithmetic over a declared `Q(zeta_m)`, complete exact Pauli expansions, supplied-witness verification, and resource-bounded exhaustive Pauli-MASA search | Exact `NOT_GSC` requires full pair exhaustion; any qubit, coefficient, or pair cap returns `UNKNOWN` |
+| Exact cyclotomic layer | Canonical arithmetic over a declared `Q(zeta_m)`, complete exact Pauli expansions, canonicalized supplied-witness verification, and resource-bounded exhaustive Pauli-MASA search | Exact `NOT_GSC` requires full pair exhaustion; any qubit, coefficient, or pair cap returns `UNKNOWN` |
 | Analytic fixtures | Parameterized phase and controlled-phase families, a one-qubit non-GSC rotation, and rejected witnesses | GSC-but-not-semi-Clifford still needs a separately justified higher-qubit fixture |
 | Conjugation sampling | Short words at arbitrary bounded depth and recursive finite-subgroup escape without previous-group enumeration | Exact-oracle containment theorem counts group operations, not expanded U queries; dense frontend is numerical and limited to 3 qubits |
 | SC-distance evidence | Replayable hierarchy paths and an exhaustive unrestricted SC-distance fallback | Restricted and unrestricted targets are distinguished; floating-point margins are not interval certificates |

@@ -1,6 +1,6 @@
 # Running TODO — Generalized Semi-Clifford Tester
 
-Last updated: 2026-10-02
+Last updated: 2026-10-03
 
 This is the operational queue for incremental development. Keep
 `docs/status-and-roadmap.md` as the higher-level scientific roadmap. Each
@@ -30,6 +30,10 @@ one coherent unit.
   statistical conclusion is incomplete.
 
 ## Completed
+
+- [x] 2026-10-03 — Fix exact witness revalidation to canonicalize valid
+  enumerated multi-qubit bases while still requiring their stored elements to
+  equal the independently reconstructed span; add a two-qubit CNOT regression.
 
 - [x] 2026-10-02 — Add bounded exhaustive exact Pauli-MASA search with qubit,
   coefficient, and candidate-pair caps; preserve `UNKNOWN` on interruption;

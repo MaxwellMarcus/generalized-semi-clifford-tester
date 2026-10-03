@@ -556,7 +556,10 @@ def verify_exact_lagrangian_witness(
 
     canonical_input = lagrangian_from_basis(input_lagrangian.basis, num_qubits)
     canonical_output = lagrangian_from_basis(output_lagrangian.basis, num_qubits)
-    if canonical_input != input_lagrangian or canonical_output != output_lagrangian:
+    if (
+        canonical_input.elements != input_lagrangian.elements
+        or canonical_output.elements != output_lagrangian.elements
+    ):
         raise ValueError("witness elements must equal the canonical span of their basis")
 
     images = tuple(

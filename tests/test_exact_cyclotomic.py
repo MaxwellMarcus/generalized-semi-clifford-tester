@@ -165,6 +165,21 @@ def test_bounded_exact_search_finds_and_independently_verifies_witness() -> None
     json.dumps(payload)
 
 
+def test_two_qubit_exact_search_accepts_enumerated_lagrangian_witness() -> None:
+    result = search_exact_lagrangian_witness(cnot(CyclotomicField(8)))
+
+    assert result.status is ExactSearchStatus.GSC
+    assert result.witness is not None and result.witness.verified
+    assert result.witness.input_lagrangian == lagrangian_from_basis(
+        result.witness.input_lagrangian.basis,
+        2,
+    )
+    assert result.witness.output_lagrangian == lagrangian_from_basis(
+        result.witness.output_lagrangian.basis,
+        2,
+    )
+
+
 def test_completed_exact_search_can_prove_no_pauli_masa_pair_exists() -> None:
     field = CyclotomicField(8)
     non_gsc = t_gate(field) @ hadamard(field) @ t_gate(field)
