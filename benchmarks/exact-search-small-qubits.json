@@ -1,0 +1,155 @@
+{
+  "environment": {
+    "implementation": "CPython",
+    "platform": "macOS-14.7.3-arm64-arm-64bit",
+    "python_version": "3.11.7"
+  },
+  "records": [
+    {
+      "exact_workload": {
+        "arithmetic": "cyclotomic_exact",
+        "candidate_pairs_checked": 3,
+        "coefficients_computed": 8,
+        "field_order": 8,
+        "input_lagrangians_checked": 1,
+        "lagrangians_total": 3,
+        "limits": {
+          "max_candidate_pairs": 100000,
+          "max_coefficients": 100000,
+          "max_qubits": 3
+        },
+        "num_qubits": 1,
+        "witness_verification_coefficients": 4
+      },
+      "fixture": "one_qubit_h_positive",
+      "measurements": {
+        "host_runtime_seconds": 0.06614162493497133,
+        "python_peak_memory_bytes": 175673
+      },
+      "outcome": {
+        "search_complete": false,
+        "status": "gsc",
+        "stop_reason": "witness_found",
+        "witness_verified": true
+      },
+      "schema": "generalized-semi-clifford/exact-search-benchmark-v1"
+    },
+    {
+      "exact_workload": {
+        "arithmetic": "cyclotomic_exact",
+        "candidate_pairs_checked": 9,
+        "coefficients_computed": 12,
+        "field_order": 8,
+        "input_lagrangians_checked": 3,
+        "lagrangians_total": 3,
+        "limits": {
+          "max_candidate_pairs": 100000,
+          "max_coefficients": 100000,
+          "max_qubits": 3
+        },
+        "num_qubits": 1,
+        "witness_verification_coefficients": 0
+      },
+      "fixture": "one_qubit_t_h_t_complete_negative",
+      "measurements": {
+        "host_runtime_seconds": 0.07620979205239564,
+        "python_peak_memory_bytes": 233074
+      },
+      "outcome": {
+        "search_complete": true,
+        "status": "not_gsc",
+        "stop_reason": "exhausted",
+        "witness_verified": null
+      },
+      "schema": "generalized-semi-clifford/exact-search-benchmark-v1"
+    },
+    {
+      "exact_workload": {
+        "arithmetic": "cyclotomic_exact",
+        "candidate_pairs_checked": 1,
+        "coefficients_computed": 64,
+        "field_order": 8,
+        "input_lagrangians_checked": 1,
+        "lagrangians_total": 15,
+        "limits": {
+          "max_candidate_pairs": 100000,
+          "max_coefficients": 100000,
+          "max_qubits": 3
+        },
+        "num_qubits": 2,
+        "witness_verification_coefficients": 32
+      },
+      "fixture": "two_qubit_cnot_positive",
+      "measurements": {
+        "host_runtime_seconds": 0.5735116249416023,
+        "python_peak_memory_bytes": 951594
+      },
+      "outcome": {
+        "search_complete": false,
+        "status": "gsc",
+        "stop_reason": "witness_found",
+        "witness_verified": true
+      },
+      "schema": "generalized-semi-clifford/exact-search-benchmark-v1"
+    },
+    {
+      "exact_workload": {
+        "arithmetic": "cyclotomic_exact",
+        "candidate_pairs_checked": 1,
+        "coefficients_computed": 384,
+        "field_order": 8,
+        "input_lagrangians_checked": 1,
+        "lagrangians_total": 135,
+        "limits": {
+          "max_candidate_pairs": 100000,
+          "max_coefficients": 100000,
+          "max_qubits": 3
+        },
+        "num_qubits": 3,
+        "witness_verification_coefficients": 192
+      },
+      "fixture": "three_qubit_cnot_identity_positive",
+      "measurements": {
+        "host_runtime_seconds": 7.881749583990313,
+        "python_peak_memory_bytes": 1955724
+      },
+      "outcome": {
+        "search_complete": false,
+        "status": "gsc",
+        "stop_reason": "witness_found",
+        "witness_verified": true
+      },
+      "schema": "generalized-semi-clifford/exact-search-benchmark-v1"
+    },
+    {
+      "exact_workload": {
+        "arithmetic": "cyclotomic_exact",
+        "candidate_pairs_checked": 1,
+        "coefficients_computed": 192,
+        "field_order": 8,
+        "input_lagrangians_checked": 0,
+        "lagrangians_total": 135,
+        "limits": {
+          "max_candidate_pairs": 1,
+          "max_coefficients": 100000,
+          "max_qubits": 3
+        },
+        "num_qubits": 3,
+        "witness_verification_coefficients": 0
+      },
+      "fixture": "three_qubit_h_identity_identity_capped_unknown",
+      "measurements": {
+        "host_runtime_seconds": 3.6750940839992836,
+        "python_peak_memory_bytes": 1140577
+      },
+      "outcome": {
+        "search_complete": false,
+        "status": "unknown",
+        "stop_reason": "candidate_pair_cap",
+        "witness_verified": null
+      },
+      "schema": "generalized-semi-clifford/exact-search-benchmark-v1"
+    }
+  ],
+  "schema": "generalized-semi-clifford/exact-search-benchmark-suite-v1"
+}

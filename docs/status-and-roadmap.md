@@ -1,6 +1,6 @@
 # Status and roadmap
 
-Last audited: 2026-10-03.
+Last audited: 2026-10-04.
 
 ## What works now
 
@@ -16,6 +16,7 @@ Last audited: 2026-10-03.
 | Noise comparison | Ideal sparse-transfer leakage intervals beside finite-shot Bell-sampling leakage and simultaneous confidence bounds | Reproducible Aer depolarizing example, not a calibrated hardware model or exact membership claim |
 | Command line | Versioned JSON for dense `.npy` unitaries and OpenQASM 2 circuit discovery plus fresh verification | Preserves `UNKNOWN`, tolerances, raw counts, and confidence metadata; Qiskit is optional |
 | Exact cyclotomic layer | Canonical arithmetic over a declared `Q(zeta_m)`, complete exact Pauli expansions, canonicalized supplied-witness verification, and resource-bounded exhaustive Pauli-MASA search | Exact `NOT_GSC` requires full pair exhaustion; any qubit, coefficient, or pair cap returns `UNKNOWN` |
+| Exact-search benchmarks | Versioned positive, completed-negative, and capped-`UNKNOWN` records through three qubits | Exact work counters are portable; host wall time and Python peak memory are machine-dependent |
 | Analytic fixtures | Parameterized phase and controlled-phase families, a one-qubit non-GSC rotation, and rejected witnesses | GSC-but-not-semi-Clifford still needs a separately justified higher-qubit fixture |
 | Conjugation sampling | Short words at arbitrary bounded depth and recursive finite-subgroup escape without previous-group enumeration | Exact-oracle containment theorem counts group operations, not expanded U queries; dense frontend is numerical and limited to 3 qubits |
 | SC-distance evidence | Replayable hierarchy paths and an exhaustive unrestricted SC-distance fallback | Restricted and unrestricted targets are distinguished; floating-point margins are not interval certificates |
@@ -92,6 +93,8 @@ The key conceptual distinction is now represented in the API:
 - [x] Add bounded exhaustive exact search with explicit work caps, independent
   positive-witness revalidation, and a versioned result schema preserving
   `UNKNOWN`.
+- [x] Benchmark bounded exact search through three qubits with exact work
+  counters separated from host runtime and Python-managed peak memory.
 - [ ] Extend the binary implementation to prime-dimensional qudits.
 - [x] Add a command-line interface and machine-readable result export.
 

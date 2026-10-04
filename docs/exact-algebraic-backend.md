@@ -130,8 +130,8 @@ must inspect field zeros rather than floats.
 3. **Complete:** add the bounded exhaustive exact search and a separate
    versioned JSON schema that preserves field order, completeness, and
    `UNKNOWN` states.
-4. Benchmark one-, two-, and three-qubit fixtures before considering FLINT or
-   a custom representation.
+4. **Complete:** benchmark one-, two-, and three-qubit fixtures before
+   considering FLINT or a custom representation.
 
 Each milestone is independently testable. In particular, completing the
 representation layer alone must not be advertised as an exact GSC tester.
@@ -172,3 +172,11 @@ It returns the separate `ExactSearchResult` type and the stable
 results contain an independently recomputed `ExactWitnessVerification` and
 record both search and verification coefficient work. Run
 `python examples/exact_search.py` for positive, negative, and capped results.
+
+`run_exact_search_benchmark` keeps exact coefficient, candidate-pair, and
+Lagrangian counts separate from host wall time and Python-managed peak memory.
+The checked-in `benchmarks/exact-search-small-qubits.json` records positive
+searches through three qubits, a completed one-qubit negative, and a capped
+three-qubit `UNKNOWN`. These measurements profile the SymPy reference backend
+on one host; they are not portable complexity bounds. Reproduce them with
+`python examples/benchmark_exact_search.py`.

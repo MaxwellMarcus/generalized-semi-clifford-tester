@@ -1,6 +1,6 @@
 # Running TODO — Generalized Semi-Clifford Tester
 
-Last updated: 2026-10-03
+Last updated: 2026-10-04
 
 This is the operational queue for incremental development. Keep
 `docs/status-and-roadmap.md` as the higher-level scientific roadmap. Each
@@ -9,15 +9,14 @@ one coherent unit.
 
 ## Current focus
 
-- [ ] **Benchmark the bounded exact search on one-, two-, and three-qubit fixtures.**
-  Record exact workload counts separately from host runtime and memory, include
-  positive, completed-negative, and capped-`UNKNOWN` cases, and use the data to
-  assess whether an optimized exact-arithmetic backend is warranted.
+- [ ] **Specify odd-prime Weyl phase conventions and symplectic primitives.**
+  Define one internally consistent coordinate, commutation, and phase convention
+  before extending the qubit-only exact API or implementation.
 
 ## Next
 
-- [ ] Specify odd-prime Weyl phase conventions and symplectic primitives only
-  after the qubit exact API and correctness contract stabilize.
+- [ ] Implement odd-prime Lagrangian enumeration only after the convention
+  document includes independently checkable one-qutrit examples.
 
 ## Maintenance
 
@@ -30,6 +29,10 @@ one coherent unit.
   statistical conclusion is incomplete.
 
 ## Completed
+
+- [x] 2026-10-04 — Benchmark positive bounded exact searches through three
+  qubits plus a completed one-qubit negative and capped three-qubit `UNKNOWN`,
+  keeping exact work counts separate from host runtime and Python peak memory.
 
 - [x] 2026-10-03 — Fix exact witness revalidation to canonicalize valid
   enumerated multi-qubit bases while still requiring their stored elements to
