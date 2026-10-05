@@ -64,6 +64,13 @@ from .noise_comparison import (
     TransferSamplingComparison,
     compare_sparse_transfer_with_sampling,
 )
+from .odd_prime import (
+    is_prime_symplectic,
+    normalize_prime_label,
+    prime_standard_form,
+    prime_symplectic_pairing,
+    weyl_product_phase_exponent,
+)
 from .semi_clifford_qiskit import (
     PauliConjugationObservation,
     SemiCliffordSamplingResult,
@@ -140,17 +147,21 @@ __all__ = [
     "find_lagrangian_witness",
     "identity",
     "is_symplectic",
+    "is_prime_symplectic",
     "lagrangian_count",
     "lagrangian_containing",
     "lagrangian_from_basis",
     "lagrangian_leakage_upper_bound",
     "matmul",
     "maximum_isotropic_dimension",
+    "normalize_prime_label",
     "output_pauli_probabilities",
     "one_qubit_equal_axis_rotation_fixture",
     "one_qubit_phase_fixture",
     "probe_gsc_conjugation_condition",
     "probe_hierarchy_distance",
+    "prime_standard_form",
+    "prime_symplectic_pairing",
     "run_gsc_discovery_then_verification",
     "run_gsc_sampling_test",
     "run_gsc_sampling_benchmark",
@@ -166,6 +177,7 @@ __all__ = [
     "test_clifford_conjugation_containment",
     "two_qubit_controlled_phase_fixture",
     "verify_gsc_witness",
+    "weyl_product_phase_exponent",
     "zero_event_shots_required",
 ]
 __version__ = "0.4.0"

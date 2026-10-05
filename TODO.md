@@ -1,6 +1,6 @@
 # Running TODO — Generalized Semi-Clifford Tester
 
-Last updated: 2026-10-04
+Last updated: 2026-10-05
 
 This is the operational queue for incremental development. Keep
 `docs/status-and-roadmap.md` as the higher-level scientific roadmap. Each
@@ -9,14 +9,15 @@ one coherent unit.
 
 ## Current focus
 
-- [ ] **Specify odd-prime Weyl phase conventions and symplectic primitives.**
-  Define one internally consistent coordinate, commutation, and phase convention
-  before extending the qubit-only exact API or implementation.
+- [ ] **Implement odd-prime Lagrangian enumeration.**
+  Enumerate canonical isotropic `n`-planes over `F_p` behind explicit
+  prime/dimension caps, beginning with the four one-qutrit lines fixed by the
+  convention tests.
 
 ## Next
 
-- [ ] Implement odd-prime Lagrangian enumeration only after the convention
-  document includes independently checkable one-qutrit examples.
+- [ ] Extend exact fixed-witness verification to odd-prime Weyl bases only
+  after enumeration has independent count and isotropy cross-checks.
 
 ## Maintenance
 
@@ -29,6 +30,10 @@ one coherent unit.
   statistical conclusion is incomplete.
 
 ## Completed
+
+- [x] 2026-10-05 — Fix the odd-prime `(x | z)` Weyl phase and commutation
+  convention, add exact finite-field symplectic primitives, and exhaustively
+  cross-check the multiplication laws against all one-qutrit matrix pairs.
 
 - [x] 2026-10-04 — Benchmark positive bounded exact searches through three
   qubits plus a completed one-qubit negative and capped three-qubit `UNKNOWN`,
