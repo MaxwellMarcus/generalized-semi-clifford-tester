@@ -14,11 +14,26 @@ computed modulo the declared odd prime.
 from __future__ import annotations
 
 from collections.abc import Iterable, Sequence
-from math import isqrt
+from dataclasses import dataclass
+from functools import cache
+from itertools import combinations, product
+from math import isqrt, prod
 from typing import TypeAlias
 
 PrimeVector: TypeAlias = tuple[int, ...]
 PrimeMatrix: TypeAlias = tuple[tuple[int, ...], ...]
+MAX_PRIME_LAGRANGIAN_PRIME = 5
+MAX_PRIME_LAGRANGIAN_QUDITS = 2
+
+
+@dataclass(frozen=True)
+class PrimeLagrangian:
+    """A canonical odd-prime Lagrangian basis and its complete span."""
+
+    prime: int
+    num_qudits: int
+    basis: tuple[PrimeVector, ...]
+    elements: tuple[PrimeVector, ...]
 
 
 def _validate_odd_prime(prime: int) -> int:
@@ -29,6 +44,14 @@ def _validate_odd_prime(prime: int) -> int:
     if any(prime % divisor == 0 for divisor in range(3, isqrt(prime) + 1, 2)):
         raise ValueError("prime must be an odd prime")
     return prime
+
+
+def _validate_num_qudits(num_qudits: int) -> int:
+    if isinstance(num_qudits, bool) or not isinstance(num_qudits, int):
+        raise TypeError("num_qudits must be an integer")
+    if num_qudits < 1:
+        raise ValueError("num_qudits must be positive")
+    return num_qudits
 
 
 def normalize_prime_label(label: Iterable[int], prime: int) -> PrimeVector:
@@ -79,10 +102,7 @@ def prime_standard_form(num_qudits: int, prime: int) -> PrimeMatrix:
     """Return ``[[0, -I], [I, 0]]`` for the package's odd-prime pairing."""
 
     modulus = _validate_odd_prime(prime)
-    if isinstance(num_qudits, bool) or not isinstance(num_qudits, int):
-        raise TypeError("num_qudits must be an integer")
-    if num_qudits < 1:
-        raise ValueError("num_qudits must be positive")
+    _validate_num_qudits(num_qudits)
     zero = (0,) * num_qudits
     identity = tuple(
         tuple(int(row == column) for column in range(num_qudits))
@@ -139,3 +159,102 @@ def is_prime_symplectic(matrix: Sequence[Sequence[int]], prime: int) -> bool:
         return False
     form = prime_standard_form(dimension // 2, prime)
     return _matmul(_matmul(_transpose(normalized), form, prime), normalized, prime) == form
+
+
+def prime_lagrangian_count(num_qudits: int, prime: int) -> int:
+    """Return the number of Lagrangian subspaces of ``F_prime^(2n)``."""
+
+    dimension = _validate_num_qudits(num_qudits)
+    modulus = _validate_odd_prime(prime)
+    return prod(modulus**index + 1 for index in range(1, dimension + 1))
+
+
+def _prime_span(basis: tuple[PrimeVector, ...], prime: int) -> tuple[PrimeVector, ...]:
+    width = len(basis[0])
+    return tuple(
+        sorted(
+            {
+                tuple(
+                    sum(coefficient * vector[column] for coefficient, vector in zip(
+                        coefficients, basis, strict=True
+                    ))
+                    % prime
+                    for column in range(width)
+                )
+                for coefficients in product(range(prime), repeat=len(basis))
+            }
+        )
+    )
+
+
+@cache
+def _enumerate_prime_lagrangians(
+    num_qudits: int,
+    prime: int,
+) -> tuple[PrimeLagrangian, ...]:
+    width = 2 * num_qudits
+    subspaces: list[PrimeLagrangian] = []
+    for pivots in combinations(range(width), num_qudits):
+        pivot_set = set(pivots)
+        free_positions = tuple(
+            (row, column)
+            for row, pivot in enumerate(pivots)
+            for column in range(pivot + 1, width)
+            if column not in pivot_set
+        )
+        for assignment in product(range(prime), repeat=len(free_positions)):
+            basis = [
+                tuple(int(column == pivot) for column in range(width))
+                for pivot in pivots
+            ]
+            mutable_basis = [list(row) for row in basis]
+            for value, (row, column) in zip(assignment, free_positions, strict=True):
+                mutable_basis[row][column] = value
+            canonical_basis = tuple(tuple(row) for row in mutable_basis)
+            if any(
+                prime_symplectic_pairing(left, right, prime)
+                for left, right in combinations(canonical_basis, 2)
+            ):
+                continue
+            subspaces.append(
+                PrimeLagrangian(
+                    prime=prime,
+                    num_qudits=num_qudits,
+                    basis=canonical_basis,
+                    elements=_prime_span(canonical_basis, prime),
+                )
+            )
+
+    expected = prime_lagrangian_count(num_qudits, prime)
+    if len(subspaces) != expected:
+        raise AssertionError(
+            f"expected {expected} odd-prime Lagrangians, found {len(subspaces)}"
+        )
+    return tuple(subspaces)
+
+
+def enumerate_prime_lagrangians(
+    num_qudits: int,
+    prime: int,
+) -> tuple[PrimeLagrangian, ...]:
+    """Enumerate canonical odd-prime Lagrangians within explicit safety caps.
+
+    Each subspace is represented by its unique reduced-row-echelon basis in
+    ``(x | z)`` coordinates.  The intentionally small caps keep this exhaustive
+    helper suitable for exact low-dimensional cross-checks rather than implying
+    a scalable qudit search.
+    """
+
+    dimension = _validate_num_qudits(num_qudits)
+    modulus = _validate_odd_prime(prime)
+    if modulus > MAX_PRIME_LAGRANGIAN_PRIME:
+        raise ValueError(
+            "odd-prime Lagrangian enumeration is limited to primes at most "
+            f"{MAX_PRIME_LAGRANGIAN_PRIME}"
+        )
+    if dimension > MAX_PRIME_LAGRANGIAN_QUDITS:
+        raise ValueError(
+            "odd-prime Lagrangian enumeration is limited to at most "
+            f"{MAX_PRIME_LAGRANGIAN_QUDITS} qudits"
+        )
+    return _enumerate_prime_lagrangians(dimension, modulus)

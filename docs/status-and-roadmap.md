@@ -1,13 +1,13 @@
 # Status and roadmap
 
-Last audited: 2026-10-05.
+Last audited: 2026-10-06.
 
 ## What works now
 
 | Layer | Capability | Practical boundary |
 | --- | --- | --- |
 | Binary algebra | Exact symplectic arithmetic and canonical Lagrangian enumeration | 1--4 qubits enumerated: 3, 15, 135, 2,295 Lagrangians |
-| Odd-prime conventions | Exact `(x | z)` normalization, Weyl phase exponents, symplectic pairing, and form preservation over declared odd primes | Convention layer only; no qudit Lagrangian enumeration or exact GSC search yet |
+| Odd-prime algebra | Exact `(x | z)` Weyl conventions, symplectic primitives, and canonical Lagrangian enumeration | Enumeration is deliberately capped at two qudits and `p <= 5`; no odd-prime exact GSC verifier or search yet |
 | Dense GSC tester | Exhaustive input/output Pauli-MASA search with independently checkable witnesses | Defaults to `UNKNOWN` above 3 qubits; complex128 with a stated tolerance |
 | Semi-Clifford circuits | Bell-sampling conjugation circuits, exhaustive discovery, and `n`-circuit candidate verification | Finite-shot candidate evidence; exhaustive discovery uses `4**n - 1` circuits |
 | GSC circuits | Full sampled Pauli-support decoding, exhaustive discovery, and `n`-circuit fixed-witness verification | Discovery through 4 qubits; support-aware fast path with an exhaustive noisy fallback |
@@ -97,8 +97,9 @@ The key conceptual distinction is now represented in the API:
 - [x] Benchmark bounded exact search through three qubits with exact work
   counters separated from host runtime and Python-managed peak memory.
 - [ ] Extend the binary implementation to prime-dimensional qudits. The Weyl
-  phase convention and symplectic primitives are fixed; Lagrangian enumeration
-  and exact-search integration remain unimplemented.
+  convention, symplectic primitives, and bounded canonical Lagrangian
+  enumeration are implemented; fixed-witness verification and exact-search
+  integration remain unimplemented.
 - [x] Add a command-line interface and machine-readable result export.
 
 ## Honest interpretation

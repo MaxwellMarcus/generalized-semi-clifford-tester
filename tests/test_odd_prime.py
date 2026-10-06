@@ -4,8 +4,10 @@ import numpy as np
 import pytest
 
 from generalized_semi_clifford import (
+    enumerate_prime_lagrangians,
     is_prime_symplectic,
     normalize_prime_label,
+    prime_lagrangian_count,
     prime_standard_form,
     prime_symplectic_pairing,
     weyl_product_phase_exponent,
@@ -79,3 +81,39 @@ def test_invalid_label_and_matrix_shapes_are_rejected() -> None:
         is_prime_symplectic(((1, 0), (0,)), 3)
     with pytest.raises(TypeError, match="integers"):
         is_prime_symplectic(((1.0, 0), (0, 1)), 3)
+
+
+def test_one_qutrit_lagrangians_are_the_four_projective_lines() -> None:
+    lagrangians = enumerate_prime_lagrangians(1, 3)
+
+    assert tuple(item.basis for item in lagrangians) == (
+        ((1, 0),),
+        ((1, 1),),
+        ((1, 2),),
+        ((0, 1),),
+    )
+    assert lagrangians[1].elements == ((0, 0), (1, 1), (2, 2))
+    assert all(item.prime == 3 and item.num_qudits == 1 for item in lagrangians)
+
+
+def test_two_qutrit_enumeration_has_independent_count_and_isotropy_checks() -> None:
+    lagrangians = enumerate_prime_lagrangians(2, 3)
+
+    assert len(lagrangians) == 40
+    assert len({item.basis for item in lagrangians}) == 40
+    assert all(len(item.basis) == 2 and len(item.elements) == 9 for item in lagrangians)
+    assert all(
+        prime_symplectic_pairing(left, right, 3) == 0
+        for item in lagrangians
+        for left, right in product(item.elements, repeat=2)
+    )
+
+
+def test_prime_lagrangian_count_and_enumeration_caps() -> None:
+    assert prime_lagrangian_count(1, 3) == 4
+    assert prime_lagrangian_count(2, 5) == 156
+
+    with pytest.raises(ValueError, match="primes at most 5"):
+        enumerate_prime_lagrangians(1, 7)
+    with pytest.raises(ValueError, match="at most 2 qudits"):
+        enumerate_prime_lagrangians(3, 3)

@@ -1,6 +1,6 @@
 # Running TODO — Generalized Semi-Clifford Tester
 
-Last updated: 2026-10-05
+Last updated: 2026-10-06
 
 This is the operational queue for incremental development. Keep
 `docs/status-and-roadmap.md` as the higher-level scientific roadmap. Each
@@ -9,15 +9,14 @@ one coherent unit.
 
 ## Current focus
 
-- [ ] **Implement odd-prime Lagrangian enumeration.**
-  Enumerate canonical isotropic `n`-planes over `F_p` behind explicit
-  prime/dimension caps, beginning with the four one-qutrit lines fixed by the
-  convention tests.
+- [ ] **Extend exact fixed-witness verification to odd-prime Weyl bases.**
+  Reuse the independently count- and isotropy-checked Lagrangian enumerator,
+  while preserving a separate result contract and explicit resource caps.
 
 ## Next
 
-- [ ] Extend exact fixed-witness verification to odd-prime Weyl bases only
-  after enumeration has independent count and isotropy cross-checks.
+- [ ] Add bounded odd-prime input/output Lagrangian search only after the
+  fixed-witness path independently reconstructs and validates supplied spans.
 
 ## Maintenance
 
@@ -30,6 +29,11 @@ one coherent unit.
   statistical conclusion is incomplete.
 
 ## Completed
+
+- [x] 2026-10-06 — Enumerate canonical odd-prime Lagrangians through two
+  qudits for `p <= 5`, with the four one-qutrit lines and all 40 two-qutrit
+  planes independently cross-checked for count, uniqueness, span size, and
+  isotropy.
 
 - [x] 2026-10-05 — Fix the odd-prime `(x | z)` Weyl phase and commutation
   convention, add exact finite-field symplectic primitives, and exhaustively
