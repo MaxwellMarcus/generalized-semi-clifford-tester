@@ -187,6 +187,72 @@ def _prime_span(basis: tuple[PrimeVector, ...], prime: int) -> tuple[PrimeVector
     )
 
 
+def _prime_rref(rows: PrimeMatrix, prime: int) -> PrimeMatrix:
+    """Return reduced row echelon form over the declared prime field."""
+
+    matrix = [list(row) for row in rows]
+    pivot_row = 0
+    for column in range(len(matrix[0])):
+        pivot = next(
+            (row for row in range(pivot_row, len(matrix)) if matrix[row][column]),
+            None,
+        )
+        if pivot is None:
+            continue
+        matrix[pivot_row], matrix[pivot] = matrix[pivot], matrix[pivot_row]
+        inverse = pow(matrix[pivot_row][column], -1, prime)
+        matrix[pivot_row] = [(entry * inverse) % prime for entry in matrix[pivot_row]]
+        for row in range(len(matrix)):
+            if row == pivot_row or not matrix[row][column]:
+                continue
+            factor = matrix[row][column]
+            matrix[row] = [
+                (entry - factor * pivot_entry) % prime
+                for entry, pivot_entry in zip(
+                    matrix[row], matrix[pivot_row], strict=True
+                )
+            ]
+        pivot_row += 1
+        if pivot_row == len(matrix):
+            break
+    return tuple(tuple(row) for row in matrix if any(row))
+
+
+def prime_lagrangian_from_basis(
+    basis: Iterable[Iterable[int]],
+    num_qudits: int,
+    prime: int,
+) -> PrimeLagrangian:
+    """Reconstruct a canonical odd-prime Lagrangian from a supplied basis.
+
+    The basis must have rank ``num_qudits`` and span an isotropic subspace.
+    Row operations are performed exactly over ``F_prime``; the returned basis
+    is canonical and its full span is recomputed rather than trusted.
+    """
+
+    dimension = _validate_num_qudits(num_qudits)
+    modulus = _validate_odd_prime(prime)
+    rows = tuple(normalize_prime_label(row, modulus) for row in basis)
+    if not rows:
+        raise ValueError("a Lagrangian basis must contain at least one row")
+    if any(len(row) != 2 * dimension for row in rows):
+        raise ValueError("Lagrangian basis rows must have width 2n")
+    canonical_basis = _prime_rref(rows, modulus)
+    if len(canonical_basis) != dimension:
+        raise ValueError("a Lagrangian basis must have rank n")
+    if any(
+        prime_symplectic_pairing(left, right, modulus)
+        for left, right in combinations(canonical_basis, 2)
+    ):
+        raise ValueError("a Lagrangian basis must be isotropic")
+    return PrimeLagrangian(
+        prime=modulus,
+        num_qudits=dimension,
+        basis=canonical_basis,
+        elements=_prime_span(canonical_basis, modulus),
+    )
+
+
 @cache
 def _enumerate_prime_lagrangians(
     num_qudits: int,

@@ -8,6 +8,7 @@ from generalized_semi_clifford import (
     is_prime_symplectic,
     normalize_prime_label,
     prime_lagrangian_count,
+    prime_lagrangian_from_basis,
     prime_standard_form,
     prime_symplectic_pairing,
     weyl_product_phase_exponent,
@@ -107,6 +108,18 @@ def test_two_qutrit_enumeration_has_independent_count_and_isotropy_checks() -> N
         for item in lagrangians
         for left, right in product(item.elements, repeat=2)
     )
+
+
+def test_prime_lagrangian_basis_is_independently_canonicalized() -> None:
+    reconstructed = prime_lagrangian_from_basis(((2, 2),), 1, 3)
+
+    assert reconstructed.basis == ((1, 1),)
+    assert reconstructed.elements == ((0, 0), (1, 1), (2, 2))
+
+    with pytest.raises(ValueError, match="rank n"):
+        prime_lagrangian_from_basis(((1, 0, 0, 0), (2, 0, 0, 0)), 2, 3)
+    with pytest.raises(ValueError, match="isotropic"):
+        prime_lagrangian_from_basis(((1, 0, 0, 0), (0, 0, 1, 0)), 2, 3)
 
 
 def test_prime_lagrangian_count_and_enumeration_caps() -> None:

@@ -1,6 +1,6 @@
 # Running TODO — Generalized Semi-Clifford Tester
 
-Last updated: 2026-10-06
+Last updated: 2026-10-07
 
 This is the operational queue for incremental development. Keep
 `docs/status-and-roadmap.md` as the higher-level scientific roadmap. Each
@@ -9,14 +9,15 @@ one coherent unit.
 
 ## Current focus
 
-- [ ] **Extend exact fixed-witness verification to odd-prime Weyl bases.**
-  Reuse the independently count- and isotropy-checked Lagrangian enumerator,
-  while preserving a separate result contract and explicit resource caps.
+- [ ] **Add bounded odd-prime input/output Lagrangian search.**
+  Reuse complete exact Weyl expansions and the independently revalidated
+  fixed-witness path; preserve `UNKNOWN` for every qudit, coefficient, or
+  candidate-pair cap.
 
 ## Next
 
-- [ ] Add bounded odd-prime input/output Lagrangian search only after the
-  fixed-witness path independently reconstructs and validates supplied spans.
+- [ ] Benchmark qutrit positive, completed-negative, and capped-`UNKNOWN`
+  exact searches after the bounded search result contract is implemented.
 
 ## Maintenance
 
@@ -29,6 +30,11 @@ one coherent unit.
   statistical conclusion is incomplete.
 
 ## Completed
+
+- [x] 2026-10-07 — Add exact odd-prime Weyl matrices and fixed-witness
+  verification with independently reconstructed finite-field spans, a separate
+  verified/rejected/`UNKNOWN` result, explicit qudit and coefficient caps, and
+  an exact qutrit Fourier regression and example.
 
 - [x] 2026-10-06 — Enumerate canonical odd-prime Lagrangians through two
   qudits for `p <= 5`, with the four one-qutrit lines and all 40 two-qutrit

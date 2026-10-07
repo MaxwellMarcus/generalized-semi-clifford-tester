@@ -180,3 +180,22 @@ searches through three qubits, a completed one-qubit negative, and a capped
 three-qubit `UNKNOWN`. These measurements profile the SymPy reference backend
 on one host; they are not portable complexity bounds. Reproduce them with
 `python examples/benchmark_exact_search.py`.
+
+## Odd-prime fixed-witness verification
+
+The optional `generalized_semi_clifford.exact_odd_prime` module extends only
+the fixed-witness layer to odd-prime Weyl systems. It constructs
+`W(x,z) = omega**((x dot z)/2) X**x Z**z` over an explicitly declared
+cyclotomic field whose order is divisible by the prime, computes complete
+Weyl expansions using the adjoint trace inner product, and checks exact support
+containment for a supplied input/output Lagrangian pair.
+
+`prime_lagrangian_from_basis` performs finite-field row reduction, rank and
+isotropy checks, and full-span reconstruction. The verifier repeats that
+reconstruction and rejects stored element tuples that do not match it. Its
+separate `ExactPrimeWitnessVerification` result reports `verified`, `rejected`,
+or `unknown`: qudit and coefficient caps produce `unknown`, while `rejected`
+means only that the supplied pair failed. No odd-prime exhaustive GSC search or
+general negative classification is implemented. Run
+`python examples/exact_odd_prime_witness.py` for an exact qutrit Fourier
+example.
