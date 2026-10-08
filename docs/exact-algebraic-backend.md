@@ -181,21 +181,29 @@ three-qubit `UNKNOWN`. These measurements profile the SymPy reference backend
 on one host; they are not portable complexity bounds. Reproduce them with
 `python examples/benchmark_exact_search.py`.
 
-## Odd-prime fixed-witness verification
+## Odd-prime fixed-witness verification and bounded search
 
-The optional `generalized_semi_clifford.exact_odd_prime` module extends only
-the fixed-witness layer to odd-prime Weyl systems. It constructs
-`W(x,z) = omega**((x dot z)/2) X**x Z**z` over an explicitly declared
-cyclotomic field whose order is divisible by the prime, computes complete
-Weyl expansions using the adjoint trace inner product, and checks exact support
-containment for a supplied input/output Lagrangian pair.
+The optional `generalized_semi_clifford.exact_odd_prime` module extends the
+fixed-witness and bounded exhaustive-search layers to odd-prime Weyl systems.
+It constructs `W(x,z) = omega**((x dot z)/2) X**x Z**z` over an explicitly
+declared cyclotomic field whose order is divisible by the prime, computes
+complete Weyl expansions using the adjoint trace inner product, and checks
+exact support containment for a supplied input/output Lagrangian pair.
 
 `prime_lagrangian_from_basis` performs finite-field row reduction, rank and
 isotropy checks, and full-span reconstruction. The verifier repeats that
 reconstruction and rejects stored element tuples that do not match it. Its
 separate `ExactPrimeWitnessVerification` result reports `verified`, `rejected`,
 or `unknown`: qudit and coefficient caps produce `unknown`, while `rejected`
-means only that the supplied pair failed. No odd-prime exhaustive GSC search or
-general negative classification is implemented. Run
-`python examples/exact_odd_prime_witness.py` for an exact qutrit Fourier
-example.
+means only that the supplied pair failed.
+
+`search_exact_prime_lagrangian_witness` enumerates the canonical bounded
+input/output Lagrangian pairs and returns the separate `ExactPrimeSearchResult`
+with schema `generalized-semi-clifford.exact-prime-search.v1`. Qudit,
+coefficient, and candidate-pair caps all preserve `UNKNOWN`; exact `NOT_GSC`
+requires exhausting every pair. A positive result spends separate coefficient
+work on `verify_exact_prime_lagrangian_witness` so the witness is not trusted
+from the search path. The implementation is currently bounded by canonical
+enumeration to `p <= 5` and at most two qudits. Run
+`python examples/exact_odd_prime_witness.py` for qutrit positive,
+completed-negative, and capped results.

@@ -1,6 +1,6 @@
 # Running TODO — Generalized Semi-Clifford Tester
 
-Last updated: 2026-10-07
+Last updated: 2026-10-08
 
 This is the operational queue for incremental development. Keep
 `docs/status-and-roadmap.md` as the higher-level scientific roadmap. Each
@@ -9,15 +9,14 @@ one coherent unit.
 
 ## Current focus
 
-- [ ] **Add bounded odd-prime input/output Lagrangian search.**
-  Reuse complete exact Weyl expansions and the independently revalidated
-  fixed-witness path; preserve `UNKNOWN` for every qudit, coefficient, or
-  candidate-pair cap.
+- [ ] **Benchmark bounded odd-prime exact search.**
+  Record qutrit positive, completed-negative, and candidate-capped `UNKNOWN`
+  workloads with exact work counters separated from host runtime and memory.
 
 ## Next
 
-- [ ] Benchmark qutrit positive, completed-negative, and capped-`UNKNOWN`
-  exact searches after the bounded search result contract is implemented.
+- [ ] Add machine-readable CLI access to the versioned odd-prime exact-search
+  result after benchmark defaults are measured.
 
 ## Maintenance
 
@@ -30,6 +29,11 @@ one coherent unit.
   statistical conclusion is incomplete.
 
 ## Completed
+
+- [x] 2026-10-08 — Add bounded odd-prime input/output Lagrangian search with
+  a versioned result schema, exact completed negatives, independently
+  reverified positive witnesses, and qudit/coefficient/candidate-pair caps
+  that preserve `UNKNOWN`.
 
 - [x] 2026-10-07 — Add exact odd-prime Weyl matrices and fixed-witness
   verification with independently reconstructed finite-field spans, a separate

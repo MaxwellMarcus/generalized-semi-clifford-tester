@@ -1,9 +1,9 @@
 # Odd-prime Weyl conventions
 
-This document fixes the coordinate, phase, and symplectic conventions that
-must precede any extension of the qubit-only exact search to prime-dimensional
-qudits. It does **not** claim that odd-prime Lagrangian enumeration or exact GSC
-search is implemented.
+This document fixes the coordinate, phase, and symplectic conventions used by
+the bounded odd-prime Lagrangian enumeration, exact fixed-witness verifier, and
+exact exhaustive search. The implementation is deliberately restricted to
+small prime-dimensional systems and does not claim unbounded tractability.
 
 ## Coordinates and single-qudit generators
 
@@ -78,15 +78,22 @@ Z X = omega^2 W(1,1).
 The one-qutrit symplectic form itself,
 `[[0, 2], [1, 0]]`, is symplectic over `F_3`; `diag(1,2)` is not. The four
 one-dimensional Lagrangians are spanned by `(1|0)`, `(0|1)`, `(1|1)`, and
-`(1|2)`. Their enumeration is intentionally deferred to the next milestone.
+`(1|2)`. Canonical enumeration returns exactly these four lines; the two-qutrit
+qutrit space has 40 canonical Lagrangian planes.
 
 The executable regression in `tests/test_odd_prime.py` constructs the displayed
 qutrit matrices and checks both Weyl identities for all 81 ordered label pairs.
 
-## API boundary
+## API boundary and result claims
 
 `normalize_prime_label`, `prime_symplectic_pairing`,
 `weyl_product_phase_exponent`, `prime_standard_form`, and
-`is_prime_symplectic` implement only these finite-field conventions. They do
-not construct dense Weyl matrices, enumerate isotropic subspaces, or extend any
-binary exact-search result to odd prime dimension.
+`is_prime_symplectic` implement the finite-field conventions.
+`enumerate_prime_lagrangians` adds canonical enumeration for `p <= 5` and at
+most two qudits. The optional exact module constructs dense cyclotomic Weyl
+matrices, verifies supplied pairs, and searches the bounded canonical pair
+space with explicit qudit, coefficient, and candidate-pair caps.
+
+The search result is intentionally separate from fixed-witness verification.
+`GSC` carries an independently recomputed witness, `NOT_GSC` means every
+bounded pair was rejected exactly, and any interrupted search is `UNKNOWN`.

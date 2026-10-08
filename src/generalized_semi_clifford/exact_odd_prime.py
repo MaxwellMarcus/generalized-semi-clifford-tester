@@ -1,9 +1,4 @@
-"""Exact fixed-witness verification for bounded odd-prime Weyl systems.
-
-This module deliberately verifies only one caller-supplied input/output
-Lagrangian pair. It never turns rejection of that pair into an exhaustive
-generalized semi-Clifford classification.
-"""
+"""Bounded exact witness verification and search for odd-prime Weyl systems."""
 
 from __future__ import annotations
 
@@ -11,6 +6,7 @@ from collections.abc import Sequence
 from dataclasses import dataclass
 from enum import Enum
 from itertools import product
+from typing import Any
 
 from .exact_cyclotomic import (
     CyclotomicField,
@@ -20,12 +16,15 @@ from .exact_cyclotomic import (
 from .odd_prime import (
     PrimeLagrangian,
     PrimeVector,
+    enumerate_prime_lagrangians,
     normalize_prime_label,
     prime_lagrangian_from_basis,
 )
 
 DEFAULT_MAX_EXACT_PRIME_QUDITS = 2
 DEFAULT_MAX_EXACT_PRIME_COEFFICIENTS = 100_000
+DEFAULT_MAX_EXACT_PRIME_CANDIDATE_PAIRS = 100_000
+EXACT_PRIME_SEARCH_SCHEMA = "generalized-semi-clifford.exact-prime-search.v1"
 
 
 @dataclass(frozen=True)
@@ -88,6 +87,86 @@ class ExactPrimeWitnessVerification:
         if self.status is ExactPrimeWitnessStatus.UNKNOWN:
             return None
         return self.status is ExactPrimeWitnessStatus.VERIFIED
+
+
+class ExactPrimeSearchStatus(str, Enum):
+    """Outcomes from the resource-bounded odd-prime exact search."""
+
+    GSC = "gsc"
+    NOT_GSC = "not_gsc"
+    UNKNOWN = "unknown"
+
+
+@dataclass(frozen=True)
+class ExactPrimeSearchResult:
+    """Versioned result from :func:`search_exact_prime_lagrangian_witness`.
+
+    ``search_complete`` is true only when every input/output Lagrangian pair
+    was rejected exactly. Positive results instead carry an independently
+    recomputed fixed-witness verification.
+    """
+
+    schema_version: str
+    status: ExactPrimeSearchStatus
+    field_order: int
+    arithmetic: str
+    prime: int
+    num_qudits: int
+    search_complete: bool
+    max_qudits: int
+    max_coefficients: int
+    max_candidate_pairs: int
+    lagrangians_total: int | None
+    input_lagrangians_checked: int
+    candidate_pairs_checked: int
+    coefficients_computed: int
+    witness: ExactPrimeWitnessVerification | None
+    stop_reason: str
+    message: str
+
+    @property
+    def is_gsc(self) -> bool | None:
+        """Return a Boolean classification, or ``None`` for ``UNKNOWN``."""
+
+        if self.status is ExactPrimeSearchStatus.UNKNOWN:
+            return None
+        return self.status is ExactPrimeSearchStatus.GSC
+
+    def to_dict(self) -> dict[str, Any]:
+        """Return the stable, JSON-serializable version-one result schema."""
+
+        witness = None
+        if self.witness is not None:
+            witness = {
+                "status": self.witness.status.value,
+                "verified": self.witness.verified,
+                "input_basis": [list(label) for label in self.witness.input_lagrangian.basis],
+                "output_basis": [list(label) for label in self.witness.output_lagrangian.basis],
+                "verification_coefficients_computed": self.witness.coefficients_computed,
+            }
+        return {
+            "schema_version": self.schema_version,
+            "status": self.status.value,
+            "field_order": self.field_order,
+            "arithmetic": self.arithmetic,
+            "prime": self.prime,
+            "num_qudits": self.num_qudits,
+            "search_complete": self.search_complete,
+            "limits": {
+                "max_qudits": self.max_qudits,
+                "max_coefficients": self.max_coefficients,
+                "max_candidate_pairs": self.max_candidate_pairs,
+            },
+            "work": {
+                "lagrangians_total": self.lagrangians_total,
+                "input_lagrangians_checked": self.input_lagrangians_checked,
+                "candidate_pairs_checked": self.candidate_pairs_checked,
+                "coefficients_computed": self.coefficients_computed,
+            },
+            "witness": witness,
+            "stop_reason": self.stop_reason,
+            "message": self.message,
+        }
 
 
 def exact_prime_weyl_matrix(
@@ -277,4 +356,178 @@ def verify_exact_prime_lagrangian_witness(
         tuple(images),
         complete=True,
         stop_reason="witness_verified",
+    )
+
+
+def search_exact_prime_lagrangian_witness(
+    unitary: CyclotomicMatrix,
+    prime: int,
+    *,
+    max_qudits: int = DEFAULT_MAX_EXACT_PRIME_QUDITS,
+    max_coefficients: int = DEFAULT_MAX_EXACT_PRIME_COEFFICIENTS,
+    max_candidate_pairs: int = DEFAULT_MAX_EXACT_PRIME_CANDIDATE_PAIRS,
+) -> ExactPrimeSearchResult:
+    """Search every bounded odd-prime input/output Lagrangian pair exactly.
+
+    A resource cap reached before a witness is independently verified returns
+    ``UNKNOWN``. ``NOT_GSC`` is returned only after complete rejection of the
+    canonical pair enumeration using exact cyclotomic zero tests.
+    """
+
+    for name, value in (
+        ("max_qudits", max_qudits),
+        ("max_coefficients", max_coefficients),
+        ("max_candidate_pairs", max_candidate_pairs),
+    ):
+        if not isinstance(value, int) or isinstance(value, bool) or value < 0:
+            raise ValueError(f"{name} must be a nonnegative integer")
+
+    # Validate the declared field before inferring the qudit count from the
+    # matrix dimension. The zero label exercises the shared odd-prime checks.
+    normalize_prime_label((0, 0), prime)
+    if unitary.field.order % prime:
+        raise ValueError("field order must be divisible by the Weyl prime")
+    rows, columns = unitary.shape
+    if rows != columns:
+        raise ValueError("exact search requires a square matrix")
+    num_qudits = _prime_power_qudits(rows, prime)
+    if not unitary.is_unitary():
+        raise ValueError("exact search requires an exactly unitary matrix")
+
+    def result(
+        status: ExactPrimeSearchStatus,
+        *,
+        search_complete: bool,
+        lagrangians_total: int | None,
+        input_lagrangians_checked: int,
+        candidate_pairs_checked: int,
+        coefficients_computed: int,
+        witness: ExactPrimeWitnessVerification | None = None,
+        stop_reason: str,
+        message: str,
+    ) -> ExactPrimeSearchResult:
+        return ExactPrimeSearchResult(
+            schema_version=EXACT_PRIME_SEARCH_SCHEMA,
+            status=status,
+            field_order=unitary.field.order,
+            arithmetic="cyclotomic_exact_odd_prime",
+            prime=prime,
+            num_qudits=num_qudits,
+            search_complete=search_complete,
+            max_qudits=max_qudits,
+            max_coefficients=max_coefficients,
+            max_candidate_pairs=max_candidate_pairs,
+            lagrangians_total=lagrangians_total,
+            input_lagrangians_checked=input_lagrangians_checked,
+            candidate_pairs_checked=candidate_pairs_checked,
+            coefficients_computed=coefficients_computed,
+            witness=witness,
+            stop_reason=stop_reason,
+            message=message,
+        )
+
+    if num_qudits > max_qudits:
+        return result(
+            ExactPrimeSearchStatus.UNKNOWN,
+            search_complete=False,
+            lagrangians_total=None,
+            input_lagrangians_checked=0,
+            candidate_pairs_checked=0,
+            coefficients_computed=0,
+            stop_reason="qudit_cap",
+            message=f"n={num_qudits} exceeds the odd-prime exact-search limit {max_qudits}",
+        )
+
+    lagrangians = enumerate_prime_lagrangians(num_qudits, prime)
+    coefficients_per_image = prime ** (2 * num_qudits)
+    verification_work = num_qudits * coefficients_per_image
+    coefficients_computed = 0
+    candidate_pairs_checked = 0
+    input_lagrangians_checked = 0
+
+    for input_lagrangian in lagrangians:
+        images: list[ExactPrimeWeylExpansion] = []
+        for label in input_lagrangian.basis:
+            if coefficients_computed + coefficients_per_image > max_coefficients:
+                return result(
+                    ExactPrimeSearchStatus.UNKNOWN,
+                    search_complete=False,
+                    lagrangians_total=len(lagrangians),
+                    input_lagrangians_checked=input_lagrangians_checked,
+                    candidate_pairs_checked=candidate_pairs_checked,
+                    coefficients_computed=coefficients_computed,
+                    stop_reason="coefficient_cap",
+                    message="exact Weyl-coefficient work cap interrupted the search",
+                )
+            images.append(
+                _prime_conjugation_coefficients_validated(unitary, label, prime)
+            )
+            coefficients_computed += coefficients_per_image
+
+        support = {
+            coefficient.output_label
+            for image in images
+            for coefficient in image.support
+        }
+        for output_lagrangian in lagrangians:
+            if candidate_pairs_checked >= max_candidate_pairs:
+                return result(
+                    ExactPrimeSearchStatus.UNKNOWN,
+                    search_complete=False,
+                    lagrangians_total=len(lagrangians),
+                    input_lagrangians_checked=input_lagrangians_checked,
+                    candidate_pairs_checked=candidate_pairs_checked,
+                    coefficients_computed=coefficients_computed,
+                    stop_reason="candidate_pair_cap",
+                    message="input/output candidate-pair cap interrupted the search",
+                )
+            candidate_pairs_checked += 1
+            if not support.issubset(output_lagrangian.elements):
+                continue
+
+            if coefficients_computed + verification_work > max_coefficients:
+                return result(
+                    ExactPrimeSearchStatus.UNKNOWN,
+                    search_complete=False,
+                    lagrangians_total=len(lagrangians),
+                    input_lagrangians_checked=input_lagrangians_checked,
+                    candidate_pairs_checked=candidate_pairs_checked,
+                    coefficients_computed=coefficients_computed,
+                    stop_reason="coefficient_cap",
+                    message="coefficient cap cannot fund independent witness verification",
+                )
+            witness = verify_exact_prime_lagrangian_witness(
+                unitary,
+                input_lagrangian,
+                output_lagrangian,
+                max_qudits=max_qudits,
+                max_coefficients=verification_work,
+            )
+            coefficients_computed += witness.coefficients_computed
+            if witness.status is not ExactPrimeWitnessStatus.VERIFIED:
+                raise AssertionError(
+                    "independent odd-prime witness verification disagreed with search"
+                )
+            return result(
+                ExactPrimeSearchStatus.GSC,
+                search_complete=False,
+                lagrangians_total=len(lagrangians),
+                input_lagrangians_checked=input_lagrangians_checked + 1,
+                candidate_pairs_checked=candidate_pairs_checked,
+                coefficients_computed=coefficients_computed,
+                witness=witness,
+                stop_reason="witness_found",
+                message="found and independently verified an exact odd-prime witness",
+            )
+        input_lagrangians_checked += 1
+
+    return result(
+        ExactPrimeSearchStatus.NOT_GSC,
+        search_complete=True,
+        lagrangians_total=len(lagrangians),
+        input_lagrangians_checked=input_lagrangians_checked,
+        candidate_pairs_checked=candidate_pairs_checked,
+        coefficients_computed=coefficients_computed,
+        stop_reason="exhausted",
+        message="no odd-prime Lagrangian pair passed the exhaustive exact search",
     )
