@@ -1,0 +1,100 @@
+{
+  "environment": {
+    "implementation": "CPython",
+    "platform": "macOS-14.7.3-arm64-arm-64bit",
+    "python_version": "3.12.14"
+  },
+  "records": [
+    {
+      "exact_workload": {
+        "arithmetic": "cyclotomic_exact_odd_prime",
+        "candidate_pairs_checked": 4,
+        "coefficients_computed": 18,
+        "field_order": 24,
+        "input_lagrangians_checked": 1,
+        "lagrangians_total": 4,
+        "limits": {
+          "max_candidate_pairs": 100000,
+          "max_coefficients": 100000,
+          "max_qudits": 2
+        },
+        "num_qudits": 1,
+        "prime": 3,
+        "witness_verification_coefficients": 9
+      },
+      "fixture": "qutrit_fourier_positive",
+      "measurements": {
+        "host_runtime_seconds": 5.380341125070117,
+        "python_peak_memory_bytes": 1279331
+      },
+      "outcome": {
+        "search_complete": false,
+        "status": "gsc",
+        "stop_reason": "witness_found",
+        "witness_verified": true
+      },
+      "schema": "generalized-semi-clifford/odd-prime-exact-search-benchmark-v1"
+    },
+    {
+      "exact_workload": {
+        "arithmetic": "cyclotomic_exact_odd_prime",
+        "candidate_pairs_checked": 16,
+        "coefficients_computed": 36,
+        "field_order": 24,
+        "input_lagrangians_checked": 4,
+        "lagrangians_total": 4,
+        "limits": {
+          "max_candidate_pairs": 100000,
+          "max_coefficients": 100000,
+          "max_qudits": 2
+        },
+        "num_qudits": 1,
+        "prime": 3,
+        "witness_verification_coefficients": 0
+      },
+      "fixture": "qutrit_phase_fourier_phase_complete_negative",
+      "measurements": {
+        "host_runtime_seconds": 9.779619959066622,
+        "python_peak_memory_bytes": 1311435
+      },
+      "outcome": {
+        "search_complete": true,
+        "status": "not_gsc",
+        "stop_reason": "exhausted",
+        "witness_verified": null
+      },
+      "schema": "generalized-semi-clifford/odd-prime-exact-search-benchmark-v1"
+    },
+    {
+      "exact_workload": {
+        "arithmetic": "cyclotomic_exact_odd_prime",
+        "candidate_pairs_checked": 2,
+        "coefficients_computed": 9,
+        "field_order": 24,
+        "input_lagrangians_checked": 0,
+        "lagrangians_total": 4,
+        "limits": {
+          "max_candidate_pairs": 2,
+          "max_coefficients": 100000,
+          "max_qudits": 2
+        },
+        "num_qudits": 1,
+        "prime": 3,
+        "witness_verification_coefficients": 0
+      },
+      "fixture": "qutrit_phase_fourier_phase_candidate_capped_unknown",
+      "measurements": {
+        "host_runtime_seconds": 2.5676367500564083,
+        "python_peak_memory_bytes": 563243
+      },
+      "outcome": {
+        "search_complete": false,
+        "status": "unknown",
+        "stop_reason": "candidate_pair_cap",
+        "witness_verified": null
+      },
+      "schema": "generalized-semi-clifford/odd-prime-exact-search-benchmark-v1"
+    }
+  ],
+  "schema": "generalized-semi-clifford/odd-prime-exact-search-benchmark-suite-v1"
+}

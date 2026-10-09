@@ -207,3 +207,12 @@ from the search path. The implementation is currently bounded by canonical
 enumeration to `p <= 5` and at most two qudits. Run
 `python examples/exact_odd_prime_witness.py` for qutrit positive,
 completed-negative, and capped results.
+
+`run_exact_prime_search_benchmark` wraps the exact search without changing its
+classification semantics. Its versioned record keeps the prime, qudit count,
+coefficient and candidate-pair counters, limits, and independent witness work
+under `exact_workload`; wall time and Python-managed peak memory are separate
+machine-dependent measurements. The checked-in
+`benchmarks/exact-odd-prime-search-qutrit.json` suite contains an exact Fourier
+positive, a completely exhausted negative, and a candidate-capped `UNKNOWN`.
+Reproduce it with `python examples/benchmark_exact_odd_prime_search.py`.

@@ -1,6 +1,6 @@
 # Running TODO — Generalized Semi-Clifford Tester
 
-Last updated: 2026-10-08
+Last updated: 2026-10-09
 
 This is the operational queue for incremental development. Keep
 `docs/status-and-roadmap.md` as the higher-level scientific roadmap. Each
@@ -9,14 +9,14 @@ one coherent unit.
 
 ## Current focus
 
-- [ ] **Benchmark bounded odd-prime exact search.**
-  Record qutrit positive, completed-negative, and candidate-capped `UNKNOWN`
-  workloads with exact work counters separated from host runtime and memory.
+- [ ] **Add machine-readable CLI access to odd-prime exact search.**
+  Export the versioned exact result without collapsing resource-capped
+  `UNKNOWN` outcomes or mixing exact work counters with host measurements.
 
 ## Next
 
-- [ ] Add machine-readable CLI access to the versioned odd-prime exact-search
-  result after benchmark defaults are measured.
+- [ ] Add a representative two-qutrit exact-search benchmark only after a
+  reproducible fixture and practical runtime budget are documented.
 
 ## Maintenance
 
@@ -29,6 +29,10 @@ one coherent unit.
   statistical conclusion is incomplete.
 
 ## Completed
+
+- [x] 2026-10-09 — Benchmark qutrit positive, completed-negative, and
+  candidate-capped `UNKNOWN` exact searches in a versioned suite, keeping
+  portable exact work counters separate from host runtime and Python memory.
 
 - [x] 2026-10-08 — Add bounded odd-prime input/output Lagrangian search with
   a versioned result schema, exact completed negatives, independently
