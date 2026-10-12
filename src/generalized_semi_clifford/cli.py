@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+from fractions import Fraction
 from pathlib import Path
 from typing import Any
 
@@ -19,6 +20,7 @@ from .tester import NaiveGSCResult, check_gsc_naive
 
 DENSE_RESULT_SCHEMA = "generalized-semi-clifford/dense-result-v1"
 CIRCUIT_RESULT_SCHEMA = "generalized-semi-clifford/circuit-result-v1"
+EXACT_MATRIX_SCHEMA = "generalized-semi-clifford/exact-cyclotomic-matrix-v1"
 
 
 def _lagrangian_payload(lagrangian: Lagrangian) -> dict[str, object]:
@@ -137,6 +139,45 @@ def _load_qasm(path: Path) -> Any:
     return qasm2.load(path)
 
 
+def _load_exact_cyclotomic_matrix(path: Path) -> Any:
+    """Load an exact matrix without parsing arbitrary symbolic expressions."""
+
+    from .exact_cyclotomic import CyclotomicField, CyclotomicMatrix
+
+    payload = json.loads(path.read_text())
+    if not isinstance(payload, dict) or payload.get("schema") != EXACT_MATRIX_SCHEMA:
+        raise ValueError(f"exact matrix schema must be {EXACT_MATRIX_SCHEMA!r}")
+    field_order = payload.get("field_order")
+    if not isinstance(field_order, int) or isinstance(field_order, bool):
+        raise TypeError("field_order must be an integer")
+    rows = payload.get("rows")
+    if not isinstance(rows, list) or not rows:
+        raise ValueError("rows must be a nonempty list")
+
+    field = CyclotomicField(field_order)
+
+    def scalar(coefficients: object) -> Any:
+        if not isinstance(coefficients, list) or not coefficients:
+            raise ValueError("each matrix entry must be a nonempty coefficient list")
+        result = field.zero
+        for power, coefficient in enumerate(coefficients):
+            if isinstance(coefficient, bool) or not isinstance(coefficient, (int, str)):
+                raise TypeError("cyclotomic coefficients must be integers or rational strings")
+            try:
+                rational = Fraction(coefficient)
+            except (ValueError, ZeroDivisionError) as error:
+                raise ValueError(f"invalid rational coefficient {coefficient!r}") from error
+            result += field.scalar(rational) * field.root_power(power)
+        return result
+
+    parsed_rows = []
+    for row in rows:
+        if not isinstance(row, list) or not row:
+            raise ValueError("each matrix row must be a nonempty list")
+        parsed_rows.append(tuple(scalar(entry) for entry in row))
+    return CyclotomicMatrix.from_rows(field, parsed_rows)
+
+
 def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="gsc-test",
@@ -162,6 +203,20 @@ def _parser() -> argparse.ArgumentParser:
     circuit.add_argument("--discovery-seed", type=int)
     circuit.add_argument("--verification-seed", type=int)
     circuit.add_argument("--batch-size", type=int)
+
+    exact_prime = subparsers.add_parser(
+        "exact-prime",
+        help="run a bounded exact odd-prime Weyl-Lagrangian search",
+    )
+    exact_prime.add_argument(
+        "matrix",
+        type=Path,
+        help="JSON exact cyclotomic matrix in the version-one coefficient schema",
+    )
+    exact_prime.add_argument("--prime", type=int, required=True)
+    exact_prime.add_argument("--max-qudits", type=int, default=2)
+    exact_prime.add_argument("--max-coefficients", type=int, default=100_000)
+    exact_prime.add_argument("--max-candidate-pairs", type=int, default=100_000)
     return parser
 
 
@@ -182,7 +237,7 @@ def main(argv: list[str] | None = None) -> int:
             unitary_tolerance=args.unitary_tolerance,
             max_qubits=args.max_qubits,
         )
-    else:
+    elif args.command == "circuit":
         circuit = _load_qasm(args.qasm)
         result = run_gsc_discovery_then_verification(
             circuit,
@@ -195,6 +250,18 @@ def main(argv: list[str] | None = None) -> int:
             discovery_batch_size=args.batch_size,
         )
         payload = circuit_result_payload(result)
+    else:
+        from .exact_odd_prime import search_exact_prime_lagrangian_witness
+
+        matrix = _load_exact_cyclotomic_matrix(args.matrix)
+        result = search_exact_prime_lagrangian_witness(
+            matrix,
+            args.prime,
+            max_qudits=args.max_qudits,
+            max_coefficients=args.max_coefficients,
+            max_candidate_pairs=args.max_candidate_pairs,
+        )
+        payload = result.to_dict()
     print(json.dumps(payload, allow_nan=False, indent=2, sort_keys=True))
     return 0
 

@@ -1,6 +1,6 @@
 # Status and roadmap
 
-Last audited: 2026-10-09.
+Last audited: 2026-10-12.
 
 ## What works now
 
@@ -15,7 +15,7 @@ Last audited: 2026-10-09.
 | Benchmark records | Versioned JSON separates exact source-circuit depth/operation counts from wall time and Python peak memory | Checked-in identity workloads cover one and two qubits; depth is pre-transpilation, while runtime and memory remain machine-dependent |
 | Pauli transfer | Exhaustive dense-trace extraction with thresholded sparse columns and per-column discarded mass | Complex128 numerical arithmetic through three qubits by default; thresholded entries are not certified exact zeros |
 | Noise comparison | Ideal sparse-transfer leakage intervals beside finite-shot Bell-sampling leakage and simultaneous confidence bounds | Reproducible Aer depolarizing example, not a calibrated hardware model or exact membership claim |
-| Command line | Versioned JSON for dense `.npy` unitaries and OpenQASM 2 circuit discovery plus fresh verification | Preserves `UNKNOWN`, tolerances, raw counts, and confidence metadata; Qiskit is optional |
+| Command line | Versioned JSON for dense `.npy` unitaries, OpenQASM 2 circuit discovery plus fresh verification, and exact odd-prime searches from rational cyclotomic JSON | Preserves numerical tolerances, raw counts, confidence metadata, and exact-search `UNKNOWN`; Qiskit and exact arithmetic are optional extras |
 | Exact cyclotomic layer | Canonical arithmetic over a declared `Q(zeta_m)`, complete exact Pauli expansions, canonicalized supplied-witness verification, and resource-bounded exhaustive Pauli-MASA search | Exact `NOT_GSC` requires full pair exhaustion; any qubit, coefficient, or pair cap returns `UNKNOWN` |
 | Exact-search benchmarks | Versioned binary records through three qubits plus qutrit positive, completed-negative, and capped-`UNKNOWN` records | Exact work counters are portable; host wall time and Python peak memory are machine-dependent |
 | Analytic fixtures | Parameterized phase and controlled-phase families, a one-qubit non-GSC rotation, and rejected witnesses | GSC-but-not-semi-Clifford still needs a separately justified higher-qubit fixture |

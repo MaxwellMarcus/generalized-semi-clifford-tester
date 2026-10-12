@@ -3,14 +3,17 @@ from __future__ import annotations
 import json
 
 import numpy as np
+import pytest
 
 from generalized_semi_clifford.cli import (
     CIRCUIT_RESULT_SCHEMA,
     DENSE_RESULT_SCHEMA,
+    EXACT_MATRIX_SCHEMA,
     circuit_result_payload,
     dense_result_payload,
     main,
 )
+from generalized_semi_clifford.exact_odd_prime import EXACT_PRIME_SEARCH_SCHEMA
 from generalized_semi_clifford.gsc_qiskit import (
     GSCDiscoveryVerificationResult,
     GSCSamplingResult,
@@ -72,3 +75,75 @@ def test_circuit_payload_keeps_counts_and_absent_verification() -> None:
     assert payload["has_confidence_certified_witness"] is False
     assert payload["verification"] is None
     assert payload["discovery"]["observations"][0]["counts"] == {"00": 1, "01": 3}
+
+
+def _write_exact_qutrit_identity(tmp_path):
+    matrix_path = tmp_path / "identity.json"
+    matrix_path.write_text(
+        json.dumps(
+            {
+                "schema": EXACT_MATRIX_SCHEMA,
+                "field_order": 24,
+                "rows": [
+                    [["1"], ["0"], ["0"]],
+                    [["0"], ["1"], ["0"]],
+                    [["0"], ["0"], ["1"]],
+                ],
+            }
+        )
+    )
+    return matrix_path
+
+
+def test_exact_prime_cli_emits_versioned_exact_result(tmp_path, capsys) -> None:
+    matrix_path = _write_exact_qutrit_identity(tmp_path)
+
+    assert main(["exact-prime", str(matrix_path), "--prime", "3"]) == 0
+    payload = json.loads(capsys.readouterr().out)
+
+    assert payload["schema_version"] == EXACT_PRIME_SEARCH_SCHEMA
+    assert payload["status"] == "gsc"
+    assert payload["arithmetic"] == "cyclotomic_exact_odd_prime"
+    assert payload["search_complete"] is False
+    assert payload["witness"]["verified"] is True
+    assert "runtime" not in payload["work"]
+
+
+def test_exact_prime_cli_preserves_resource_capped_unknown(tmp_path, capsys) -> None:
+    matrix_path = _write_exact_qutrit_identity(tmp_path)
+
+    assert (
+        main(
+            [
+                "exact-prime",
+                str(matrix_path),
+                "--prime",
+                "3",
+                "--max-candidate-pairs",
+                "0",
+            ]
+        )
+        == 0
+    )
+    payload = json.loads(capsys.readouterr().out)
+
+    assert payload["status"] == "unknown"
+    assert payload["search_complete"] is False
+    assert payload["stop_reason"] == "candidate_pair_cap"
+    assert payload["work"]["candidate_pairs_checked"] == 0
+
+
+def test_exact_prime_cli_rejects_floating_point_coefficients(tmp_path) -> None:
+    matrix_path = tmp_path / "inexact.json"
+    matrix_path.write_text(
+        json.dumps(
+            {
+                "schema": EXACT_MATRIX_SCHEMA,
+                "field_order": 24,
+                "rows": [[[1.0]]],
+            }
+        )
+    )
+
+    with pytest.raises(TypeError, match="integers or rational strings"):
+        main(["exact-prime", str(matrix_path), "--prime", "3"])

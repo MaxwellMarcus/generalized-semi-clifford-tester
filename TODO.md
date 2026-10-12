@@ -1,6 +1,6 @@
 # Running TODO — Generalized Semi-Clifford Tester
 
-Last updated: 2026-10-09
+Last updated: 2026-10-12
 
 This is the operational queue for incremental development. Keep
 `docs/status-and-roadmap.md` as the higher-level scientific roadmap. Each
@@ -9,14 +9,15 @@ one coherent unit.
 
 ## Current focus
 
-- [ ] **Add machine-readable CLI access to odd-prime exact search.**
-  Export the versioned exact result without collapsing resource-capped
-  `UNKNOWN` outcomes or mixing exact work counters with host measurements.
+- [ ] **Define a reproducible two-qutrit exact-search benchmark fixture.**
+  Document the fixture's exact construction and a practical runtime budget
+  before adding it to the checked benchmark suite.
 
 ## Next
 
-- [ ] Add a representative two-qutrit exact-search benchmark only after a
-  reproducible fixture and practical runtime budget are documented.
+- [ ] Add the documented representative two-qutrit fixture to the checked
+  benchmark suite while keeping exact work counters separate from host
+  measurements.
 
 ## Maintenance
 
@@ -29,6 +30,10 @@ one coherent unit.
   statistical conclusion is incomplete.
 
 ## Completed
+
+- [x] 2026-10-12 — Add an exact odd-prime CLI accepting versioned rational
+  cyclotomic JSON and emitting the existing exact result schema unchanged,
+  preserving resource-capped `UNKNOWN` and exact-only work counters.
 
 - [x] 2026-10-09 — Benchmark qutrit positive, completed-negative, and
   candidate-capped `UNKNOWN` exact searches in a versioned suite, keeping
