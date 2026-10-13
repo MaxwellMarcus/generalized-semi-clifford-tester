@@ -216,3 +216,8 @@ machine-dependent measurements. The checked-in
 `benchmarks/exact-odd-prime-search-qutrit.json` suite contains an exact Fourier
 positive, a completely exhausted negative, and a candidate-capped `UNKNOWN`.
 Reproduce it with `python examples/benchmark_exact_odd_prime_search.py`.
+
+The first two-qutrit scaling fixture is specified separately in
+`two-qutrit-exact-search-benchmark.md`. It uses the exact qutrit SUM
+permutation and an 80-coefficient pre-expansion cap, so its intended checked
+outcome is an honest `UNKNOWN` rather than an unmeasured classification claim.

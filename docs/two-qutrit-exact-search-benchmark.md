@@ -1,0 +1,86 @@
+# Two-qutrit exact-search benchmark design
+
+This note fixes the first two-qutrit fixture and its resource budget before it
+is added to the checked benchmark suite. The initial record is a scaling and
+cap-semantics baseline, not a completed classification.
+
+## Exact fixture
+
+Use the qutrit SUM gate over the declared field
+`K_24 = Q(zeta_24)`. In the computational basis ordered by
+`index(a, b) = 3 * a + b`, define
+
+```text
+SUM |a, b> = |a, a + b mod 3>.
+```
+
+The corresponding column-to-row permutation is
+
+```text
+(0, 1, 2, 4, 5, 3, 8, 6, 7).
+```
+
+Construct it with `permutation_gate(CyclotomicField(24), permutation)`. Every
+entry is the exact integer zero or one, so no floating-point or inferred
+algebraic input enters the fixture.
+
+SUM is a non-product two-qutrit Clifford. With the package convention
+`U P U.adjoint()`, its generator action is
+
+```text
+X_1 -> X_1 X_2,    X_2 -> X_2,
+Z_1 -> Z_1,        Z_2 -> Z_1^-1 Z_2.
+```
+
+This analytic action explains why the fixture is expected to have a
+Lagrangian witness. The capped benchmark below deliberately does not claim to
+have computed or verified that witness.
+
+## Portable workload and checked budget
+
+For two qutrits, canonical enumeration contains 40 Lagrangians. A complete
+Weyl expansion of one basis generator contains
+`3 ** (2 * 2) = 81` exact coefficients, and one input Lagrangian has two basis
+generators. Independent verification of a discovered witness would require a
+second 162 coefficients.
+
+The first checked record should therefore use these explicit limits:
+
+```text
+max_qudits = 2
+max_coefficients = 80
+max_candidate_pairs = 1
+```
+
+Because 80 is one less than the indivisible 81-coefficient expansion, the
+expected outcome is `UNKNOWN` with stop reason `coefficient_cap`, zero
+coefficients computed, zero candidate pairs checked, and 40 Lagrangians
+enumerated. This is an intentional pre-expansion boundary: it exercises exact
+9-by-9 unitarity validation, two-qutrit enumeration, result serialization, and
+honest incomplete-state handling without making a classification claim.
+
+## Host-time budget
+
+On 2026-10-13, CPython 3.12.14 on macOS 14.7.3 arm64 measured 1.82 seconds and
+929,485 bytes of Python peak memory for the 80-coefficient cap. The checked
+example should have a practical advisory budget of 10 seconds on a development
+host; wall time and peak memory remain observational fields, not pass/fail
+portable invariants.
+
+For comparison, allowing one 81-coefficient expansion with
+`max_coefficients = 161` measured 153.00 seconds and 2,489,436 bytes before
+returning `UNKNOWN` ahead of the second basis generator. This measurement is
+not extrapolated into a full-search runtime. A positive search would need at
+least 324 coefficient slots (162 for search and 162 for independent witness
+verification), and its host cost must be measured rather than estimated.
+
+## Acceptance criteria for the checked-suite increment
+
+The follow-up suite change should:
+
+- construct the exact permutation above rather than loading approximate data;
+- record the explicit limits and the expected capped `UNKNOWN` outcome;
+- assert the portable counts and stop reason, but only require host runtime and
+  peak memory to be positive finite measurements; and
+- keep this two-qutrit record alongside, but semantically separate from, the
+  one-qutrit positive, completed-negative, and capped records.

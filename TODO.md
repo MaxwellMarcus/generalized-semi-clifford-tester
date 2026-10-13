@@ -1,6 +1,6 @@
 # Running TODO — Generalized Semi-Clifford Tester
 
-Last updated: 2026-10-12
+Last updated: 2026-10-13
 
 This is the operational queue for incremental development. Keep
 `docs/status-and-roadmap.md` as the higher-level scientific roadmap. Each
@@ -9,15 +9,15 @@ one coherent unit.
 
 ## Current focus
 
-- [ ] **Define a reproducible two-qutrit exact-search benchmark fixture.**
-  Document the fixture's exact construction and a practical runtime budget
-  before adding it to the checked benchmark suite.
+- [ ] **Add the documented two-qutrit SUM fixture to the checked benchmark
+  suite.** Use the specified 80-coefficient pre-expansion cap, preserve the
+  expected `UNKNOWN`, and assert only portable work counters and semantics.
 
 ## Next
 
-- [ ] Add the documented representative two-qutrit fixture to the checked
-  benchmark suite while keeping exact work counters separate from host
-  measurements.
+- [ ] Re-measure the first 81-coefficient two-qutrit expansion only after a
+  separately bounded performance improvement; do not extrapolate a full-search
+  runtime from the current partial measurement.
 
 ## Maintenance
 
@@ -30,6 +30,11 @@ one coherent unit.
   statistical conclusion is incomplete.
 
 ## Completed
+
+- [x] 2026-10-13 — Specify the exact two-qutrit SUM permutation fixture and an
+  80-coefficient checked-run budget that finishes before the first indivisible
+  81-coefficient expansion, preserving a measured, reproducible `UNKNOWN`
+  scaling baseline without implying a completed classification.
 
 - [x] 2026-10-12 — Add an exact odd-prime CLI accepting versioned rational
   cyclotomic JSON and emitting the existing exact result schema unchanged,
