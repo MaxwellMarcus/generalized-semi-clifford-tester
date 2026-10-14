@@ -10,6 +10,7 @@ from sympy import sqrt
 from generalized_semi_clifford.exact_cyclotomic import (
     CyclotomicField,
     CyclotomicMatrix,
+    permutation_gate,
 )
 from generalized_semi_clifford.exact_odd_prime_benchmarking import (
     run_exact_prime_search_benchmark,
@@ -37,6 +38,7 @@ def build_benchmark_suite() -> dict[str, object]:
         ((1, 0, 0), (0, 1, 0), (0, 0, phase)),
     )
     non_gsc = diagonal @ fourier @ diagonal
+    two_qutrit_sum = permutation_gate(field, (0, 1, 2, 4, 5, 3, 8, 6, 7))
     fixtures = (
         ("qutrit_fourier_positive", fourier, {}),
         ("qutrit_phase_fourier_phase_complete_negative", non_gsc, {}),
@@ -44,6 +46,11 @@ def build_benchmark_suite() -> dict[str, object]:
             "qutrit_phase_fourier_phase_candidate_capped_unknown",
             non_gsc,
             {"max_candidate_pairs": 2},
+        ),
+        (
+            "two_qutrit_sum_coefficient_capped_unknown",
+            two_qutrit_sum,
+            {"max_coefficients": 80, "max_candidate_pairs": 1},
         ),
     )
     records = [

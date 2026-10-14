@@ -1,6 +1,6 @@
 # Running TODO — Generalized Semi-Clifford Tester
 
-Last updated: 2026-10-13
+Last updated: 2026-10-14
 
 This is the operational queue for incremental development. Keep
 `docs/status-and-roadmap.md` as the higher-level scientific roadmap. Each
@@ -9,15 +9,16 @@ one coherent unit.
 
 ## Current focus
 
-- [ ] **Add the documented two-qutrit SUM fixture to the checked benchmark
-  suite.** Use the specified 80-coefficient pre-expansion cap, preserve the
-  expected `UNKNOWN`, and assert only portable work counters and semantics.
+- [ ] **Profile one exact two-qutrit Weyl-coefficient expansion and remove one
+  verified hotspot.** Preserve exact arithmetic and `UNKNOWN` semantics, then
+  re-measure the first indivisible 81-coefficient expansion against the
+  documented baseline.
 
 ## Next
 
-- [ ] Re-measure the first 81-coefficient two-qutrit expansion only after a
-  separately bounded performance improvement; do not extrapolate a full-search
-  runtime from the current partial measurement.
+- [ ] Decide whether a second bounded performance increment is warranted from
+  the re-measured 81-coefficient expansion; do not extrapolate a full-search
+  runtime from a partial measurement.
 
 ## Maintenance
 
@@ -30,6 +31,10 @@ one coherent unit.
   statistical conclusion is incomplete.
 
 ## Completed
+
+- [x] 2026-10-14 — Add the exact two-qutrit SUM permutation to the checked
+  qutrit benchmark suite with an 80-coefficient pre-expansion cap, preserving
+  `UNKNOWN` and asserting only portable exact-work counters and semantics.
 
 - [x] 2026-10-13 — Specify the exact two-qutrit SUM permutation fixture and an
   80-coefficient checked-run budget that finishes before the first indivisible

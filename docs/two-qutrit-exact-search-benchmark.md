@@ -1,8 +1,8 @@
 # Two-qutrit exact-search benchmark design
 
-This note fixes the first two-qutrit fixture and its resource budget before it
-is added to the checked benchmark suite. The initial record is a scaling and
-cap-semantics baseline, not a completed classification.
+This note fixes the first two-qutrit fixture and its resource budget in the
+checked benchmark suite. The initial record is a scaling and cap-semantics
+baseline, not a completed classification.
 
 ## Exact fixture
 
@@ -44,7 +44,7 @@ Weyl expansion of one basis generator contains
 generators. Independent verification of a discovered witness would require a
 second 162 coefficients.
 
-The first checked record should therefore use these explicit limits:
+The checked record uses these explicit limits:
 
 ```text
 max_qudits = 2
@@ -63,9 +63,9 @@ honest incomplete-state handling without making a classification claim.
 
 On 2026-10-13, CPython 3.12.14 on macOS 14.7.3 arm64 measured 1.82 seconds and
 929,485 bytes of Python peak memory for the 80-coefficient cap. The checked
-example should have a practical advisory budget of 10 seconds on a development
-host; wall time and peak memory remain observational fields, not pass/fail
-portable invariants.
+example has a practical advisory budget of 10 seconds on a development host;
+wall time and peak memory remain observational fields, not pass/fail portable
+invariants.
 
 For comparison, allowing one 81-coefficient expansion with
 `max_coefficients = 161` measured 153.00 seconds and 2,489,436 bytes before
@@ -74,9 +74,9 @@ not extrapolated into a full-search runtime. A positive search would need at
 least 324 coefficient slots (162 for search and 162 for independent witness
 verification), and its host cost must be measured rather than estimated.
 
-## Acceptance criteria for the checked-suite increment
+## Checked-suite contract
 
-The follow-up suite change should:
+The suite and its regression test now:
 
 - construct the exact permutation above rather than loading approximate data;
 - record the explicit limits and the expected capped `UNKNOWN` outcome;

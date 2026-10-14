@@ -78,17 +78,52 @@ def test_checked_in_qutrit_suite_covers_outcome_boundaries() -> None:
         "generalized-semi-clifford/odd-prime-exact-search-benchmark-suite-v1"
     )
     assert {record["exact_workload"]["prime"] for record in records} == {3}
-    assert {record["exact_workload"]["num_qudits"] for record in records} == {1}
+    assert {record["exact_workload"]["num_qudits"] for record in records} == {1, 2}
     assert {record["outcome"]["status"] for record in records} == {
         "gsc",
         "not_gsc",
         "unknown",
     }
     negative, = (record for record in records if record["outcome"]["status"] == "not_gsc")
-    unknown, = (record for record in records if record["outcome"]["status"] == "unknown")
+    candidate_capped, = (
+        record
+        for record in records
+        if record["fixture"] == "qutrit_phase_fourier_phase_candidate_capped_unknown"
+    )
+    coefficient_capped, = (
+        record
+        for record in records
+        if record["fixture"] == "two_qutrit_sum_coefficient_capped_unknown"
+    )
     assert negative["outcome"]["search_complete"] is True
     assert negative["outcome"]["stop_reason"] == "exhausted"
-    assert unknown["outcome"]["search_complete"] is False
-    assert unknown["outcome"]["stop_reason"] == "candidate_pair_cap"
+    assert candidate_capped["outcome"] == {
+        "search_complete": False,
+        "status": "unknown",
+        "stop_reason": "candidate_pair_cap",
+        "witness_verified": None,
+    }
+    assert coefficient_capped["outcome"] == {
+        "search_complete": False,
+        "status": "unknown",
+        "stop_reason": "coefficient_cap",
+        "witness_verified": None,
+    }
+    assert coefficient_capped["exact_workload"] == {
+        "arithmetic": "cyclotomic_exact_odd_prime",
+        "candidate_pairs_checked": 0,
+        "coefficients_computed": 0,
+        "field_order": 24,
+        "input_lagrangians_checked": 0,
+        "lagrangians_total": 40,
+        "limits": {
+            "max_candidate_pairs": 1,
+            "max_coefficients": 80,
+            "max_qudits": 2,
+        },
+        "num_qudits": 2,
+        "prime": 3,
+        "witness_verification_coefficients": 0,
+    }
     assert all(record["measurements"]["host_runtime_seconds"] > 0 for record in records)
     assert all(record["measurements"]["python_peak_memory_bytes"] > 0 for record in records)
