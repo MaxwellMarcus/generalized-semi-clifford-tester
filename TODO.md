@@ -1,6 +1,6 @@
 # Running TODO — Generalized Semi-Clifford Tester
 
-Last updated: 2026-10-14
+Last updated: 2026-10-15
 
 This is the operational queue for incremental development. Keep
 `docs/status-and-roadmap.md` as the higher-level scientific roadmap. Each
@@ -9,16 +9,15 @@ one coherent unit.
 
 ## Current focus
 
-- [ ] **Profile one exact two-qutrit Weyl-coefficient expansion and remove one
-  verified hotspot.** Preserve exact arithmetic and `UNKNOWN` semantics, then
-  re-measure the first indivisible 81-coefficient expansion against the
-  documented baseline.
+- [ ] **Decide whether a second bounded performance increment is warranted.**
+  Use the re-measured 81-coefficient expansion profile, retain exact arithmetic
+  and `UNKNOWN` semantics, and do not extrapolate a full-search runtime from a
+  partial measurement.
 
 ## Next
 
-- [ ] Decide whether a second bounded performance increment is warranted from
-  the re-measured 81-coefficient expansion; do not extrapolate a full-search
-  runtime from a partial measurement.
+- [ ] If another measured hotspot remains material, remove one independently
+  verified bottleneck and re-measure the same fixed expansion.
 
 ## Maintenance
 
@@ -31,6 +30,11 @@ one coherent unit.
   statistical conclusion is incomplete.
 
 ## Completed
+
+- [x] 2026-10-15 — Replace dense output-Weyl adjoints and matrix products in
+  odd-prime coefficient extraction with the same exact trace inner product on
+  the Weyl matrix's monomial support, independently cross-check it against the
+  dense formula, and re-measure the first 81-coefficient two-qutrit expansion.
 
 - [x] 2026-10-14 — Add the exact two-qutrit SUM permutation to the checked
   qutrit benchmark suite with an 80-coefficient pre-expansion cap, preserving

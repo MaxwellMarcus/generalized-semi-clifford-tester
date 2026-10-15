@@ -67,12 +67,21 @@ example has a practical advisory budget of 10 seconds on a development host;
 wall time and peak memory remain observational fields, not pass/fail portable
 invariants.
 
-For comparison, allowing one 81-coefficient expansion with
-`max_coefficients = 161` measured 153.00 seconds and 2,489,436 bytes before
-returning `UNKNOWN` ahead of the second basis generator. This measurement is
-not extrapolated into a full-search runtime. A positive search would need at
-least 324 coefficient slots (162 for search and 162 for independent witness
-verification), and its host cost must be measured rather than estimated.
+For comparison, before the monomial-support optimization, allowing one
+81-coefficient expansion with `max_coefficients = 161` measured 153.00 seconds
+and 2,489,436 bytes before returning `UNKNOWN` ahead of the second basis
+generator. On 2026-10-15, the same CPython 3.12.14 macOS arm64 host measured
+5.54 seconds and 1,437,472 bytes after replacing dense output-Weyl adjoints and
+matrix products with the mathematically identical exact trace inner product on
+the Weyl matrix's nine nonzero entries. The regression suite independently
+cross-checks the optimized coefficient against the dense formula and verifies
+the analytic single-Weyl support of SUM's first expansion.
+
+This partial measurement is not extrapolated into a full-search runtime. A
+positive search would need at least 324 coefficient slots (162 for search and
+162 for independent witness verification), and its host cost must be measured
+rather than estimated. Runtime and Python peak memory remain machine-dependent
+observations rather than portable pass/fail thresholds.
 
 ## Checked-suite contract
 

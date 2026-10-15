@@ -7,11 +7,14 @@ sympy = pytest.importorskip("sympy")
 from generalized_semi_clifford.exact_cyclotomic import (  # noqa: E402
     CyclotomicField,
     CyclotomicMatrix,
+    permutation_gate,
 )
 from generalized_semi_clifford.exact_odd_prime import (  # noqa: E402
     EXACT_PRIME_SEARCH_SCHEMA,
     ExactPrimeSearchStatus,
     ExactPrimeWitnessStatus,
+    _prime_conjugation_coefficients_validated,
+    _prime_weyl_coefficient,
     exact_prime_weyl_matrix,
     search_exact_prime_lagrangian_witness,
     verify_exact_prime_lagrangian_witness,
@@ -55,6 +58,34 @@ def test_exact_qutrit_weyl_product_uses_documented_phase() -> None:
         field,
         tuple(tuple(omega * entry for entry in row) for row in total.rows),
     )
+
+
+def test_monomial_weyl_coefficient_matches_dense_trace_inner_product() -> None:
+    field = CyclotomicField(24)
+    conjugated = exact_prime_weyl_matrix(field, (1, 2, 2, 1), 3)
+    output_label = (1, 2, 2, 1)
+    output = exact_prime_weyl_matrix(field, output_label, 3)
+    product_matrix = output.adjoint() @ conjugated
+    dense_trace = sum(
+        (product_matrix.rows[index][index] for index in range(9)),
+        field.zero,
+    ) / 9
+
+    assert _prime_weyl_coefficient(conjugated, output_label, 3) == dense_trace
+
+
+def test_two_qutrit_sum_expansion_has_analytic_single_weyl_support() -> None:
+    field = CyclotomicField(24)
+    two_qutrit_sum = permutation_gate(field, (0, 1, 2, 4, 5, 3, 8, 6, 7))
+
+    expansion = _prime_conjugation_coefficients_validated(
+        two_qutrit_sum,
+        (0, 0, 0, 1),
+        3,
+    )
+
+    assert tuple(item.output_label for item in expansion.support) == ((0, 0, 2, 1),)
+    assert expansion.support[0].value == field.one
 
 
 def test_exact_qutrit_fourier_witness_is_verified_or_rejected_per_pair() -> None:

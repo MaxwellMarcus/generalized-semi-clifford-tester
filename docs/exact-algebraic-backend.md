@@ -188,7 +188,9 @@ fixed-witness and bounded exhaustive-search layers to odd-prime Weyl systems.
 It constructs `W(x,z) = omega**((x dot z)/2) X**x Z**z` over an explicitly
 declared cyclotomic field whose order is divisible by the prime, computes
 complete Weyl expansions using the adjoint trace inner product, and checks
-exact support containment for a supplied input/output Lagrangian pair.
+exact support containment for a supplied input/output Lagrangian pair. The
+implementation evaluates that inner product only on the Weyl matrix's exact
+monomial support; it does not construct or conjugate dense zero entries.
 
 `prime_lagrangian_from_basis` performs finite-field row reduction, rank and
 isotropy checks, and full-span reconstruction. The verifier repeats that

@@ -219,13 +219,56 @@ def _all_prime_labels(num_qudits: int, prime: int) -> tuple[PrimeVector, ...]:
     return tuple(product(range(prime), repeat=2 * num_qudits))
 
 
+def _prime_weyl_coefficient(
+    conjugated: CyclotomicMatrix,
+    output_label: PrimeVector,
+    prime: int,
+) -> CyclotomicScalar:
+    """Return one exact Weyl coefficient using its monomial support.
+
+    Every odd-prime Weyl matrix has exactly one nonzero entry per column.  The
+    trace inner product can therefore be evaluated from those entries directly
+    instead of constructing a dense Weyl matrix, conjugating all of its zeros,
+    and multiplying two dense matrices.
+    """
+
+    num_qudits = len(output_label) // 2
+    dimension = prime**num_qudits
+    if conjugated.shape != (dimension, dimension):
+        raise ValueError("conjugated matrix dimension does not match the Weyl label")
+
+    x_values = output_label[:num_qudits]
+    z_values = output_label[num_qudits:]
+    inverse_two = pow(2, -1, prime)
+    phase_offset = sum(
+        inverse_two * x_value * z_value
+        for x_value, z_value in zip(x_values, z_values, strict=True)
+    ) % prime
+    omega = conjugated.field.root_power(conjugated.field.order // prime)
+    conjugate_phases = tuple(omega ** (-exponent) for exponent in range(prime))
+
+    coefficient = conjugated.field.zero
+    for column_index, column_values in enumerate(product(range(prime), repeat=num_qudits)):
+        row_index = 0
+        exponent = phase_offset
+        for x_value, z_value, column_value in zip(
+            x_values, z_values, column_values, strict=True
+        ):
+            row_index = prime * row_index + (column_value + x_value) % prime
+            exponent += z_value * column_value
+        coefficient += (
+            conjugate_phases[exponent % prime]
+            * conjugated.rows[row_index][column_index]
+        )
+    return coefficient / dimension
+
+
 def _prime_conjugation_coefficients_validated(
     unitary: CyclotomicMatrix,
     input_label: PrimeVector,
     prime: int,
 ) -> ExactPrimeWeylExpansion:
     num_qudits = len(input_label) // 2
-    dimension = prime**num_qudits
     conjugated = (
         unitary
         @ exact_prime_weyl_matrix(unitary.field, input_label, prime)
@@ -233,14 +276,11 @@ def _prime_conjugation_coefficients_validated(
     )
     coefficients = []
     for output_label in _all_prime_labels(num_qudits, prime):
-        output = exact_prime_weyl_matrix(unitary.field, output_label, prime)
-        product_matrix = output.adjoint() @ conjugated
-        trace = sum(
-            (product_matrix.rows[index][index] for index in range(dimension)),
-            unitary.field.zero,
-        )
         coefficients.append(
-            ExactPrimeWeylCoefficient(output_label, trace / dimension)
+            ExactPrimeWeylCoefficient(
+                output_label,
+                _prime_weyl_coefficient(conjugated, output_label, prime),
+            )
         )
     return ExactPrimeWeylExpansion(input_label, tuple(coefficients))
 
