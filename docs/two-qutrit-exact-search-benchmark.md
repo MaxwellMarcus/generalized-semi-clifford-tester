@@ -77,6 +77,15 @@ the Weyl matrix's nine nonzero entries. The regression suite independently
 cross-checks the optimized coefficient against the dense formula and verifies
 the analytic single-Weyl support of SUM's first expansion.
 
+Profiling that fixed expansion then showed that each output coefficient and
+each adjoint entry reconstructed the same primitive `K_24` root through SymPy.
+On 2026-10-16, caching that immutable field element reduced the same
+`max_coefficients = 161` search measurement to 0.22 seconds and 203,686 bytes
+of Python peak memory on the same host. Three direct 81-coefficient expansions
+measured 0.035--0.038 seconds each. The result remained `UNKNOWN` with exactly
+81 coefficients computed, and the independently checked support remained the
+single analytic label `(0, 0, 2, 1)` with coefficient one.
+
 This partial measurement is not extrapolated into a full-search runtime. A
 positive search would need at least 324 coefficient slots (162 for search and
 162 for independent witness verification), and its host cost must be measured

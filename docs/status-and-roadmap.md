@@ -1,6 +1,6 @@
 # Status and roadmap
 
-Last audited: 2026-10-15.
+Last audited: 2026-10-16.
 
 ## What works now
 
@@ -16,8 +16,8 @@ Last audited: 2026-10-15.
 | Pauli transfer | Exhaustive dense-trace extraction with thresholded sparse columns and per-column discarded mass | Complex128 numerical arithmetic through three qubits by default; thresholded entries are not certified exact zeros |
 | Noise comparison | Ideal sparse-transfer leakage intervals beside finite-shot Bell-sampling leakage and simultaneous confidence bounds | Reproducible Aer depolarizing example, not a calibrated hardware model or exact membership claim |
 | Command line | Versioned JSON for dense `.npy` unitaries, OpenQASM 2 circuit discovery plus fresh verification, and exact odd-prime searches from rational cyclotomic JSON | Preserves numerical tolerances, raw counts, confidence metadata, and exact-search `UNKNOWN`; Qiskit and exact arithmetic are optional extras |
-| Exact cyclotomic layer | Canonical arithmetic over a declared `Q(zeta_m)`, complete exact Pauli expansions, canonicalized supplied-witness verification, and resource-bounded exhaustive Pauli-MASA search | Exact `NOT_GSC` requires full pair exhaustion; any qubit, coefficient, or pair cap returns `UNKNOWN` |
-| Exact-search benchmarks | Versioned binary records through three qubits plus qutrit positive, completed-negative, and capped-`UNKNOWN` records, including an exact two-qutrit SUM pre-expansion boundary | Exact work counters are portable; host wall time and Python peak memory are machine-dependent, and odd-prime Weyl coefficients use exact monomial-support trace inner products |
+| Exact cyclotomic layer | Canonical arithmetic over a declared `Q(zeta_m)`, cached immutable primitive roots, complete exact Pauli expansions, canonicalized supplied-witness verification, and resource-bounded exhaustive Pauli-MASA search | Exact `NOT_GSC` requires full pair exhaustion; any qubit, coefficient, or pair cap returns `UNKNOWN` |
+| Exact-search benchmarks | Versioned binary records through three qubits plus qutrit positive, completed-negative, and capped-`UNKNOWN` records, including an exact two-qutrit SUM pre-expansion boundary | Exact work counters are portable; host wall time and Python peak memory are machine-dependent, and odd-prime Weyl coefficients use exact monomial-support trace inner products without reconstructing the field root per coefficient |
 | Analytic fixtures | Parameterized phase and controlled-phase families, a one-qubit non-GSC rotation, and rejected witnesses | GSC-but-not-semi-Clifford still needs a separately justified higher-qubit fixture |
 | Conjugation sampling | Short words at arbitrary bounded depth and recursive finite-subgroup escape without previous-group enumeration | Exact-oracle containment theorem counts group operations, not expanded U queries; dense frontend is numerical and limited to 3 qubits |
 | SC-distance evidence | Replayable hierarchy paths and an exhaustive unrestricted SC-distance fallback | Restricted and unrestricted targets are distinguished; floating-point margins are not interval certificates |
@@ -106,6 +106,9 @@ The key conceptual distinction is now represented in the API:
 - [x] Add an exact two-qutrit SUM benchmark that stops at the documented
   80-coefficient pre-expansion boundary and asserts portable `UNKNOWN`
   semantics without claiming a classification.
+- [x] Re-profile the first 81-coefficient SUM expansion and cache the immutable
+  primitive field root that was repeatedly reconstructed, independently
+  preserving the exact analytic support and capped `UNKNOWN` outcome.
 - [x] Add a command-line interface and machine-readable result export.
 
 ## Honest interpretation

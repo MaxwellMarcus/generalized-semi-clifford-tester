@@ -47,6 +47,13 @@ def test_field_rejects_implicit_approximate_inputs() -> None:
     assert field.scalar(Fraction(1, 2)) + field.scalar(Fraction(1, 2)) == field.one
 
 
+def test_field_caches_primitive_root() -> None:
+    field = CyclotomicField(24)
+
+    assert field.zeta is field.zeta
+    assert field.root_power(1) == field.zeta
+
+
 def test_common_field_embedding_is_exact_and_declared() -> None:
     field8 = CyclotomicField(8)
     field24 = CyclotomicField(24)

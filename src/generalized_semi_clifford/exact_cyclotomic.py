@@ -90,8 +90,10 @@ class CyclotomicField:
     def one(self) -> CyclotomicScalar:
         return CyclotomicScalar(self, self.domain.one)
 
-    @property
+    @cached_property
     def zeta(self) -> CyclotomicScalar:
+        """Return the field's cached primitive root of unity."""
+
         return self.scalar(exp(2 * pi * I / self.order))
 
     def root_power(self, exponent: int) -> CyclotomicScalar:

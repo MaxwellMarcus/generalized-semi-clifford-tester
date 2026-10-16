@@ -1,6 +1,6 @@
 # Running TODO — Generalized Semi-Clifford Tester
 
-Last updated: 2026-10-15
+Last updated: 2026-10-16
 
 This is the operational queue for incremental development. Keep
 `docs/status-and-roadmap.md` as the higher-level scientific roadmap. Each
@@ -9,15 +9,16 @@ one coherent unit.
 
 ## Current focus
 
-- [ ] **Decide whether a second bounded performance increment is warranted.**
-  Use the re-measured 81-coefficient expansion profile, retain exact arithmetic
-  and `UNKNOWN` semantics, and do not extrapolate a full-search runtime from a
-  partial measurement.
+- [ ] **Define a bounded two-qutrit witness-verification measurement.**
+  Choose explicit coefficient and candidate-pair caps that can fund two basis
+  expansions plus independent verification for the exact SUM fixture, while
+  preserving `UNKNOWN` if the chosen search prefix does not find a witness.
 
 ## Next
 
-- [ ] If another measured hotspot remains material, remove one independently
-  verified bottleneck and re-measure the same fixed expansion.
+- [ ] Add a checked two-qutrit record only if the measured host cost remains
+  suitable for the example suite; otherwise document the bounded measurement
+  without turning machine-dependent timing into a pass/fail invariant.
 
 ## Maintenance
 
@@ -30,6 +31,12 @@ one coherent unit.
   statistical conclusion is incomplete.
 
 ## Completed
+
+- [x] 2026-10-16 — Cache each exact field's immutable primitive root after the
+  81-coefficient profile identified repeated SymPy reconstruction as a material
+  hotspot; retain the analytic SUM support and `UNKNOWN` result while reducing
+  the same `max_coefficients=161` measurement to 0.22 seconds and 203,686 bytes
+  of Python peak memory on the development host.
 
 - [x] 2026-10-15 — Replace dense output-Weyl adjoints and matrix products in
   odd-prime coefficient extraction with the same exact trace inner product on
