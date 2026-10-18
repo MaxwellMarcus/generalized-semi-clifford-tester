@@ -1,8 +1,8 @@
 # Two-qutrit exact-search benchmark design
 
-This note fixes the first two-qutrit fixture and its resource budget in the
-checked benchmark suite. The initial record is a scaling and cap-semantics
-baseline, not a completed classification.
+This note fixes the first two-qutrit fixture and its resource budgets in the
+checked benchmark suite. It keeps the initial cap-semantics baseline alongside
+a separately bounded, independently verified positive classification.
 
 ## Exact fixture
 
@@ -59,6 +59,28 @@ enumerated. This is an intentional pre-expansion boundary: it exercises exact
 9-by-9 unitarity validation, two-qutrit enumeration, result serialization, and
 honest incomplete-state handling without making a classification claim.
 
+## Bounded verified run
+
+The optimized exact arithmetic makes a positive run practical without
+weakening the cap semantics. The second two-qutrit checked record uses:
+
+```text
+max_qudits = 2
+max_coefficients = 324
+max_candidate_pairs = 1
+```
+
+Exactly 162 coefficient slots fund both basis-generator expansions for the
+first input Lagrangian. The first deterministic output candidate contains the
+resulting support, and another 162 slots fund an independent reconstruction
+and verification of that same witness. The run therefore returns `GSC` with a
+verified witness after exactly 324 coefficients and one candidate pair.
+
+These limits do not assume that every fixture has a witness in its first
+candidate pair. If that prefix does not find a witness, the search still
+returns `UNKNOWN` at the candidate-pair cap; it never promotes a truncated
+prefix to a global negative result.
+
 ## Host-time budget
 
 On 2026-10-13, CPython 3.12.14 on macOS 14.7.3 arm64 measured 1.82 seconds and
@@ -86,10 +108,10 @@ measured 0.035--0.038 seconds each. The result remained `UNKNOWN` with exactly
 81 coefficients computed, and the independently checked support remained the
 single analytic label `(0, 0, 2, 1)` with coefficient one.
 
-This partial measurement is not extrapolated into a full-search runtime. A
-positive search would need at least 324 coefficient slots (162 for search and
-162 for independent witness verification), and its host cost must be measured
-rather than estimated. Runtime and Python peak memory remain machine-dependent
+The 324-coefficient positive run was measured repeatedly on 2026-10-18 on the
+same host at 0.77--0.95 seconds and 273,375--596,899 bytes of Python peak
+memory. This bounded positive measurement is not extrapolated into a full
+search runtime. Runtime and Python peak memory remain machine-dependent
 observations rather than portable pass/fail thresholds.
 
 ## Checked-suite contract
@@ -100,5 +122,6 @@ The suite and its regression test now:
 - record the explicit limits and the expected capped `UNKNOWN` outcome;
 - assert the portable counts and stop reason, but only require host runtime and
   peak memory to be positive finite measurements; and
-- keep this two-qutrit record alongside, but semantically separate from, the
-  one-qutrit positive, completed-negative, and capped records.
+- keep the capped and verified-positive two-qutrit records alongside, but
+  semantically separate from, the one-qutrit positive, completed-negative, and
+  capped records.

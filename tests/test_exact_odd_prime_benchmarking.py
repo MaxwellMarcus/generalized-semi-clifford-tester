@@ -95,6 +95,11 @@ def test_checked_in_qutrit_suite_covers_outcome_boundaries() -> None:
         for record in records
         if record["fixture"] == "two_qutrit_sum_coefficient_capped_unknown"
     )
+    two_qutrit_positive, = (
+        record
+        for record in records
+        if record["fixture"] == "two_qutrit_sum_verified_positive"
+    )
     assert negative["outcome"]["search_complete"] is True
     assert negative["outcome"]["stop_reason"] == "exhausted"
     assert candidate_capped["outcome"] == {
@@ -124,6 +129,28 @@ def test_checked_in_qutrit_suite_covers_outcome_boundaries() -> None:
         "num_qudits": 2,
         "prime": 3,
         "witness_verification_coefficients": 0,
+    }
+    assert two_qutrit_positive["outcome"] == {
+        "search_complete": False,
+        "status": "gsc",
+        "stop_reason": "witness_found",
+        "witness_verified": True,
+    }
+    assert two_qutrit_positive["exact_workload"] == {
+        "arithmetic": "cyclotomic_exact_odd_prime",
+        "candidate_pairs_checked": 1,
+        "coefficients_computed": 324,
+        "field_order": 24,
+        "input_lagrangians_checked": 1,
+        "lagrangians_total": 40,
+        "limits": {
+            "max_candidate_pairs": 1,
+            "max_coefficients": 324,
+            "max_qudits": 2,
+        },
+        "num_qudits": 2,
+        "prime": 3,
+        "witness_verification_coefficients": 162,
     }
     assert all(record["measurements"]["host_runtime_seconds"] > 0 for record in records)
     assert all(record["measurements"]["python_peak_memory_bytes"] > 0 for record in records)

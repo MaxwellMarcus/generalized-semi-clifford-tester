@@ -1,6 +1,6 @@
 # Running TODO — Generalized Semi-Clifford Tester
 
-Last updated: 2026-10-16
+Last updated: 2026-10-18
 
 This is the operational queue for incremental development. Keep
 `docs/status-and-roadmap.md` as the higher-level scientific roadmap. Each
@@ -9,16 +9,17 @@ one coherent unit.
 
 ## Current focus
 
-- [ ] **Define a bounded two-qutrit witness-verification measurement.**
-  Choose explicit coefficient and candidate-pair caps that can fund two basis
-  expansions plus independent verification for the exact SUM fixture, while
-  preserving `UNKNOWN` if the chosen search prefix does not find a witness.
+- [ ] **Define a bounded two-qutrit rejection-prefix measurement.**
+  Choose an exact non-Clifford fixture and a budget that can complete one input
+  Lagrangian's two basis expansions and candidate scan, while preserving
+  `UNKNOWN` rather than treating that bounded prefix as a global negative.
 
 ## Next
 
-- [ ] Add a checked two-qutrit record only if the measured host cost remains
-  suitable for the example suite; otherwise document the bounded measurement
-  without turning machine-dependent timing into a pass/fail invariant.
+- [ ] Add a checked rejection-prefix record only if the measured host cost
+  remains suitable for the example suite; otherwise document the bounded
+  measurement without turning machine-dependent timing into a pass/fail
+  invariant.
 
 ## Maintenance
 
@@ -31,6 +32,12 @@ one coherent unit.
   statistical conclusion is incomplete.
 
 ## Completed
+
+- [x] 2026-10-18 — Add a bounded exact two-qutrit SUM positive record with a
+  324-coefficient budget for two search expansions plus independent witness
+  verification and a one-pair prefix that finds the deterministic first
+  candidate; retain `UNKNOWN` semantics for any prefix that does not find a
+  witness and keep host timing observational.
 
 - [x] 2026-10-16 — Cache each exact field's immutable primitive root after the
   81-coefficient profile identified repeated SymPy reconstruction as a material

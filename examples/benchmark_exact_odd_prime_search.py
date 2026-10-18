@@ -52,6 +52,11 @@ def build_benchmark_suite() -> dict[str, object]:
             two_qutrit_sum,
             {"max_coefficients": 80, "max_candidate_pairs": 1},
         ),
+        (
+            "two_qutrit_sum_verified_positive",
+            two_qutrit_sum,
+            {"max_coefficients": 324, "max_candidate_pairs": 1},
+        ),
     )
     records = [
         run_exact_prime_search_benchmark(name, unitary, 3, **limits).to_dict()
