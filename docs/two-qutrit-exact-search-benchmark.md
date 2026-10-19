@@ -2,7 +2,8 @@
 
 This note fixes the first two-qutrit fixture and its resource budgets in the
 checked benchmark suite. It keeps the initial cap-semantics baseline alongside
-a separately bounded, independently verified positive classification.
+a separately bounded, independently verified positive classification and an
+exactly rejected input-Lagrangian prefix for a non-Clifford fixture.
 
 ## Exact fixture
 
@@ -81,6 +82,37 @@ candidate pair. If that prefix does not find a witness, the search still
 returns `UNKNOWN` at the candidate-pair cap; it never promotes a truncated
 prefix to a global negative result.
 
+## Bounded rejection prefix
+
+For a complementary negative-prefix workload, let `D = diag(1, 1, zeta_24)`,
+let `F` be the exact qutrit Fourier transform over `K_24`, and construct
+
+```text
+U = (D F D) tensor I_3.
+```
+
+The one-qutrit factor has already been exhaustively rejected by the exact
+one-qutrit search, so in particular it is not Clifford. The tensor-product
+fixture is therefore also non-Clifford, but this benchmark makes no claim
+about its global two-qutrit GSC classification.
+
+The first canonical input Lagrangian has basis labels `(1, 0, 0, 0)` and
+`(0, 1, 0, 0)`. Their exact conjugation expansions have support sizes seven
+and one, respectively. Their eight-label union is contained in none of the 40
+canonical output Lagrangians. The checked record uses:
+
+```text
+max_qudits = 2
+max_coefficients = 162
+max_candidate_pairs = 40
+```
+
+The run therefore computes both 81-coefficient expansions and rejects all 40
+output candidates for exactly one input Lagrangian. At the next input
+Lagrangian it reaches the coefficient cap and returns `UNKNOWN`. The exact
+prefix rejection is complete; the overall search is deliberately incomplete
+and is not a `NOT_GSC` result.
+
 ## Host-time budget
 
 On 2026-10-13, CPython 3.12.14 on macOS 14.7.3 arm64 measured 1.82 seconds and
@@ -114,6 +146,11 @@ memory. This bounded positive measurement is not extrapolated into a full
 search runtime. Runtime and Python peak memory remain machine-dependent
 observations rather than portable pass/fail thresholds.
 
+On 2026-10-19, the 162-coefficient rejection prefix measured 0.57 seconds and
+196,574 bytes of Python peak memory on the development host. These host
+measurements remain observational; the checked assertions cover only the
+exact work counters, stop reason, and `UNKNOWN` semantics.
+
 ## Checked-suite contract
 
 The suite and its regression test now:
@@ -124,4 +161,6 @@ The suite and its regression test now:
   peak memory to be positive finite measurements; and
 - keep the capped and verified-positive two-qutrit records alongside, but
   semantically separate from, the one-qutrit positive, completed-negative, and
-  capped records.
+  capped records; and
+- record one exact input-Lagrangian rejection prefix without promoting it to a
+  global negative classification.

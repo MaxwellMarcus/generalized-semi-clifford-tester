@@ -1,6 +1,6 @@
 # Running TODO — Generalized Semi-Clifford Tester
 
-Last updated: 2026-10-18
+Last updated: 2026-10-19
 
 This is the operational queue for incremental development. Keep
 `docs/status-and-roadmap.md` as the higher-level scientific roadmap. Each
@@ -9,17 +9,16 @@ one coherent unit.
 
 ## Current focus
 
-- [ ] **Define a bounded two-qutrit rejection-prefix measurement.**
-  Choose an exact non-Clifford fixture and a budget that can complete one input
-  Lagrangian's two basis expansions and candidate scan, while preserving
-  `UNKNOWN` rather than treating that bounded prefix as a global negative.
+- [ ] **Define a bounded second two-qutrit rejection prefix.**
+  Measure the same exact non-Clifford fixture through two canonical input
+  Lagrangians with explicit coefficient and candidate-pair budgets, preserving
+  `UNKNOWN` unless the complete search establishes a classification.
 
 ## Next
 
-- [ ] Add a checked rejection-prefix record only if the measured host cost
-  remains suitable for the example suite; otherwise document the bounded
-  measurement without turning machine-dependent timing into a pass/fail
-  invariant.
+- [ ] Add a checked second-prefix record only if the measured host cost remains
+  suitable for the example suite; otherwise document it without turning
+  machine-dependent timing into a pass/fail invariant.
 
 ## Maintenance
 
@@ -32,6 +31,11 @@ one coherent unit.
   statistical conclusion is incomplete.
 
 ## Completed
+
+- [x] 2026-10-19 — Add an exact two-qutrit non-Clifford rejection-prefix
+  record that computes one input Lagrangian's two expansions, rejects all 40
+  output candidates, and returns `UNKNOWN` at the next coefficient boundary
+  rather than promoting the bounded prefix to a global negative result.
 
 - [x] 2026-10-18 — Add a bounded exact two-qutrit SUM positive record with a
   324-coefficient budget for two search expansions plus independent witness

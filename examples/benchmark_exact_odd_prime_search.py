@@ -38,6 +38,7 @@ def build_benchmark_suite() -> dict[str, object]:
         ((1, 0, 0), (0, 1, 0), (0, 0, phase)),
     )
     non_gsc = diagonal @ fourier @ diagonal
+    two_qutrit_non_clifford = non_gsc.tensor(CyclotomicMatrix.identity(field, 3))
     two_qutrit_sum = permutation_gate(field, (0, 1, 2, 4, 5, 3, 8, 6, 7))
     fixtures = (
         ("qutrit_fourier_positive", fourier, {}),
@@ -56,6 +57,11 @@ def build_benchmark_suite() -> dict[str, object]:
             "two_qutrit_sum_verified_positive",
             two_qutrit_sum,
             {"max_coefficients": 324, "max_candidate_pairs": 1},
+        ),
+        (
+            "two_qutrit_non_clifford_first_input_rejected_unknown",
+            two_qutrit_non_clifford,
+            {"max_coefficients": 162, "max_candidate_pairs": 40},
         ),
     )
     records = [

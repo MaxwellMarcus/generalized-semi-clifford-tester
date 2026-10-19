@@ -154,6 +154,36 @@
         "witness_verified": true
       },
       "schema": "generalized-semi-clifford/odd-prime-exact-search-benchmark-v1"
+    },
+    {
+      "exact_workload": {
+        "arithmetic": "cyclotomic_exact_odd_prime",
+        "candidate_pairs_checked": 40,
+        "coefficients_computed": 162,
+        "field_order": 24,
+        "input_lagrangians_checked": 1,
+        "lagrangians_total": 40,
+        "limits": {
+          "max_candidate_pairs": 40,
+          "max_coefficients": 162,
+          "max_qudits": 2
+        },
+        "num_qudits": 2,
+        "prime": 3,
+        "witness_verification_coefficients": 0
+      },
+      "fixture": "two_qutrit_non_clifford_first_input_rejected_unknown",
+      "measurements": {
+        "host_runtime_seconds": 0.5703768749954179,
+        "python_peak_memory_bytes": 196574
+      },
+      "outcome": {
+        "search_complete": false,
+        "status": "unknown",
+        "stop_reason": "coefficient_cap",
+        "witness_verified": null
+      },
+      "schema": "generalized-semi-clifford/odd-prime-exact-search-benchmark-v1"
     }
   ],
   "schema": "generalized-semi-clifford/odd-prime-exact-search-benchmark-suite-v1"
