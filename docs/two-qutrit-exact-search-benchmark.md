@@ -113,6 +113,22 @@ Lagrangian it reaches the coefficient cap and returns `UNKNOWN`. The exact
 prefix rejection is complete; the overall search is deliberately incomplete
 and is not a `NOT_GSC` result.
 
+The next canonical input Lagrangian has basis labels `(1, 0, 0, 0)` and
+`(0, 1, 0, 1)`. Its two exact expansions again have support sizes seven and
+one, and their eight-label union is contained in none of the 40 canonical
+output Lagrangians. A second checked record raises the budgets to
+
+```text
+max_qudits = 2
+max_coefficients = 324
+max_candidate_pairs = 80
+```
+
+This checks all 40 output candidates for each of the first two input
+Lagrangians, then returns `UNKNOWN` at the coefficient cap before expanding
+the third input. The longer prefix remains evidence about only those 80 exact
+pairs, not a global negative classification.
+
 ## Host-time budget
 
 On 2026-10-13, CPython 3.12.14 on macOS 14.7.3 arm64 measured 1.82 seconds and
@@ -151,6 +167,10 @@ On 2026-10-19, the 162-coefficient rejection prefix measured 0.57 seconds and
 measurements remain observational; the checked assertions cover only the
 exact work counters, stop reason, and `UNKNOWN` semantics.
 
+On 2026-10-20, the 324-coefficient two-input rejection prefix measured 1.05
+seconds and 540,004 bytes of Python peak memory on the development host. The
+suite does not turn either host measurement into a portable pass/fail limit.
+
 ## Checked-suite contract
 
 The suite and its regression test now:
@@ -162,5 +182,5 @@ The suite and its regression test now:
 - keep the capped and verified-positive two-qutrit records alongside, but
   semantically separate from, the one-qutrit positive, completed-negative, and
   capped records; and
-- record one exact input-Lagrangian rejection prefix without promoting it to a
-  global negative classification.
+- record exact one- and two-input-Lagrangian rejection prefixes without
+  promoting either bounded result to a global negative classification.
