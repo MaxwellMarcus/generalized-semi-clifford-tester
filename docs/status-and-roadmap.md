@@ -1,6 +1,6 @@
 # Status and roadmap
 
-Last audited: 2026-10-20.
+Last audited: 2026-10-21.
 
 ## What works now
 
@@ -17,7 +17,7 @@ Last audited: 2026-10-20.
 | Noise comparison | Ideal sparse-transfer leakage intervals beside finite-shot Bell-sampling leakage and simultaneous confidence bounds | Reproducible Aer depolarizing example, not a calibrated hardware model or exact membership claim |
 | Command line | Versioned JSON for dense `.npy` unitaries, OpenQASM 2 circuit discovery plus fresh verification, and exact odd-prime searches from rational cyclotomic JSON | Preserves numerical tolerances, raw counts, confidence metadata, and exact-search `UNKNOWN`; Qiskit and exact arithmetic are optional extras |
 | Exact cyclotomic layer | Canonical arithmetic over a declared `Q(zeta_m)`, cached immutable primitive roots, complete exact Pauli expansions, canonicalized supplied-witness verification, and resource-bounded exhaustive Pauli-MASA search | Exact `NOT_GSC` requires full pair exhaustion; any qubit, coefficient, or pair cap returns `UNKNOWN` |
-| Exact-search benchmarks | Versioned binary records through three qubits plus qutrit positive, completed-negative, and capped-`UNKNOWN` records, including two-qutrit SUM cap/positive boundaries and exact one- and two-input rejection prefixes for a non-Clifford fixture | Exact work counters are portable; both rejection prefixes remain globally `UNKNOWN`; host wall time and Python peak memory are machine-dependent |
+| Exact-search benchmarks | Versioned binary records through three qubits plus qutrit positive, completed-negative, and capped-`UNKNOWN` records, including two-qutrit SUM cap/positive boundaries and exact one-, two-, and three-input rejection prefixes for a non-Clifford fixture | Exact work counters are portable; all rejection prefixes remain globally `UNKNOWN`; host wall time and Python peak memory are machine-dependent |
 | Analytic fixtures | Parameterized phase and controlled-phase families, a one-qubit non-GSC rotation, and rejected witnesses | GSC-but-not-semi-Clifford still needs a separately justified higher-qubit fixture |
 | Conjugation sampling | Short words at arbitrary bounded depth and recursive finite-subgroup escape without previous-group enumeration | Exact-oracle containment theorem counts group operations, not expanded U queries; dense frontend is numerical and limited to 3 qubits |
 | SC-distance evidence | Replayable hierarchy paths and an exhaustive unrestricted SC-distance fallback | Restricted and unrestricted targets are distinguished; floating-point margins are not interval certificates |
