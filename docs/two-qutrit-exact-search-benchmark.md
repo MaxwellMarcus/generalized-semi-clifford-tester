@@ -144,6 +144,21 @@ It rejects all output candidates for exactly the first three input
 Lagrangians and then returns `UNKNOWN` before expanding the fourth. This is
 still a bounded prefix, not a global `NOT_GSC` result.
 
+The fourth canonical input Lagrangian has basis labels `(1, 0, 0, 1)` and
+`(0, 1, 1, 0)`. Their exact conjugation expansions have support sizes seven
+and three, and no canonical output Lagrangian contains their ten-label union.
+A fourth checked record uses
+
+```text
+max_qudits = 2
+max_coefficients = 648
+max_candidate_pairs = 160
+```
+
+It rejects all output candidates for exactly the first four input
+Lagrangians and then returns `UNKNOWN` before expanding the fifth. The result
+remains bounded prefix evidence rather than a global classification.
+
 ## Host-time budget
 
 On 2026-10-13, CPython 3.12.14 on macOS 14.7.3 arm64 measured 1.82 seconds and
@@ -191,6 +206,11 @@ seconds and 643,128 bytes of Python peak memory on the development host. The
 portable regression checks its exact-work counters and incomplete outcome,
 not these machine-dependent measurements.
 
+On 2026-10-22, the 648-coefficient four-input rejection prefix measured 1.98
+seconds and 712,536 bytes of Python peak memory on the development host. Its
+portable regression likewise checks the exact-work counters and `UNKNOWN`
+outcome rather than these observational host measurements.
+
 ## Checked-suite contract
 
 The suite and its regression test now:
@@ -202,5 +222,5 @@ The suite and its regression test now:
 - keep the capped and verified-positive two-qutrit records alongside, but
   semantically separate from, the one-qutrit positive, completed-negative, and
   capped records; and
-- record exact one-, two-, and three-input-Lagrangian rejection prefixes
+- record exact one-, two-, three-, and four-input-Lagrangian rejection prefixes
   without promoting any bounded result to a global negative classification.
