@@ -9,14 +9,14 @@ one coherent unit.
 
 ## Current focus
 
-- [ ] **Define a bounded seventh two-qutrit rejection prefix.**
-  Measure the same exact non-Clifford fixture through seven canonical input
+- [ ] **Define a bounded eighth two-qutrit rejection prefix.**
+  Measure the same exact non-Clifford fixture through eight canonical input
   Lagrangians with explicit coefficient and candidate-pair budgets, preserving
   `UNKNOWN` unless the complete search establishes a classification.
 
 ## Next
 
-- [ ] Add a checked seventh-prefix record only if the measured host cost remains
+- [ ] Add a checked eighth-prefix record only if the measured host cost remains
   suitable for the example suite; otherwise document it without turning
   machine-dependent timing into a pass/fail invariant.
 
@@ -31,6 +31,11 @@ one coherent unit.
   statistical conclusion is incomplete.
 
 ## Completed
+
+- [x] 2026-10-25 — Measure and check in the seven-input exact two-qutrit
+  non-Clifford rejection prefix: 1,134 coefficients and 280 candidate pairs
+  reject all seven canonical inputs before the cap returns global `UNKNOWN`,
+  with host timing retained as observational metadata only.
 
 - [x] 2026-10-25 — Measure and check in the six-input exact two-qutrit
   non-Clifford rejection prefix: 972 coefficients and 240 candidate pairs

@@ -136,6 +136,12 @@ def test_checked_in_qutrit_suite_covers_outcome_boundaries() -> None:
         if record["fixture"]
         == "two_qutrit_non_clifford_first_six_inputs_rejected_unknown"
     )
+    two_qutrit_seventh_rejection_prefix, = (
+        record
+        for record in records
+        if record["fixture"]
+        == "two_qutrit_non_clifford_first_seven_inputs_rejected_unknown"
+    )
     assert negative["outcome"]["search_complete"] is True
     assert negative["outcome"]["stop_reason"] == "exhausted"
     assert candidate_capped["outcome"] == {
@@ -314,6 +320,28 @@ def test_checked_in_qutrit_suite_covers_outcome_boundaries() -> None:
         "limits": {
             "max_candidate_pairs": 240,
             "max_coefficients": 972,
+            "max_qudits": 2,
+        },
+        "num_qudits": 2,
+        "prime": 3,
+        "witness_verification_coefficients": 0,
+    }
+    assert two_qutrit_seventh_rejection_prefix["outcome"] == {
+        "search_complete": False,
+        "status": "unknown",
+        "stop_reason": "coefficient_cap",
+        "witness_verified": None,
+    }
+    assert two_qutrit_seventh_rejection_prefix["exact_workload"] == {
+        "arithmetic": "cyclotomic_exact_odd_prime",
+        "candidate_pairs_checked": 280,
+        "coefficients_computed": 1134,
+        "field_order": 24,
+        "input_lagrangians_checked": 7,
+        "lagrangians_total": 40,
+        "limits": {
+            "max_candidate_pairs": 280,
+            "max_coefficients": 1134,
             "max_qudits": 2,
         },
         "num_qudits": 2,
