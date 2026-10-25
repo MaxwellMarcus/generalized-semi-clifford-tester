@@ -174,6 +174,21 @@ It rejects all output candidates for exactly the first five input
 Lagrangians and then returns `UNKNOWN` before expanding the sixth. This
 remains exact evidence about a bounded prefix, not a global classification.
 
+The sixth canonical input Lagrangian has basis labels `(1, 0, 0, 1)` and
+`(0, 1, 1, 2)`. Their exact conjugation expansions have support sizes seven
+and three, and no canonical output Lagrangian contains their ten-label union.
+A sixth checked record uses
+
+```text
+max_qudits = 2
+max_coefficients = 972
+max_candidate_pairs = 240
+```
+
+It rejects all output candidates for exactly the first six input Lagrangians
+and then returns `UNKNOWN` before expanding the seventh. This is still a
+bounded exact prefix and does not establish a global negative result.
+
 ## Host-time budget
 
 On 2026-10-13, CPython 3.12.14 on macOS 14.7.3 arm64 measured 1.82 seconds and
@@ -230,6 +245,10 @@ On 2026-10-23, the 810-coefficient five-input rejection prefix measured 5.43
 seconds and 582,918 bytes of Python peak memory on the development host. The
 portable regression again checks exact work and incomplete semantics only.
 
+On 2026-10-25, the 972-coefficient six-input rejection prefix measured 3.10
+seconds and 882,056 bytes of Python peak memory on the development host. The
+checked contract continues to exclude these machine-dependent measurements.
+
 ## Checked-suite contract
 
 The suite and its regression test now:
@@ -241,5 +260,5 @@ The suite and its regression test now:
 - keep the capped and verified-positive two-qutrit records alongside, but
   semantically separate from, the one-qutrit positive, completed-negative, and
   capped records; and
-- record exact one-, two-, three-, four-, and five-input-Lagrangian rejection prefixes
-  without promoting any bounded result to a global negative classification.
+- record exact one- through six-input-Lagrangian rejection prefixes without
+  promoting any bounded result to a global negative classification.
