@@ -1,6 +1,6 @@
 # Running TODO — Generalized Semi-Clifford Tester
 
-Last updated: 2026-10-25
+Last updated: 2026-10-26
 
 This is the operational queue for incremental development. Keep
 `docs/status-and-roadmap.md` as the higher-level scientific roadmap. Each
@@ -9,14 +9,14 @@ one coherent unit.
 
 ## Current focus
 
-- [ ] **Define a bounded eighth two-qutrit rejection prefix.**
-  Measure the same exact non-Clifford fixture through eight canonical input
+- [ ] **Define a bounded ninth two-qutrit rejection prefix.**
+  Measure the same exact non-Clifford fixture through nine canonical input
   Lagrangians with explicit coefficient and candidate-pair budgets, preserving
   `UNKNOWN` unless the complete search establishes a classification.
 
 ## Next
 
-- [ ] Add a checked eighth-prefix record only if the measured host cost remains
+- [ ] Add a checked ninth-prefix record only if the measured host cost remains
   suitable for the example suite; otherwise document it without turning
   machine-dependent timing into a pass/fail invariant.
 
@@ -31,6 +31,11 @@ one coherent unit.
   statistical conclusion is incomplete.
 
 ## Completed
+
+- [x] 2026-10-26 — Measure and check in the eight-input exact two-qutrit
+  non-Clifford rejection prefix: 1,296 coefficients and 320 candidate pairs
+  reject all eight canonical inputs before the cap returns global `UNKNOWN`,
+  with host timing retained as observational metadata only.
 
 - [x] 2026-10-25 — Measure and check in the seven-input exact two-qutrit
   non-Clifford rejection prefix: 1,134 coefficients and 280 candidate pairs
