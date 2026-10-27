@@ -219,6 +219,22 @@ It rejects all output candidates for exactly the first eight input
 Lagrangians and then returns `UNKNOWN` before expanding the ninth. This is
 still a bounded exact prefix and makes no global GSC classification.
 
+The ninth canonical input Lagrangian has basis labels `(1, 0, 0, 2)` and
+`(0, 1, 2, 2)`. Their exact conjugation expansions have support sizes seven
+and three, and no canonical output Lagrangian contains their ten-label union.
+A ninth checked record uses
+
+```text
+max_qudits = 2
+max_coefficients = 1458
+max_candidate_pairs = 360
+```
+
+It rejects all output candidates for exactly the first nine input
+Lagrangians and then returns `UNKNOWN` before expanding the tenth. This
+remains exact bounded-prefix evidence and does not establish a global
+classification.
+
 ## Host-time budget
 
 On 2026-10-13, CPython 3.12.14 on macOS 14.7.3 arm64 measured 1.82 seconds and
@@ -288,6 +304,11 @@ On 2026-10-26, the 1,296-coefficient eight-input rejection prefix measured
 3.84 seconds and 761,607 bytes of Python peak memory on the development host.
 The checked contract again excludes these observational host measurements.
 
+On 2026-10-27, the 1,458-coefficient nine-input rejection prefix measured
+5.04 seconds and 1,033,004 bytes of Python peak memory on the development
+host. The portable regression continues to assert only exact work and
+incomplete-result semantics.
+
 ## Checked-suite contract
 
 The suite and its regression test now:
@@ -299,5 +320,5 @@ The suite and its regression test now:
 - keep the capped and verified-positive two-qutrit records alongside, but
   semantically separate from, the one-qutrit positive, completed-negative, and
   capped records; and
-- record exact one- through eight-input-Lagrangian rejection prefixes without
+- record exact one- through nine-input-Lagrangian rejection prefixes without
   promoting any bounded result to a global negative classification.

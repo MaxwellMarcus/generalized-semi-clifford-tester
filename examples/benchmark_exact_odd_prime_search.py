@@ -98,6 +98,11 @@ def build_benchmark_suite() -> dict[str, object]:
             two_qutrit_non_clifford,
             {"max_coefficients": 1296, "max_candidate_pairs": 320},
         ),
+        (
+            "two_qutrit_non_clifford_first_nine_inputs_rejected_unknown",
+            two_qutrit_non_clifford,
+            {"max_coefficients": 1458, "max_candidate_pairs": 360},
+        ),
     )
     records = [
         run_exact_prime_search_benchmark(name, unitary, 3, **limits).to_dict()
