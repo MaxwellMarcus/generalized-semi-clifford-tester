@@ -235,6 +235,23 @@ Lagrangians and then returns `UNKNOWN` before expanding the tenth. This
 remains exact bounded-prefix evidence and does not establish a global
 classification.
 
+The tenth canonical input Lagrangian has basis labels `(1, 0, 1, 0)` and
+`(0, 1, 0, 0)`. Their exact conjugation expansions have support sizes seven
+and one, and no canonical output Lagrangian contains their eight-label union.
+A measured tenth-prefix run used
+
+```text
+max_qudits = 2
+max_coefficients = 1620
+max_candidate_pairs = 400
+```
+
+It rejects all output candidates for exactly the first ten input Lagrangians
+and then returns `UNKNOWN` before expanding the eleventh. This is still
+bounded-prefix evidence, not a global classification. The measured host cost
+exceeded the default example's advisory budget, so this boundary is documented
+without adding it to the checked suite.
+
 ## Host-time budget
 
 On 2026-10-13, CPython 3.12.14 on macOS 14.7.3 arm64 measured 1.82 seconds and
@@ -308,6 +325,12 @@ On 2026-10-27, the 1,458-coefficient nine-input rejection prefix measured
 5.04 seconds and 1,033,004 bytes of Python peak memory on the development
 host. The portable regression continues to assert only exact work and
 incomplete-result semantics.
+
+On 2026-10-28, the 1,620-coefficient ten-input rejection prefix measured
+13.36 seconds and 843,783 bytes of Python peak memory on the development host.
+Because that exceeded the default example's 10-second advisory budget, the
+record was not added to the checked suite. Runtime and peak memory remain
+observational rather than portable pass/fail conditions.
 
 ## Checked-suite contract
 

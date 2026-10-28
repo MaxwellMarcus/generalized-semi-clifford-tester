@@ -1,6 +1,6 @@
 # Status and roadmap
 
-Last audited: 2026-10-27.
+Last audited: 2026-10-28.
 
 ## What works now
 
@@ -21,6 +21,12 @@ Last audited: 2026-10-27.
 | Analytic fixtures | Parameterized phase and controlled-phase families, a one-qubit non-GSC rotation, and rejected witnesses | GSC-but-not-semi-Clifford still needs a separately justified higher-qubit fixture |
 | Conjugation sampling | Short words at arbitrary bounded depth and recursive finite-subgroup escape without previous-group enumeration | Exact-oracle containment theorem counts group operations, not expanded U queries; dense frontend is numerical and limited to 3 qubits |
 | SC-distance evidence | Replayable hierarchy paths and an exhaustive unrestricted SC-distance fallback | Restricted and unrestricted targets are distinguished; floating-point margins are not interval certificates |
+
+The next exact two-qutrit rejection boundary has also been measured: ten
+canonical input Lagrangians consume 1,620 coefficients and 400 candidate pairs
+before returning global `UNKNOWN`. Its 13.36-second development-host runtime
+exceeded the default example suite's 10-second advisory budget, so it remains
+documented evidence rather than a checked default record.
 
 The key conceptual distinction is now represented in the API:
 

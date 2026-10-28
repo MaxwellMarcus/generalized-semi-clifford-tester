@@ -1,6 +1,6 @@
 # Running TODO — Generalized Semi-Clifford Tester
 
-Last updated: 2026-10-27
+Last updated: 2026-10-28
 
 This is the operational queue for incremental development. Keep
 `docs/status-and-roadmap.md` as the higher-level scientific roadmap. Each
@@ -9,16 +9,15 @@ one coherent unit.
 
 ## Current focus
 
-- [ ] **Define a bounded tenth two-qutrit rejection prefix.**
-  Measure the same exact non-Clifford fixture through ten canonical input
-  Lagrangians with explicit coefficient and candidate-pair budgets, preserving
-  `UNKNOWN` unless the complete search establishes a classification.
+- [ ] **Add an opt-in extended tenth-prefix benchmark path.**
+  Keep the default checked example within its 10-second advisory budget while
+  exposing the measured ten-input exact run through an explicit extended mode
+  with the same portable work counters and `UNKNOWN` semantics.
 
 ## Next
 
-- [ ] Add a checked tenth-prefix record only if the measured host cost remains
-  suitable for the example suite; otherwise document it without turning
-  machine-dependent timing into a pass/fail invariant.
+- [ ] Add a focused regression for the opt-in tenth-prefix record without
+  increasing the default benchmark suite's host workload.
 
 ## Maintenance
 
@@ -31,6 +30,12 @@ one coherent unit.
   statistical conclusion is incomplete.
 
 ## Completed
+
+- [x] 2026-10-28 — Measure the ten-input exact two-qutrit non-Clifford
+  rejection prefix: 1,620 coefficients and 400 candidate pairs reject all ten
+  canonical inputs before the cap returns global `UNKNOWN`. The 13.36-second
+  host measurement exceeded the default example's 10-second advisory budget,
+  so the boundary is documented but not added to the checked suite.
 
 - [x] 2026-10-27 — Measure and check in the nine-input exact two-qutrit
   non-Clifford rejection prefix: 1,458 coefficients and 360 candidate pairs
