@@ -1,6 +1,6 @@
 # Status and roadmap
 
-Last audited: 2026-10-28.
+Last audited: 2026-10-29.
 
 ## What works now
 
@@ -17,7 +17,7 @@ Last audited: 2026-10-28.
 | Noise comparison | Ideal sparse-transfer leakage intervals beside finite-shot Bell-sampling leakage and simultaneous confidence bounds | Reproducible Aer depolarizing example, not a calibrated hardware model or exact membership claim |
 | Command line | Versioned JSON for dense `.npy` unitaries, OpenQASM 2 circuit discovery plus fresh verification, and exact odd-prime searches from rational cyclotomic JSON | Preserves numerical tolerances, raw counts, confidence metadata, and exact-search `UNKNOWN`; Qiskit and exact arithmetic are optional extras |
 | Exact cyclotomic layer | Canonical arithmetic over a declared `Q(zeta_m)`, cached immutable primitive roots, complete exact Pauli expansions, canonicalized supplied-witness verification, and resource-bounded exhaustive Pauli-MASA search | Exact `NOT_GSC` requires full pair exhaustion; any qubit, coefficient, or pair cap returns `UNKNOWN` |
-| Exact-search benchmarks | Versioned binary records through three qubits plus qutrit positive, completed-negative, and capped-`UNKNOWN` records, including two-qutrit SUM cap/positive boundaries and exact one- through nine-input rejection prefixes for a non-Clifford fixture | Exact work counters are portable; all rejection prefixes remain globally `UNKNOWN`; host wall time and Python peak memory are machine-dependent |
+| Exact-search benchmarks | Versioned binary records through three qubits plus qutrit positive, completed-negative, and capped-`UNKNOWN` records, including two-qutrit SUM cap/positive boundaries, exact one- through nine-input default rejection prefixes, and an opt-in tenth prefix for a non-Clifford fixture | Exact work counters are portable; all rejection prefixes remain globally `UNKNOWN`; host wall time and Python peak memory are machine-dependent |
 | Analytic fixtures | Parameterized phase and controlled-phase families, a one-qubit non-GSC rotation, and rejected witnesses | GSC-but-not-semi-Clifford still needs a separately justified higher-qubit fixture |
 | Conjugation sampling | Short words at arbitrary bounded depth and recursive finite-subgroup escape without previous-group enumeration | Exact-oracle containment theorem counts group operations, not expanded U queries; dense frontend is numerical and limited to 3 qubits |
 | SC-distance evidence | Replayable hierarchy paths and an exhaustive unrestricted SC-distance fallback | Restricted and unrestricted targets are distinguished; floating-point margins are not interval certificates |
@@ -26,7 +26,8 @@ The next exact two-qutrit rejection boundary has also been measured: ten
 canonical input Lagrangians consume 1,620 coefficients and 400 candidate pairs
 before returning global `UNKNOWN`. Its 13.36-second development-host runtime
 exceeded the default example suite's 10-second advisory budget, so it remains
-documented evidence rather than a checked default record.
+outside the checked default record set and is available only through the
+example's explicit `--extended` mode.
 
 The key conceptual distinction is now represented in the API:
 

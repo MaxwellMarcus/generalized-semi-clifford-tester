@@ -1,6 +1,6 @@
 # Running TODO — Generalized Semi-Clifford Tester
 
-Last updated: 2026-10-28
+Last updated: 2026-10-29
 
 This is the operational queue for incremental development. Keep
 `docs/status-and-roadmap.md` as the higher-level scientific roadmap. Each
@@ -9,15 +9,15 @@ one coherent unit.
 
 ## Current focus
 
-- [ ] **Add an opt-in extended tenth-prefix benchmark path.**
-  Keep the default checked example within its 10-second advisory budget while
-  exposing the measured ten-input exact run through an explicit extended mode
-  with the same portable work counters and `UNKNOWN` semantics.
+- [ ] **Audit the recursive sampling theorem's indexing contract.**
+  Map the paper's sufficient-criterion hypotheses and recursion indices to the
+  implemented conjugation-word sampler, recording any proof or implementation
+  gap without treating numerical agreement as theorem verification.
 
 ## Next
 
-- [ ] Add a focused regression for the opt-in tenth-prefix record without
-  increasing the default benchmark suite's host workload.
+- [ ] Replace exponentially expanded conjugation words with a compact
+  representation, or establish a separately justified short-word bound.
 
 ## Maintenance
 
@@ -30,6 +30,12 @@ one coherent unit.
   statistical conclusion is incomplete.
 
 ## Completed
+
+- [x] 2026-10-29 — Add an explicit `--extended` example mode that appends the
+  measured ten-input exact two-qutrit rejection prefix while leaving the
+  checked default suite at nine inputs; cover its exact 1,620-coefficient and
+  400-candidate-pair selection without executing the extended host workload in
+  ordinary tests, and preserve the global `UNKNOWN` claim boundary.
 
 - [x] 2026-10-28 — Measure the ten-input exact two-qutrit non-Clifford
   rejection prefix: 1,620 coefficients and 400 candidate pairs reject all ten

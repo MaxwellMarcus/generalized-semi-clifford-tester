@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import argparse
 import json
 import platform
 
@@ -19,8 +20,13 @@ from generalized_semi_clifford.exact_odd_prime_benchmarking import (
 SUITE_SCHEMA = "generalized-semi-clifford/odd-prime-exact-search-benchmark-suite-v1"
 
 
-def build_benchmark_suite() -> dict[str, object]:
-    """Run the documented qutrit fixtures and return versioned records."""
+def build_benchmark_suite(*, extended: bool = False) -> dict[str, object]:
+    """Run the documented qutrit fixtures and return versioned records.
+
+    The default suite stays within its development-host advisory budget.
+    ``extended=True`` adds the measured ten-input rejection prefix, whose host
+    cost is intentionally excluded from ordinary example and CI runs.
+    """
 
     field = CyclotomicField(24)
     omega = field.root_power(8)
@@ -104,6 +110,14 @@ def build_benchmark_suite() -> dict[str, object]:
             {"max_coefficients": 1458, "max_candidate_pairs": 360},
         ),
     )
+    if extended:
+        fixtures += (
+            (
+                "two_qutrit_non_clifford_first_ten_inputs_rejected_unknown",
+                two_qutrit_non_clifford,
+                {"max_coefficients": 1620, "max_candidate_pairs": 400},
+            ),
+        )
     records = [
         run_exact_prime_search_benchmark(name, unitary, 3, **limits).to_dict()
         for name, unitary, limits in fixtures
@@ -119,8 +133,22 @@ def build_benchmark_suite() -> dict[str, object]:
     }
 
 
-def main() -> None:
-    print(json.dumps(build_benchmark_suite(), allow_nan=False, indent=2, sort_keys=True))
+def main(argv: list[str] | None = None) -> None:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--extended",
+        action="store_true",
+        help="include the measured ten-input rejection prefix",
+    )
+    arguments = parser.parse_args(argv)
+    print(
+        json.dumps(
+            build_benchmark_suite(extended=arguments.extended),
+            allow_nan=False,
+            indent=2,
+            sort_keys=True,
+        )
+    )
 
 
 if __name__ == "__main__":

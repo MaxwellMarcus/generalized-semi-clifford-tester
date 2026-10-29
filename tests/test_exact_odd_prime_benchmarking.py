@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import runpy
 from pathlib import Path
 
 import pytest
@@ -406,3 +407,47 @@ def test_checked_in_qutrit_suite_covers_outcome_boundaries() -> None:
     }
     assert all(record["measurements"]["host_runtime_seconds"] > 0 for record in records)
     assert all(record["measurements"]["python_peak_memory_bytes"] > 0 for record in records)
+
+
+def test_example_extended_mode_adds_only_the_tenth_rejection_prefix(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    example_path = (
+        Path(__file__).parents[1] / "examples" / "benchmark_exact_odd_prime_search.py"
+    )
+    namespace = runpy.run_path(str(example_path), run_name="benchmark_example")
+    build_benchmark_suite = namespace["build_benchmark_suite"]
+
+    class StubRecord:
+        def __init__(self, payload: dict[str, object]) -> None:
+            self.payload = payload
+
+        def to_dict(self) -> dict[str, object]:
+            return self.payload
+
+    def fake_benchmark(
+        fixture: str,
+        _unitary: CyclotomicMatrix,
+        prime: int,
+        **limits: int,
+    ) -> StubRecord:
+        return StubRecord({"fixture": fixture, "limits": limits, "prime": prime})
+
+    monkeypatch.setitem(
+        build_benchmark_suite.__globals__,
+        "run_exact_prime_search_benchmark",
+        fake_benchmark,
+    )
+    default = build_benchmark_suite()
+    extended = build_benchmark_suite(extended=True)
+
+    default_records = default["records"]
+    extended_records = extended["records"]
+    assert isinstance(default_records, list)
+    assert isinstance(extended_records, list)
+    assert extended_records[:-1] == default_records
+    assert extended_records[-1] == {
+        "fixture": "two_qutrit_non_clifford_first_ten_inputs_rejected_unknown",
+        "limits": {"max_candidate_pairs": 400, "max_coefficients": 1620},
+        "prime": 3,
+    }

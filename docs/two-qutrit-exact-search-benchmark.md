@@ -249,8 +249,16 @@ max_candidate_pairs = 400
 It rejects all output candidates for exactly the first ten input Lagrangians
 and then returns `UNKNOWN` before expanding the eleventh. This is still
 bounded-prefix evidence, not a global classification. The measured host cost
-exceeded the default example's advisory budget, so this boundary is documented
-without adding it to the checked suite.
+exceeded the default example's advisory budget, so the checked default suite
+still stops at nine inputs. Run the tenth prefix explicitly with
+
+```bash
+python examples/benchmark_exact_odd_prime_search.py --extended
+```
+
+The extended mode appends the tenth record with the same exact work counters,
+host-measurement separation, and global `UNKNOWN` result semantics. It is not
+part of ordinary example or CI runs.
 
 ## Host-time budget
 
