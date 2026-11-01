@@ -1,6 +1,6 @@
 # Running TODO — Generalized Semi-Clifford Tester
 
-Last updated: 2026-10-29
+Last updated: 2026-11-01
 
 This is the operational queue for incremental development. Keep
 `docs/status-and-roadmap.md` as the higher-level scientific roadmap. Each
@@ -9,15 +9,15 @@ one coherent unit.
 
 ## Current focus
 
-- [ ] **Audit the recursive sampling theorem's indexing contract.**
-  Map the paper's sufficient-criterion hypotheses and recursion indices to the
-  implemented conjugation-word sampler, recording any proof or implementation
-  gap without treating numerical agreement as theorem verification.
+- [ ] **Replace exponentially expanded conjugation words with a compact
+  representation, or establish a separately justified short-word bound.**
+  Preserve the distinction between shared expression storage, abstract group
+  operations, and physical calls to `U` and `U-dagger`.
 
 ## Next
 
-- [ ] Replace exponentially expanded conjugation words with a compact
-  representation, or establish a separately justified short-word bound.
+- [ ] Supply a general exact or rigorously error-bounded Clifford-membership
+  backend for the recursive containment test.
 
 ## Maintenance
 
@@ -30,6 +30,13 @@ one coherent unit.
   statistical conclusion is incomplete.
 
 ## Completed
+
+- [x] 2026-11-01 — Audit Theorem 5.5 of arXiv:2609.38751v1 against the
+  recursive sampler: confirm that implementation depth `j` constructs words
+  in `Gamma_j` and that the theorem maps to exact containment at `depth=k-2`;
+  record the prime-dimension, `k >= 4`, and exact `U in C_k` hypotheses; and
+  correct the shallow `Gamma_2 <= C_(k-2)` condition from an alleged
+  equivalence to a one-way consequence that is not itself a GSC certificate.
 
 - [x] 2026-10-29 — Add an explicit `--extended` example mode that appends the
   measured ten-input exact two-qutrit rejection prefix while leaving the

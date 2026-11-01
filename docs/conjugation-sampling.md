@@ -29,11 +29,14 @@ Gamma_(j+1)(U) = <g P g† : g in Gamma_j(U)>.
 For j >= 2, Gamma_j contains P and is the smallest subgroup containing P
 that is normalized by Gamma_(j-1). This is true even if Gamma_j is infinite.
 
-The research premise supplied by the author is the sufficient condition
-`Gamma_(k-2)(U) <= C_2 => U is GSC`, with the stated equivalent shallow
-condition `Gamma_2(U) <= C_(k-2)`. Applying that premise requires the paper's
-actual hypotheses and indexing; this software does not independently verify
-the manuscript or the promise `U in C_k`.
+Theorem 5.5 of Marcus, Subramanian, and Dall'Agnol gives the sufficient
+condition `Gamma_(k-2)(U) <= C_2 => U is GSC` for prime-dimensional qudits,
+provided `k >= 4` and `U in C_k`. The theorem's indexing and its mapping to
+the implementation are audited in
+[the conjugation-indexing audit](conjugation-indexing-audit.md). In particular,
+`Gamma_2(U) <= C_(k-2)` is a necessary consequence of the deep condition
+under the theorem's hypotheses, not an equivalent condition and not a separate
+GSC certificate. This software does not establish the input promise `U in C_k`.
 
 The necessary condition used for SC-distance evidence is
 

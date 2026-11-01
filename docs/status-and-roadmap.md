@@ -1,6 +1,6 @@
 # Status and roadmap
 
-Last audited: 2026-10-29.
+Last audited: 2026-11-01.
 
 ## What works now
 
@@ -69,8 +69,10 @@ The key conceptual distinction is now represented in the API:
   with exact finite-group regression tests and explicit work caps.
 - [x] Derive the current group-operation and expanded-query recurrences, and
   distinguish these from runtime and finite-precision membership costs.
-- [ ] Independently review the new probability argument and verify the paper's
-  precise sufficient-criterion hypotheses against the implemented indexing.
+- [x] Map Theorem 5.5's prime-dimension, `k >= 4`, exact `U in C_k`, and
+  `Gamma_(k-2) <= C_2` hypotheses to implementation depth `k-2`; document that
+  the shallow containment is only a one-way consequence, while the probability
+  argument still requires separate independent review.
 - [ ] Replace exponentially expanded conjugation words by an efficient compact
   representation, or prove a short-word detection bound; group-operation
   complexity alone does not establish a polynomial-query tester.
