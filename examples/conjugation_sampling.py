@@ -5,6 +5,8 @@ import numpy as np
 from generalized_semi_clifford import (
     DenseConjugationBackend,
     check_gsc_sandwich,
+    compile_conjugation_word,
+    evaluate_conjugation_plan,
     evaluate_conjugation_word,
     probe_gsc_conjugation_condition,
     sample_conjugation_word,
@@ -16,7 +18,10 @@ def main() -> None:
     backend = DenseConjugationBackend(phase)
     sample = sample_conjugation_word(backend, depth=2, word_length=4, seed=7)
     assert np.allclose(evaluate_conjugation_word(sample.word, backend), sample.value)
+    plan = compile_conjugation_word(sample.word)
+    assert np.allclose(evaluate_conjugation_plan(plan, backend), sample.value)
     print(f"Gamma_2 short word: {sample.expanded_seed_uses} expanded U/U-dagger uses")
+    print(f"Indexed DAG: {plan.stored_nodes} stored nodes, {plan.group_operations} operations")
     for route in ("shallow", "deep"):
         probe = probe_gsc_conjugation_condition(
             phase, hierarchy_level=5, route=route, samples=8, seed=7

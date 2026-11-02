@@ -55,6 +55,43 @@ class ConjugationWord:
 
 
 @dataclass(frozen=True)
+class ConjugationWordNode:
+    """One node in a child-first indexed conjugation-word plan."""
+
+    kind: str
+    children: tuple[int, ...] = ()
+    label: PauliLabel | None = None
+    seed_uses: int = 0
+
+
+@dataclass(frozen=True)
+class ConjugationWordPlan:
+    """An immutable indexed DAG that stores each shared expression node once.
+
+    The plan is a compact classical representation only. Its
+    ``expanded_seed_uses`` property still counts every physical U/U-dagger
+    occurrence in a literal execution of the expanded expression.
+    """
+
+    nodes: tuple[ConjugationWordNode, ...]
+    root: int
+
+    @property
+    def stored_nodes(self) -> int:
+        return len(self.nodes)
+
+    @property
+    def group_operations(self) -> int:
+        return sum(node.kind in ("product", "adjoint") for node in self.nodes)
+
+    @property
+    def expanded_seed_uses(self) -> int:
+        if not 0 <= self.root < len(self.nodes):
+            raise ValueError("conjugation-word plan root is out of range")
+        return self.nodes[self.root].seed_uses
+
+
+@dataclass(frozen=True)
 class ConjugationSample(Generic[T]):
     value: T
     word: ConjugationWord
@@ -249,6 +286,87 @@ def evaluate_conjugation_word(
             raise ValueError("malformed conjugation-word node")
         values[key] = value
     return values[id(word)]
+
+
+def compile_conjugation_word(word: ConjugationWord) -> ConjugationWordPlan:
+    """Compile a shared expression DAG to stable child-first integer indices.
+
+    Identity-based indexing preserves intentional sharing without attempting
+    algebraic simplification or claiming any reduction in physical seed calls.
+    """
+    ordered: list[ConjugationWord] = []
+    indices: dict[int, int] = {}
+    pending = [(word, False)]
+    while pending:
+        node, ready = pending.pop()
+        key = id(node)
+        if key in indices:
+            continue
+        if not ready:
+            pending.append((node, True))
+            pending.extend((child, False) for child in reversed(node.children))
+            continue
+        indices[key] = len(ordered)
+        ordered.append(node)
+    nodes: list[ConjugationWordNode] = []
+    for node in ordered:
+        children = tuple(indices[id(child)] for child in node.children)
+        if node.kind == "unitary" and not children and node.label is None:
+            seed_uses = 1
+        elif node.kind == "identity" and not children and node.label is None:
+            seed_uses = 0
+        elif node.kind == "pauli" and not children and node.label is not None:
+            seed_uses = 0
+        elif node.kind == "product" and len(children) == 2 and node.label is None:
+            seed_uses = sum(nodes[child].seed_uses for child in children)
+        elif node.kind == "adjoint" and len(children) == 1 and node.label is None:
+            seed_uses = nodes[children[0]].seed_uses
+        else:
+            raise ValueError("malformed conjugation-word node")
+        nodes.append(ConjugationWordNode(node.kind, children, node.label, seed_uses))
+    return ConjugationWordPlan(tuple(nodes), indices[id(word)])
+
+
+def evaluate_conjugation_plan(
+    plan: ConjugationWordPlan,
+    backend: ConjugationBackend[T],
+    *,
+    max_operations: int = 100_000,
+) -> T:
+    """Replay an indexed plan, rejecting malformed or non-topological nodes."""
+    _integer(max_operations, "max_operations")
+    if not 0 <= plan.root < len(plan.nodes):
+        raise ValueError("conjugation-word plan root is out of range")
+    values: list[T] = []
+    operations = 0
+    for index, node in enumerate(plan.nodes):
+        if any(child < 0 or child >= index for child in node.children):
+            raise ValueError("conjugation-word plan is not child-first")
+        if node.kind in ("product", "adjoint"):
+            if operations >= max_operations:
+                raise SamplingLimitExceeded("word-replay operation budget exhausted")
+            operations += 1
+        if node.kind == "identity" and not node.children and node.label is None:
+            value = backend.identity()
+            seed_uses = 0
+        elif node.kind == "unitary" and not node.children and node.label is None:
+            value = backend.seed
+            seed_uses = 1
+        elif node.kind == "pauli" and not node.children and node.label is not None:
+            value = backend.pauli(node.label)
+            seed_uses = 0
+        elif node.kind == "product" and len(node.children) == 2 and node.label is None:
+            value = backend.multiply(*(values[child] for child in node.children))
+            seed_uses = sum(plan.nodes[child].seed_uses for child in node.children)
+        elif node.kind == "adjoint" and len(node.children) == 1 and node.label is None:
+            value = backend.adjoint(values[node.children[0]])
+            seed_uses = plan.nodes[node.children[0]].seed_uses
+        else:
+            raise ValueError("malformed conjugation-word plan node")
+        if node.seed_uses != seed_uses:
+            raise ValueError("conjugation-word plan has inconsistent seed-use accounting")
+        values.append(value)
+    return values[plan.root]
 
 
 class ContainmentStatus(str, Enum):

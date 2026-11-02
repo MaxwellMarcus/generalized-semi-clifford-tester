@@ -7,9 +7,13 @@ import pytest
 
 from generalized_semi_clifford import (
     ConjugationWord,
+    ConjugationWordNode,
+    ConjugationWordPlan,
     ContainmentStatus,
     DenseConjugationBackend,
     SamplingLimitExceeded,
+    compile_conjugation_word,
+    evaluate_conjugation_plan,
     evaluate_conjugation_word,
     sample_conjugation_word,
     sample_subgroup_escape_word,
@@ -106,6 +110,42 @@ def test_escape_sample_does_not_require_enumeration_and_replays():
     assert evaluate_conjugation_word(sample.word, backend) == sample.value
     # Compact group-operation count is not the number of expanded U queries.
     assert sample.expanded_seed_uses > sample.group_operations
+
+
+def test_indexed_plan_preserves_sharing_replay_and_cost_distinctions():
+    backend = DihedralBackend(64)
+    sample = sample_conjugation_word(backend, depth=4, word_length=2, seed=19)
+    plan = compile_conjugation_word(sample.word)
+
+    assert evaluate_conjugation_plan(plan, backend) == sample.value
+    assert plan.expanded_seed_uses == sample.expanded_seed_uses == 128
+    assert plan.group_operations == sample.group_operations
+    assert plan.stored_nodes < plan.expanded_seed_uses
+    assert all(child < index for index, node in enumerate(plan.nodes) for child in node.children)
+
+
+def test_indexed_plan_rejects_invalid_structure_and_obeys_replay_budget():
+    backend = DihedralBackend()
+    malformed = ConjugationWordPlan(
+        (
+            ConjugationWordNode("unitary", seed_uses=1),
+            ConjugationWordNode("adjoint", (1,), seed_uses=1),
+        ),
+        1,
+    )
+    with pytest.raises(ValueError, match="child-first"):
+        evaluate_conjugation_plan(malformed, backend)
+
+    inconsistent = ConjugationWordPlan((ConjugationWordNode("unitary", seed_uses=0),), 0)
+    with pytest.raises(ValueError, match="seed-use"):
+        evaluate_conjugation_plan(inconsistent, backend)
+
+    sample = sample_conjugation_word(backend, depth=2, seed=3)
+    plan = compile_conjugation_word(sample.word)
+    with pytest.raises(SamplingLimitExceeded, match="replay"):
+        evaluate_conjugation_plan(plan, backend, max_operations=1)
+    with pytest.raises(ValueError, match="root"):
+        evaluate_conjugation_plan(ConjugationWordPlan(plan.nodes, len(plan.nodes)), backend)
 
 
 def test_escape_sampler_small_target_uses_paulis_at_any_depth():

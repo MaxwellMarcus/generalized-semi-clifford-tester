@@ -1,6 +1,6 @@
 # Running TODO — Generalized Semi-Clifford Tester
 
-Last updated: 2026-11-01
+Last updated: 2026-11-02
 
 This is the operational queue for incremental development. Keep
 `docs/status-and-roadmap.md` as the higher-level scientific roadmap. Each
@@ -9,10 +9,10 @@ one coherent unit.
 
 ## Current focus
 
-- [ ] **Replace exponentially expanded conjugation words with a compact
-  representation, or establish a separately justified short-word bound.**
-  Preserve the distinction between shared expression storage, abstract group
-  operations, and physical calls to `U` and `U-dagger`.
+- [ ] **Reduce physical seed-call growth by resynthesizing sampled
+  conjugation words, or establish a separately justified short-word bound.**
+  The indexed shared DAG now makes storage and replay explicit, but it does
+  not reduce the fully expanded number of calls to `U` and `U-dagger`.
 
 ## Next
 
@@ -30,6 +30,12 @@ one coherent unit.
   statistical conclusion is incomplete.
 
 ## Completed
+
+- [x] 2026-11-02 — Compile replayable conjugation expressions into a stable
+  child-first indexed DAG that stores every shared node once; expose separate
+  stored-node, abstract-operation, and fully expanded seed-call counts; and
+  cross-check indexed replay against exact finite-group samples without
+  claiming any reduction in physical oracle calls.
 
 - [x] 2026-11-01 — Audit Theorem 5.5 of arXiv:2609.38751v1 against the
   recursive sampler: confirm that implementation depth `j` constructs words
