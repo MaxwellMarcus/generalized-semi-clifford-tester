@@ -92,6 +92,36 @@ class ConjugationWordPlan:
 
 
 @dataclass(frozen=True)
+class ConjugationSeedFactor:
+    """One sequential seed or projective-Pauli factor."""
+
+    kind: str
+    adjoint: bool = False
+    label: PauliLabel | None = None
+
+
+@dataclass(frozen=True)
+class ConjugationSeedProgram:
+    """A freely reduced sequential program for a conjugation word.
+
+    Adjacent inverse seed calls are cancelled and adjacent Paulis are combined
+    projectively, so dense replay can differ by a global phase. This is an
+    executable resynthesis, not a shared DAG: its length is the number of
+    retained sequential factors.
+    """
+
+    factors: tuple[ConjugationSeedFactor, ...]
+
+    @property
+    def seed_uses(self) -> int:
+        return sum(factor.kind == "unitary" for factor in self.factors)
+
+    @property
+    def pauli_uses(self) -> int:
+        return sum(factor.kind == "pauli" for factor in self.factors)
+
+
+@dataclass(frozen=True)
 class ConjugationSample(Generic[T]):
     value: T
     word: ConjugationWord
@@ -367,6 +397,105 @@ def evaluate_conjugation_plan(
             raise ValueError("conjugation-word plan has inconsistent seed-use accounting")
         values.append(value)
     return values[plan.root]
+
+
+def resynthesize_conjugation_word(
+    word: ConjugationWord,
+    *,
+    max_expanded_factors: int = 100_000,
+) -> ConjugationSeedProgram:
+    """Expand and freely reduce a word to sequential seed/Pauli factors.
+
+    Products are flattened, adjoints are pushed to leaves, consecutive Paulis
+    are multiplied by XORing their binary labels (global Pauli phases are
+    projectively irrelevant), and adjacent ``U``/``U-dagger`` pairs cancel.
+    The expansion cap is charged before cancellation so a compact result never
+    conceals excessive resynthesis work.
+    """
+    _integer(max_expanded_factors, "max_expanded_factors")
+    factors: list[ConjugationSeedFactor] = []
+    pending = [(word, False)]
+    expanded = 0
+
+    def append(factor: ConjugationSeedFactor) -> None:
+        if factor.kind == "unitary":
+            if factors and factors[-1].kind == "unitary":
+                if factors[-1].adjoint != factor.adjoint:
+                    factors.pop()
+                    return
+            factors.append(factor)
+            return
+        if factor.kind != "pauli" or factor.adjoint or factor.label is None:
+            raise ValueError("malformed conjugation seed factor")
+        if factors and factors[-1].kind == "pauli":
+            previous = factors.pop()
+            assert previous.label is not None
+            if len(previous.label) != len(factor.label):
+                raise ValueError("inconsistent Pauli-label widths")
+            label = tuple(
+                left ^ right for left, right in zip(previous.label, factor.label, strict=True)
+            )
+            if any(label):
+                factors.append(ConjugationSeedFactor("pauli", label=label))
+            return
+        if any(factor.label):
+            factors.append(factor)
+
+    while pending:
+        node, take_adjoint = pending.pop()
+        if node.kind == "product" and len(node.children) == 2 and node.label is None:
+            left, right = node.children
+            if take_adjoint:
+                pending.extend(((left, True), (right, True)))
+            else:
+                pending.extend(((right, False), (left, False)))
+            continue
+        if node.kind == "adjoint" and len(node.children) == 1 and node.label is None:
+            pending.append((node.children[0], not take_adjoint))
+            continue
+        if node.children:
+            raise ValueError("malformed conjugation-word node")
+        if node.kind == "identity" and node.label is None:
+            continue
+        if node.kind == "unitary" and node.label is None:
+            factor = ConjugationSeedFactor("unitary", adjoint=take_adjoint)
+        elif node.kind == "pauli" and node.label is not None:
+            if not node.label or any(bit not in (0, 1) for bit in node.label):
+                raise ValueError("Pauli labels must be nonempty binary tuples")
+            factor = ConjugationSeedFactor("pauli", label=node.label)
+        else:
+            raise ValueError("malformed conjugation-word node")
+        if expanded >= max_expanded_factors:
+            raise SamplingLimitExceeded("seed-program resynthesis factor budget exhausted")
+        expanded += 1
+        append(factor)
+    return ConjugationSeedProgram(tuple(factors))
+
+
+def evaluate_conjugation_seed_program(
+    program: ConjugationSeedProgram,
+    backend: ConjugationBackend[T],
+    *,
+    max_operations: int = 100_000,
+) -> T:
+    """Execute a resynthesized program from left to right, projectively."""
+    _integer(max_operations, "max_operations")
+    value = backend.identity()
+    operations = 0
+    for factor in program.factors:
+        if factor.kind == "unitary" and factor.label is None:
+            item = backend.adjoint(backend.seed) if factor.adjoint else backend.seed
+        elif factor.kind == "pauli" and not factor.adjoint and factor.label is not None:
+            if len(factor.label) != 2 * backend.num_qubits:
+                raise ValueError("seed-program Pauli width does not match backend")
+            item = backend.pauli(factor.label)
+        else:
+            raise ValueError("malformed conjugation seed factor")
+        if operations >= max_operations:
+            raise SamplingLimitExceeded("seed-program replay operation budget exhausted")
+        value = backend.multiply(value, item)
+        operations += 1
+    return value
 
 
 class ContainmentStatus(str, Enum):

@@ -14,7 +14,9 @@ from generalized_semi_clifford import (
     SamplingLimitExceeded,
     compile_conjugation_word,
     evaluate_conjugation_plan,
+    evaluate_conjugation_seed_program,
     evaluate_conjugation_word,
+    resynthesize_conjugation_word,
     sample_conjugation_word,
     sample_subgroup_escape_word,
 )
@@ -148,6 +150,42 @@ def test_indexed_plan_rejects_invalid_structure_and_obeys_replay_budget():
         evaluate_conjugation_plan(ConjugationWordPlan(plan.nodes, len(plan.nodes)), backend)
 
 
+@pytest.mark.parametrize("depth", [1, 2, 3])
+def test_seed_program_resynthesis_preserves_exact_short_samples(depth):
+    backend = DihedralBackend(64)
+    sample = sample_conjugation_word(backend, depth=depth, word_length=2, seed=19)
+    program = resynthesize_conjugation_word(sample.word)
+
+    assert evaluate_conjugation_seed_program(program, backend) == sample.value
+    assert program.seed_uses <= sample.expanded_seed_uses
+    if depth >= 2:
+        assert program.seed_uses < sample.expanded_seed_uses
+
+
+def test_depth_two_resynthesis_cancels_factor_boundaries():
+    backend = DihedralBackend(64)
+    sample = sample_conjugation_word(backend, depth=2, word_length=4, seed=7)
+    program = resynthesize_conjugation_word(sample.word)
+
+    assert sample.expanded_seed_uses == 16
+    assert program.seed_uses <= 10
+    assert evaluate_conjugation_seed_program(program, backend) == sample.value
+
+
+def test_seed_program_resynthesis_validates_caps_and_replay():
+    backend = DihedralBackend()
+    sample = sample_conjugation_word(backend, depth=2, word_length=2, seed=3)
+    with pytest.raises(SamplingLimitExceeded, match="resynthesis"):
+        resynthesize_conjugation_word(sample.word, max_expanded_factors=1)
+    program = resynthesize_conjugation_word(sample.word)
+    with pytest.raises(SamplingLimitExceeded, match="replay"):
+        evaluate_conjugation_seed_program(program, backend, max_operations=1)
+
+    malformed = ConjugationWord("pauli", label=(0, 2))
+    with pytest.raises(ValueError, match="binary"):
+        resynthesize_conjugation_word(malformed)
+
+
 def test_escape_sampler_small_target_uses_paulis_at_any_depth():
     backend = DihedralBackend()
     sample = sample_subgroup_escape_word(backend, depth=7, subgroup_log2_bound=1, seed=7)
@@ -246,6 +284,11 @@ def test_dense_replay_agrees_with_exact_backend():
         expected = expected @ np.array([[0, 1], [1, 0]])
     overlap = np.vdot(expected, matrix)
     assert np.allclose(matrix, overlap / abs(overlap) * expected)
+
+    program = resynthesize_conjugation_word(sample.word)
+    resynthesized = evaluate_conjugation_seed_program(program, dense)
+    overlap = np.vdot(matrix, resynthesized)
+    assert np.allclose(resynthesized, overlap / abs(overlap) * matrix)
 
 
 def test_sampling_and_replay_validation_and_caps():

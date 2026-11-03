@@ -7,8 +7,10 @@ from generalized_semi_clifford import (
     check_gsc_sandwich,
     compile_conjugation_word,
     evaluate_conjugation_plan,
+    evaluate_conjugation_seed_program,
     evaluate_conjugation_word,
     probe_gsc_conjugation_condition,
+    resynthesize_conjugation_word,
     sample_conjugation_word,
 )
 
@@ -20,8 +22,13 @@ def main() -> None:
     assert np.allclose(evaluate_conjugation_word(sample.word, backend), sample.value)
     plan = compile_conjugation_word(sample.word)
     assert np.allclose(evaluate_conjugation_plan(plan, backend), sample.value)
+    program = resynthesize_conjugation_word(sample.word)
+    resynthesized = evaluate_conjugation_seed_program(program, backend)
+    overlap = np.vdot(sample.value, resynthesized)
+    assert np.allclose(resynthesized, overlap / abs(overlap) * sample.value)
     print(f"Gamma_2 short word: {sample.expanded_seed_uses} expanded U/U-dagger uses")
     print(f"Indexed DAG: {plan.stored_nodes} stored nodes, {plan.group_operations} operations")
+    print(f"Freely reduced program: {program.seed_uses} sequential U/U-dagger uses")
     for route in ("shallow", "deep"):
         probe = probe_gsc_conjugation_condition(
             phase, hierarchy_level=5, route=route, samples=8, seed=7

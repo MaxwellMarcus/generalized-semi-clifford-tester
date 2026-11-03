@@ -206,8 +206,14 @@ order bound.
 However, repeated multiplication of previous pool words can make the
 **expanded U-query count exponential**. The expression DAG saves storage
 and permits reuse of already computed group elements in a matrix/group
-backend; it does not save physical oracle calls. Exact representations can
-also develop large bit complexity. Therefore this is NOT yet a polynomial-
+backend. For executable short words, `resynthesize_conjugation_word` now
+flattens products, pushes adjoints to leaves, combines adjacent Paulis
+projectively, and cancels adjacent inverse `U`/`U-dagger` calls. For example,
+a depth-two length-`m` short word retains at most `2m+2` seed calls instead of
+the unreduced `4m` count. The resynthesis is capped and may still require
+expanding exponentially many factors before cancellation; no polynomial bound
+is claimed for recursive escape words. Exact representations can also develop
+large bit complexity. Therefore this is NOT yet a polynomial-
 query quantum algorithm, or a polynomial-bit-time exact algorithm for
 arbitrary succinct circuits. An efficient compact representation or a
 different short-word escape theorem is still needed. Work caps are especially

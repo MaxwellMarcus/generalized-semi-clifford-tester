@@ -1,6 +1,6 @@
 # Status and roadmap
 
-Last audited: 2026-11-02.
+Last audited: 2026-11-03.
 
 ## What works now
 
@@ -19,7 +19,7 @@ Last audited: 2026-11-02.
 | Exact cyclotomic layer | Canonical arithmetic over a declared `Q(zeta_m)`, cached immutable primitive roots, complete exact Pauli expansions, canonicalized supplied-witness verification, and resource-bounded exhaustive Pauli-MASA search | Exact `NOT_GSC` requires full pair exhaustion; any qubit, coefficient, or pair cap returns `UNKNOWN` |
 | Exact-search benchmarks | Versioned binary records through three qubits plus qutrit positive, completed-negative, and capped-`UNKNOWN` records, including two-qutrit SUM cap/positive boundaries, exact one- through nine-input default rejection prefixes, and an opt-in tenth prefix for a non-Clifford fixture | Exact work counters are portable; all rejection prefixes remain globally `UNKNOWN`; host wall time and Python peak memory are machine-dependent |
 | Analytic fixtures | Parameterized phase and controlled-phase families, a one-qubit non-GSC rotation, and rejected witnesses | GSC-but-not-semi-Clifford still needs a separately justified higher-qubit fixture |
-| Conjugation sampling | Short words at arbitrary bounded depth, stable indexed shared-DAG replay plans, and recursive finite-subgroup escape without previous-group enumeration | Indexed storage counts remain separate from abstract group operations and expanded U queries; dense frontend is numerical and limited to 3 qubits |
+| Conjugation sampling | Short words at arbitrary bounded depth, stable indexed shared-DAG replay plans, capped projective free reduction to sequential seed programs, and recursive finite-subgroup escape without previous-group enumeration | Free reduction cancels adjacent inverse seed calls but still materializes expanded factors and has no polynomial bound for recursive escape words; dense frontend is numerical and limited to 3 qubits |
 | SC-distance evidence | Replayable hierarchy paths and an exhaustive unrestricted SC-distance fallback | Restricted and unrestricted targets are distinguished; floating-point margins are not interval certificates |
 
 The next exact two-qutrit rejection boundary has also been measured: ten
@@ -76,9 +76,12 @@ The key conceptual distinction is now represented in the API:
 - [x] Compile shared conjugation expressions into child-first indexed DAG
   plans with exact stored-node, group-operation, and expanded seed-call
   accounting plus independent replay tests.
-- [ ] Reduce exponentially expanded physical seed calls through justified
-  resynthesis, or prove a short-word detection bound; compact storage and
-  group-operation complexity alone do not establish a polynomial-query tester.
+- [x] Resynthesize materialized conjugation words by projectively combining
+  adjacent Paulis and cancelling adjacent inverse seed calls, with exact and
+  dense replay checks plus an explicit expansion cap.
+- [ ] Bound normalized seed-call growth or avoid expanded materialization;
+  local free reduction, compact storage, and group-operation complexity alone
+  do not establish a polynomial-query tester.
 - [ ] Supply a general exact or rigorously error-bounded membership backend;
   floating-point results do not inherit the exact-oracle theorem automatically.
 - [ ] Replace noisy all-pairs output-MASA scoring with a support-aware search

@@ -1,6 +1,6 @@
 # Running TODO — Generalized Semi-Clifford Tester
 
-Last updated: 2026-11-02
+Last updated: 2026-11-03
 
 This is the operational queue for incremental development. Keep
 `docs/status-and-roadmap.md` as the higher-level scientific roadmap. Each
@@ -9,10 +9,10 @@ one coherent unit.
 
 ## Current focus
 
-- [ ] **Reduce physical seed-call growth by resynthesizing sampled
-  conjugation words, or establish a separately justified short-word bound.**
-  The indexed shared DAG now makes storage and replay explicit, but it does
-  not reduce the fully expanded number of calls to `U` and `U-dagger`.
+- [ ] **Bound normalized seed-call growth or avoid expanded materialization.**
+  Projective free reduction now cancels adjacent inverse seed calls on
+  materialized words, but recursive escape resynthesis can still encounter an
+  exponential number of factors before cancellation.
 
 ## Next
 
@@ -30,6 +30,12 @@ one coherent unit.
   statistical conclusion is incomplete.
 
 ## Completed
+
+- [x] 2026-11-03 — Resynthesize conjugation words into capped sequential
+  seed/Pauli programs by pushing adjoints to leaves, combining adjacent Paulis
+  projectively, and cancelling adjacent `U`/`U-dagger` pairs; cross-check exact
+  replay and record the depth-two reduction from `4m` to at most `2m+2` calls
+  without claiming a polynomial bound for recursive escape words.
 
 - [x] 2026-11-02 — Compile replayable conjugation expressions into a stable
   child-first indexed DAG that stores every shared node once; expose separate
