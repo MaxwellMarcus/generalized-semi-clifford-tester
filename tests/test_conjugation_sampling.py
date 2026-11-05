@@ -186,6 +186,30 @@ def test_seed_program_resynthesis_validates_caps_and_replay():
         resynthesize_conjugation_word(malformed)
 
 
+def test_seed_program_resynthesis_memoizes_shared_cancellation_dag():
+    unitary = ConjugationWord("unitary", seed_uses=1)
+    word = unitary
+    for _ in range(40):
+        word = ConjugationWord(
+            "product",
+            (word, ConjugationWord("adjoint", (word,), seed_uses=word.seed_uses)),
+            seed_uses=2 * word.seed_uses,
+        )
+
+    assert word.seed_uses == 2**40
+    program = resynthesize_conjugation_word(word, max_materialized_factors=100)
+    assert program.factors == ()
+    with pytest.raises(SamplingLimitExceeded, match="expanded-factor"):
+        resynthesize_conjugation_word(word, max_expanded_factors=100)
+
+
+def test_seed_program_resynthesis_caps_normalized_intermediates():
+    backend = DihedralBackend(64)
+    sample = sample_conjugation_word(backend, depth=3, word_length=2, seed=19)
+    with pytest.raises(SamplingLimitExceeded, match="normalized-materialization"):
+        resynthesize_conjugation_word(sample.word, max_materialized_factors=1)
+
+
 def test_escape_sampler_small_target_uses_paulis_at_any_depth():
     backend = DihedralBackend()
     sample = sample_subgroup_escape_word(backend, depth=7, subgroup_log2_bound=1, seed=7)

@@ -402,23 +402,38 @@ def evaluate_conjugation_plan(
 def resynthesize_conjugation_word(
     word: ConjugationWord,
     *,
-    max_expanded_factors: int = 100_000,
+    max_materialized_factors: int = 100_000,
+    max_expanded_factors: int | None = None,
 ) -> ConjugationSeedProgram:
-    """Expand and freely reduce a word to sequential seed/Pauli factors.
+    """Memoize and freely reduce a word to sequential seed/Pauli factors.
 
-    Products are flattened, adjoints are pushed to leaves, consecutive Paulis
-    are multiplied by XORing their binary labels (global Pauli phases are
-    projectively irrelevant), and adjacent ``U``/``U-dagger`` pairs cancel.
-    The expansion cap is charged before cancellation so a compact result never
-    conceals excessive resynthesis work.
+    Each shared DAG node is normalized once in child-first order. Products are
+    joined with boundary reduction, adjoints reverse an already normalized
+    child, consecutive Paulis are multiplied by XORing their binary labels
+    (global Pauli phases are projectively irrelevant), and adjacent
+    ``U``/``U-dagger`` pairs cancel. ``max_materialized_factors`` bounds the
+    cumulative sizes of all memoized intermediate programs, not the possibly
+    exponential number of leaves in the expanded word.
+
+    ``max_expanded_factors`` is an optional compatibility guard on literal
+    leaf expansion. It is checked from the indexed DAG without expanding it.
+    The normalized program can still be exponentially large, so this routine
+    does not establish a polynomial physical-query or runtime bound.
     """
-    _integer(max_expanded_factors, "max_expanded_factors")
-    factors: list[ConjugationSeedFactor] = []
-    pending = [(word, False)]
-    expanded = 0
+    _integer(max_materialized_factors, "max_materialized_factors")
+    if max_expanded_factors is not None:
+        _integer(max_expanded_factors, "max_expanded_factors")
+    plan = compile_conjugation_word(word)
+    leaf_counts: list[int] = []
+    programs: list[tuple[ConjugationSeedFactor, ...]] = []
+    materialized = 0
 
-    def append(factor: ConjugationSeedFactor) -> None:
+    def append_reduced(
+        factors: list[ConjugationSeedFactor], factor: ConjugationSeedFactor
+    ) -> None:
         if factor.kind == "unitary":
+            if factor.label is not None:
+                raise ValueError("malformed conjugation seed factor")
             if factors and factors[-1].kind == "unitary":
                 if factors[-1].adjoint != factor.adjoint:
                     factors.pop()
@@ -441,35 +456,60 @@ def resynthesize_conjugation_word(
         if any(factor.label):
             factors.append(factor)
 
-    while pending:
-        node, take_adjoint = pending.pop()
-        if node.kind == "product" and len(node.children) == 2 and node.label is None:
-            left, right = node.children
-            if take_adjoint:
-                pending.extend(((left, True), (right, True)))
-            else:
-                pending.extend(((right, False), (left, False)))
-            continue
-        if node.kind == "adjoint" and len(node.children) == 1 and node.label is None:
-            pending.append((node.children[0], not take_adjoint))
-            continue
-        if node.children:
-            raise ValueError("malformed conjugation-word node")
-        if node.kind == "identity" and node.label is None:
-            continue
-        if node.kind == "unitary" and node.label is None:
-            factor = ConjugationSeedFactor("unitary", adjoint=take_adjoint)
-        elif node.kind == "pauli" and node.label is not None:
+    for node in plan.nodes:
+        if node.kind == "identity":
+            factors: list[ConjugationSeedFactor] = []
+            leaf_count = 0
+        elif node.kind == "unitary":
+            factors = [ConjugationSeedFactor("unitary")]
+            leaf_count = 1
+        elif node.kind == "pauli":
+            assert node.label is not None
             if not node.label or any(bit not in (0, 1) for bit in node.label):
                 raise ValueError("Pauli labels must be nonempty binary tuples")
-            factor = ConjugationSeedFactor("pauli", label=node.label)
+            factors = []
+            append_reduced(factors, ConjugationSeedFactor("pauli", label=node.label))
+            leaf_count = 1
+        elif node.kind == "product":
+            left, right = node.children
+            factors = []
+            for child in (left, right):
+                for factor in programs[child]:
+                    append_reduced(factors, factor)
+                    if materialized + len(factors) > max_materialized_factors:
+                        raise SamplingLimitExceeded(
+                            "seed-program resynthesis normalized-materialization budget exhausted"
+                        )
+            leaf_count = leaf_counts[left] + leaf_counts[right]
+        elif node.kind == "adjoint":
+            (child,) = node.children
+            if materialized + len(programs[child]) > max_materialized_factors:
+                raise SamplingLimitExceeded(
+                    "seed-program resynthesis normalized-materialization budget exhausted"
+                )
+            factors = [
+                ConjugationSeedFactor(
+                    factor.kind,
+                    adjoint=not factor.adjoint if factor.kind == "unitary" else False,
+                    label=factor.label,
+                )
+                for factor in reversed(programs[child])
+            ]
+            leaf_count = leaf_counts[child]
         else:
             raise ValueError("malformed conjugation-word node")
-        if expanded >= max_expanded_factors:
-            raise SamplingLimitExceeded("seed-program resynthesis factor budget exhausted")
-        expanded += 1
-        append(factor)
-    return ConjugationSeedProgram(tuple(factors))
+        if max_expanded_factors is not None and leaf_count > max_expanded_factors:
+            raise SamplingLimitExceeded(
+                "seed-program resynthesis expanded-factor budget exhausted"
+            )
+        if materialized + len(factors) > max_materialized_factors:
+            raise SamplingLimitExceeded(
+                "seed-program resynthesis normalized-materialization budget exhausted"
+            )
+        materialized += len(factors)
+        leaf_counts.append(leaf_count)
+        programs.append(tuple(factors))
+    return ConjugationSeedProgram(programs[plan.root])
 
 
 def evaluate_conjugation_seed_program(

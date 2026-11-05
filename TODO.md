@@ -1,6 +1,6 @@
 # Running TODO — Generalized Semi-Clifford Tester
 
-Last updated: 2026-11-03
+Last updated: 2026-11-05
 
 This is the operational queue for incremental development. Keep
 `docs/status-and-roadmap.md` as the higher-level scientific roadmap. Each
@@ -9,15 +9,15 @@ one coherent unit.
 
 ## Current focus
 
-- [ ] **Bound normalized seed-call growth or avoid expanded materialization.**
-  Projective free reduction now cancels adjacent inverse seed calls on
-  materialized words, but recursive escape resynthesis can still encounter an
-  exponential number of factors before cancellation.
+- [ ] **Supply a general exact or rigorously error-bounded Clifford-membership
+  backend for the recursive containment test.**
+  Keep exact membership distinct from numerical candidate evidence and retain
+  indeterminate outcomes when an error budget cannot decide the query.
 
 ## Next
 
-- [ ] Supply a general exact or rigorously error-bounded Clifford-membership
-  backend for the recursive containment test.
+- [ ] Integrate the first non-dense membership backend into a reproducible
+  containment example without weakening `INCONCLUSIVE` semantics.
 
 ## Maintenance
 
@@ -30,6 +30,12 @@ one coherent unit.
   statistical conclusion is incomplete.
 
 ## Completed
+
+- [x] 2026-11-05 — Normalize each shared conjugation-word DAG node once in
+  child-first order, bound cumulative intermediate program materialization,
+  and regress a `2**40`-leaf cancellation DAG without expanding its leaves;
+  retain an optional literal-expansion guard and make no polynomial query or
+  normalized-output-size claim.
 
 - [x] 2026-11-03 — Resynthesize conjugation words into capped sequential
   seed/Pauli programs by pushing adjoints to leaves, combining adjacent Paulis
