@@ -5,10 +5,17 @@ import pytest
 
 sympy = pytest.importorskip("sympy")
 
+from generalized_semi_clifford.conjugation_sampling import (  # noqa: E402
+    ContainmentStatus,
+)
+from generalized_semi_clifford.conjugation_sampling import (  # noqa: E402
+    test_clifford_conjugation_containment as check_containment,
+)
 from generalized_semi_clifford.exact_cyclotomic import (  # noqa: E402
     EXACT_SEARCH_SCHEMA,
     CyclotomicField,
     CyclotomicMatrix,
+    ExactCyclotomicConjugationBackend,
     ExactSearchStatus,
     ExactWitnessVerification,
     ccz,
@@ -120,6 +127,62 @@ def test_exact_pauli_coefficients_retain_zeros_and_cyclotomic_support() -> None:
     assert hadamard_expansion.support[0].value == field.one
     assert tuple(item.output_label for item in t_expansion.support) == ((1, 0), (1, 1))
     assert all(item.value == field.scalar(1 / sympy.sqrt(2)) for item in t_expansion.support)
+
+
+def test_exact_cyclotomic_conjugation_backend_decides_clifford_membership() -> None:
+    field = CyclotomicField(8)
+    backend = ExactCyclotomicConjugationBackend(t_gate(field))
+
+    assert backend.exact
+    assert backend.arithmetic == "cyclotomic_exact"
+    assert backend.num_qubits == 1
+    assert backend.is_clifford(hadamard(field))
+    assert backend.is_clifford(phase_s(field))
+    assert not backend.is_clifford(t_gate(field))
+    assert ExactCyclotomicConjugationBackend(cnot(field)).is_clifford(cnot(field))
+    assert backend.multiply(backend.seed, backend.adjoint(backend.seed)) == backend.identity()
+    assert backend.pauli((1, 0)) == pauli_x(field)
+
+
+def test_exact_cyclotomic_backend_gives_recursive_test_a_rigorous_bound() -> None:
+    field = CyclotomicField(8)
+    backend = ExactCyclotomicConjugationBackend(t_gate(field))
+
+    result = check_containment(
+        backend,
+        backend.is_clifford,
+        depth=1,
+        oracle_is_exact=True,
+        seed=7,
+    )
+
+    assert result.status is ContainmentStatus.SUPPORTED
+    assert result.rigorous_false_accept_bound == 0.0
+    assert result.arithmetic == "cyclotomic_exact"
+
+
+def test_exact_cyclotomic_backend_rejects_invalid_values_and_detects_violation() -> None:
+    field = CyclotomicField(16)
+    eighth_turn = CyclotomicMatrix.from_rows(field, ((1, 0), (0, field.zeta)))
+    backend = ExactCyclotomicConjugationBackend(eighth_turn)
+
+    result = check_containment(
+        backend,
+        backend.is_clifford,
+        depth=1,
+        oracle_is_exact=True,
+        seed=7,
+    )
+
+    assert result.status is ContainmentStatus.VIOLATION
+    assert result.rigorous_false_accept_bound is None
+    assert result.witness is not None
+    with pytest.raises(ValueError, match="dimension"):
+        backend.is_clifford(cnot(field))
+    with pytest.raises(ValueError, match="exactly unitary"):
+        ExactCyclotomicConjugationBackend(
+            CyclotomicMatrix.from_rows(field, ((1, 1), (0, 1)))
+        )
 
 
 def test_supplied_exact_witness_is_revalidated_without_an_exhaustive_claim() -> None:

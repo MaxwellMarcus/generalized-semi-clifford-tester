@@ -164,6 +164,15 @@ reconstructed span; this accepts valid enumerated bases without trusting
 caller-supplied elements. A rejected pair means only that this pair is not a
 witness; it is not a negative GSC result.
 
+`ExactCyclotomicConjugationBackend` adapts the same exact matrices to the
+backend-independent recursive conjugation sampler. Its `is_clifford` oracle
+conjugates the `2n` binary Pauli generators and requires each complete exact
+Pauli expansion to have singleton support. Combined with
+`oracle_is_exact=True`, the containment test can therefore report its rigorous
+finite-group false-acceptance bound for this declared cyclotomic domain. The
+oracle performs dense exact `4**n`-coefficient expansions and does not establish
+polynomial runtime or polynomial physical seed-query complexity.
+
 `search_exact_lagrangian_witness` enumerates deterministic input/output
 Lagrangian pairs under explicit qubit, coefficient, and candidate-pair caps.
 It returns the separate `ExactSearchResult` type and the stable

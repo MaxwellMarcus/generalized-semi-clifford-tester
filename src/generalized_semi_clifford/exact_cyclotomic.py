@@ -10,11 +10,12 @@ from __future__ import annotations
 
 from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
+from dataclasses import field as dataclass_field
 from enum import Enum
 from functools import cached_property
 from math import lcm
 from numbers import Integral, Rational
-from typing import Any
+from typing import Any, ClassVar
 
 from .lagrangian import (
     MAX_LAGRANGIAN_QUBITS,
@@ -487,6 +488,73 @@ def _all_pauli_labels(num_qubits: int) -> tuple[PauliLabel, ...]:
         tuple((value >> index) & 1 for index in range(width))
         for value in range(1 << width)
     )
+
+
+@dataclass(frozen=True)
+class ExactCyclotomicConjugationBackend:
+    """Exact cyclotomic operations and Clifford membership for the sampler.
+
+    Clifford membership is decided by conjugating the ``2n`` binary Pauli
+    generators and checking their complete Pauli expansions with exact field
+    zero tests.  This is a general finite procedure for matrices in the
+    declared cyclotomic domain, but it is not a polynomial-runtime claim.
+    """
+
+    seed: CyclotomicMatrix
+    num_qubits: int = dataclass_field(init=False)
+    exact: ClassVar[bool] = True
+    arithmetic: ClassVar[str] = "cyclotomic_exact"
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.seed, CyclotomicMatrix):
+            raise TypeError("seed must be a CyclotomicMatrix")
+        num_qubits = _matrix_num_qubits(self.seed)
+        if not self.seed.is_unitary():
+            raise ValueError("conjugation seed must be exactly unitary")
+        object.__setattr__(self, "num_qubits", num_qubits)
+
+    def _validate_shape(self, value: CyclotomicMatrix) -> None:
+        if not isinstance(value, CyclotomicMatrix):
+            raise TypeError("backend values must be CyclotomicMatrix instances")
+        expected = 1 << self.num_qubits
+        if value.shape != (expected, expected):
+            raise ValueError("backend matrix dimension does not match the seed")
+
+    def identity(self) -> CyclotomicMatrix:
+        return CyclotomicMatrix.identity(self.seed.field, 1 << self.num_qubits)
+
+    def pauli(self, label: PauliLabel) -> CyclotomicMatrix:
+        label = tuple(label)
+        if len(label) != 2 * self.num_qubits:
+            raise ValueError("Pauli label width does not match the seed")
+        return exact_pauli_matrix(self.seed.field, label)
+
+    def multiply(
+        self,
+        left: CyclotomicMatrix,
+        right: CyclotomicMatrix,
+    ) -> CyclotomicMatrix:
+        self._validate_shape(left)
+        self._validate_shape(right)
+        return left @ right
+
+    def adjoint(self, value: CyclotomicMatrix) -> CyclotomicMatrix:
+        self._validate_shape(value)
+        return value.adjoint()
+
+    def is_clifford(self, value: CyclotomicMatrix) -> bool:
+        """Decide Clifford membership exactly within the cyclotomic domain."""
+
+        self._validate_shape(value)
+        if not value.is_unitary():
+            return False
+        width = 2 * self.num_qubits
+        for generator_index in range(width):
+            label = tuple(int(index == generator_index) for index in range(width))
+            expansion = _pauli_conjugation_coefficients_validated(value, label)
+            if len(expansion.support) != 1:
+                return False
+        return True
 
 
 def pauli_conjugation_coefficients(

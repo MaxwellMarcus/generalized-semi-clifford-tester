@@ -1,6 +1,6 @@
 # Running TODO — Generalized Semi-Clifford Tester
 
-Last updated: 2026-11-05
+Last updated: 2026-11-06
 
 This is the operational queue for incremental development. Keep
 `docs/status-and-roadmap.md` as the higher-level scientific roadmap. Each
@@ -9,15 +9,15 @@ one coherent unit.
 
 ## Current focus
 
-- [ ] **Supply a general exact or rigorously error-bounded Clifford-membership
-  backend for the recursive containment test.**
-  Keep exact membership distinct from numerical candidate evidence and retain
-  indeterminate outcomes when an error budget cannot decide the query.
+- [ ] **Integrate the exact cyclotomic membership backend into a reproducible
+  containment example.**
+  Exercise supported and violating outcomes without weakening `INCONCLUSIVE`
+  semantics or implying polynomial physical-query complexity.
 
 ## Next
 
-- [ ] Integrate the first non-dense membership backend into a reproducible
-  containment example without weakening `INCONCLUSIVE` semantics.
+- [ ] Add explicit work caps for exact Clifford-oracle coefficient expansion
+  so a resource interruption remains `INCONCLUSIVE` rather than a rejection.
 
 ## Maintenance
 
@@ -30,6 +30,12 @@ one coherent unit.
   statistical conclusion is incomplete.
 
 ## Completed
+
+- [x] 2026-11-06 — Adapt exact cyclotomic matrices to the recursive sampler,
+  decide Clifford membership from complete exact Pauli expansions of all
+  binary generators, and propagate a rigorous containment bound only when the
+  caller explicitly marks the oracle exact; retain exponential exact-work and
+  physical-query caveats.
 
 - [x] 2026-11-05 — Normalize each shared conjugation-word DAG node once in
   child-first order, bound cumulative intermediate program materialization,

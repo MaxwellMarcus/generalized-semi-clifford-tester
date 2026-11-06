@@ -1,6 +1,6 @@
 # Status and roadmap
 
-Last audited: 2026-11-05.
+Last audited: 2026-11-06.
 
 ## What works now
 
@@ -19,7 +19,7 @@ Last audited: 2026-11-05.
 | Exact cyclotomic layer | Canonical arithmetic over a declared `Q(zeta_m)`, cached immutable primitive roots, complete exact Pauli expansions, canonicalized supplied-witness verification, and resource-bounded exhaustive Pauli-MASA search | Exact `NOT_GSC` requires full pair exhaustion; any qubit, coefficient, or pair cap returns `UNKNOWN` |
 | Exact-search benchmarks | Versioned binary records through three qubits plus qutrit positive, completed-negative, and capped-`UNKNOWN` records, including two-qutrit SUM cap/positive boundaries, exact one- through nine-input default rejection prefixes, and an opt-in tenth prefix for a non-Clifford fixture | Exact work counters are portable; all rejection prefixes remain globally `UNKNOWN`; host wall time and Python peak memory are machine-dependent |
 | Analytic fixtures | Parameterized phase and controlled-phase families, a one-qubit non-GSC rotation, and rejected witnesses | GSC-but-not-semi-Clifford still needs a separately justified higher-qubit fixture |
-| Conjugation sampling | Short words at arbitrary bounded depth, stable indexed shared-DAG replay plans, memoized projective free reduction to capped sequential seed programs, and recursive finite-subgroup escape without previous-group enumeration | Each shared DAG node is normalized once without literal leaf expansion, but normalized programs and physical seed calls can still grow exponentially; dense frontend is numerical and limited to 3 qubits |
+| Conjugation sampling | Short words at arbitrary bounded depth, stable indexed shared-DAG replay plans, memoized projective free reduction to capped sequential seed programs, recursive finite-subgroup escape without previous-group enumeration, and an exact cyclotomic Clifford-membership backend | Exact Pauli-expansion membership costs `2n * 4**n` coefficients per oracle call; normalized programs and physical seed calls can still grow exponentially; the dense frontend remains numerical and limited to 3 qubits |
 | SC-distance evidence | Replayable hierarchy paths and an exhaustive unrestricted SC-distance fallback | Restricted and unrestricted targets are distinguished; floating-point margins are not interval certificates |
 
 The next exact two-qutrit rejection boundary has also been measured: ten
@@ -82,8 +82,9 @@ The key conceptual distinction is now represented in the API:
 - [ ] Bound normalized seed-call growth or avoid expanded materialization;
   local free reduction, compact storage, and group-operation complexity alone
   do not establish a polynomial-query tester.
-- [ ] Supply a general exact or rigorously error-bounded membership backend;
-  floating-point results do not inherit the exact-oracle theorem automatically.
+- [x] Supply a general exact cyclotomic membership backend using complete
+  generator Pauli expansions; floating-point results still do not inherit the
+  exact-oracle theorem automatically, and no polynomial-runtime claim is made.
 - [ ] Replace noisy all-pairs output-MASA scoring with a support-aware search
   or optimization routine.
 - [x] Add a sparse Pauli-transfer representation with dense one- and two-qubit
