@@ -1,6 +1,6 @@
 # Running TODO — Generalized Semi-Clifford Tester
 
-Last updated: 2026-11-06
+Last updated: 2026-11-07
 
 This is the operational queue for incremental development. Keep
 `docs/status-and-roadmap.md` as the higher-level scientific roadmap. Each
@@ -9,15 +9,14 @@ one coherent unit.
 
 ## Current focus
 
-- [ ] **Integrate the exact cyclotomic membership backend into a reproducible
-  containment example.**
-  Exercise supported and violating outcomes without weakening `INCONCLUSIVE`
-  semantics or implying polynomial physical-query complexity.
+- [ ] **Add explicit work caps for exact Clifford-oracle coefficient expansion.**
+  Preserve an interrupted oracle call as `INCONCLUSIVE`, and keep exact
+  coefficient work separate from abstract group-operation counts.
 
 ## Next
 
-- [ ] Add explicit work caps for exact Clifford-oracle coefficient expansion
-  so a resource interruption remains `INCONCLUSIVE` rather than a rejection.
+- [ ] Surface exact Clifford-oracle coefficient counts in containment reports
+  so callers can audit exact work independently of recursive sampler work.
 
 ## Maintenance
 
@@ -30,6 +29,11 @@ one coherent unit.
   statistical conclusion is incomplete.
 
 ## Completed
+
+- [x] 2026-11-07 — Add a deterministic exact cyclotomic containment example
+  covering a rigorous depth-one supported result, a replayable violation, and
+  an indeterminate-oracle `INCONCLUSIVE` result with no probability claim;
+  retain exponential exact-work and physical-query caveats.
 
 - [x] 2026-11-06 — Adapt exact cyclotomic matrices to the recursive sampler,
   decide Clifford membership from complete exact Pauli expansions of all

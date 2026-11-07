@@ -1,0 +1,28 @@
+import json
+import runpy
+from pathlib import Path
+
+
+def test_exact_cyclotomic_containment_example_preserves_claim_boundaries(capsys) -> None:
+    example = Path(__file__).parents[1] / "examples" / "exact_cyclotomic_containment.py"
+
+    runpy.run_path(str(example), run_name="__main__")
+
+    records = {item["name"]: item for item in json.loads(capsys.readouterr().out)}
+    supported = records["t_gate_supported"]
+    violating = records["eighth_turn_violation"]
+    inconclusive = records["indeterminate_oracle"]
+
+    assert supported["status"] == "containment_supported"
+    assert supported["rigorous_false_accept_bound"] == 0.0
+    assert supported["arithmetic"] == "cyclotomic_exact"
+    assert not supported["has_violation_witness"]
+
+    assert violating["status"] == "containment_violation"
+    assert violating["rigorous_false_accept_bound"] is None
+    assert violating["has_violation_witness"]
+
+    assert inconclusive["status"] == "inconclusive"
+    assert inconclusive["rigorous_false_accept_bound"] is None
+    assert inconclusive["oracle_calls"] == 1
+    assert not inconclusive["has_violation_witness"]
