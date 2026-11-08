@@ -1,6 +1,6 @@
 # Status and roadmap
 
-Last audited: 2026-11-07.
+Last audited: 2026-11-08.
 
 ## What works now
 
@@ -19,7 +19,7 @@ Last audited: 2026-11-07.
 | Exact cyclotomic layer | Canonical arithmetic over a declared `Q(zeta_m)`, cached immutable primitive roots, complete exact Pauli expansions, canonicalized supplied-witness verification, and resource-bounded exhaustive Pauli-MASA search | Exact `NOT_GSC` requires full pair exhaustion; any qubit, coefficient, or pair cap returns `UNKNOWN` |
 | Exact-search benchmarks | Versioned binary records through three qubits plus qutrit positive, completed-negative, and capped-`UNKNOWN` records, including two-qutrit SUM cap/positive boundaries, exact one- through nine-input default rejection prefixes, and an opt-in tenth prefix for a non-Clifford fixture | Exact work counters are portable; all rejection prefixes remain globally `UNKNOWN`; host wall time and Python peak memory are machine-dependent |
 | Analytic fixtures | Parameterized phase and controlled-phase families, a one-qubit non-GSC rotation, and rejected witnesses | GSC-but-not-semi-Clifford still needs a separately justified higher-qubit fixture |
-| Conjugation sampling | Short words at arbitrary bounded depth, stable indexed shared-DAG replay plans, memoized projective free reduction to capped sequential seed programs, recursive finite-subgroup escape without previous-group enumeration, and an exact cyclotomic Clifford-membership backend with reproducible supported, violation, and inconclusive examples | Exact Pauli-expansion membership costs `2n * 4**n` coefficients per oracle call; normalized programs and physical seed calls can still grow exponentially; the dense frontend remains numerical and limited to 3 qubits |
+| Conjugation sampling | Short words at arbitrary bounded depth, stable indexed shared-DAG replay plans, memoized projective free reduction to capped sequential seed programs, recursive finite-subgroup escape without previous-group enumeration, and a cumulative coefficient-capped exact cyclotomic Clifford oracle with reproducible supported, violation, and inconclusive examples | Exact Pauli-expansion membership costs up to `2n * 4**n` coefficients per oracle call; an unfunded complete expansion returns `INCONCLUSIVE`; normalized programs and physical seed calls can still grow exponentially; the dense frontend remains numerical and limited to 3 qubits |
 | SC-distance evidence | Replayable hierarchy paths and an exhaustive unrestricted SC-distance fallback | Restricted and unrestricted targets are distinguished; floating-point margins are not interval certificates |
 
 The next exact two-qutrit rejection boundary has also been measured: ten
@@ -88,6 +88,8 @@ The key conceptual distinction is now represented in the API:
 - [x] Add a deterministic exact containment example that keeps a rigorous
   supported result, a replayable violation, and an indeterminate-oracle
   `INCONCLUSIVE` result distinct without making a polynomial-query claim.
+- [x] Bound cumulative exact Clifford-oracle coefficient expansion separately
+  from sampler group operations and preserve cap exhaustion as `INCONCLUSIVE`.
 - [ ] Replace noisy all-pairs output-MASA scoring with a support-aware search
   or optimization routine.
 - [x] Add a sparse Pauli-transfer representation with dense one- and two-qubit

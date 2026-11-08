@@ -15,8 +15,14 @@ from generalized_semi_clifford.exact_cyclotomic import (
 )
 
 
-def _record(name: str, result: object) -> dict[str, object]:
-    return {
+def _record(
+    name: str,
+    result: object,
+    *,
+    exact_coefficients_computed: int | None = None,
+    oracle_stop_reason: str | None = None,
+) -> dict[str, object]:
+    record = {
         "name": name,
         "status": result.status.value,
         "arithmetic": result.arithmetic,
@@ -27,6 +33,10 @@ def _record(name: str, result: object) -> dict[str, object]:
         "has_violation_witness": result.witness is not None,
         "message": result.message,
     }
+    if exact_coefficients_computed is not None:
+        record["exact_coefficients_computed"] = exact_coefficients_computed
+        record["oracle_stop_reason"] = oracle_stop_reason
+    return record
 
 
 def main() -> None:
@@ -51,11 +61,13 @@ def main() -> None:
         seed=7,
     )
 
-    # An interrupted or resource-capped exact oracle returns None.  The
-    # containment test must preserve that as INCONCLUSIVE with no error bound.
+    # Each one-qubit generator expansion costs four exact coefficients.  This
+    # budget funds the first expansion but not the second, so the stateful
+    # exact oracle returns None and containment must preserve INCONCLUSIVE.
+    capped_oracle = supported_backend.clifford_oracle(max_coefficients=4)
     inconclusive = test_clifford_conjugation_containment(
         supported_backend,
-        lambda _: None,
+        capped_oracle,
         depth=1,
         oracle_is_exact=True,
         seed=7,
@@ -64,7 +76,12 @@ def main() -> None:
     records = (
         _record("t_gate_supported", supported),
         _record("eighth_turn_violation", violating),
-        _record("indeterminate_oracle", inconclusive),
+        _record(
+            "coefficient_capped_oracle",
+            inconclusive,
+            exact_coefficients_computed=capped_oracle.coefficients_computed,
+            oracle_stop_reason=capped_oracle.stop_reason,
+        ),
     )
     print(json.dumps(records, indent=2, sort_keys=True))
 

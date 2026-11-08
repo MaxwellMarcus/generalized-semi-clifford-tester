@@ -11,7 +11,7 @@ def test_exact_cyclotomic_containment_example_preserves_claim_boundaries(capsys)
     records = {item["name"]: item for item in json.loads(capsys.readouterr().out)}
     supported = records["t_gate_supported"]
     violating = records["eighth_turn_violation"]
-    inconclusive = records["indeterminate_oracle"]
+    inconclusive = records["coefficient_capped_oracle"]
 
     assert supported["status"] == "containment_supported"
     assert supported["rigorous_false_accept_bound"] == 0.0
@@ -25,4 +25,6 @@ def test_exact_cyclotomic_containment_example_preserves_claim_boundaries(capsys)
     assert inconclusive["status"] == "inconclusive"
     assert inconclusive["rigorous_false_accept_bound"] is None
     assert inconclusive["oracle_calls"] == 1
+    assert inconclusive["exact_coefficients_computed"] == 4
+    assert inconclusive["oracle_stop_reason"] == "coefficient_cap"
     assert not inconclusive["has_violation_witness"]

@@ -545,13 +545,67 @@ class ExactCyclotomicConjugationBackend:
     def is_clifford(self, value: CyclotomicMatrix) -> bool:
         """Decide Clifford membership exactly within the cyclotomic domain."""
 
-        self._validate_shape(value)
+        coefficients_required = 2 * self.num_qubits * (1 << (2 * self.num_qubits))
+        decision = self.clifford_oracle(
+            max_coefficients=coefficients_required
+        )(value)
+        if decision is None:  # pragma: no cover - the exact full budget is sufficient
+            raise AssertionError("complete Clifford-oracle budget was unexpectedly exhausted")
+        return decision
+
+    def clifford_oracle(
+        self,
+        *,
+        max_coefficients: int,
+    ) -> ExactCyclotomicCliffordOracle:
+        """Return a stateful exact Clifford oracle with a cumulative work cap.
+
+        Each Pauli expansion is indivisible and costs ``4**n`` exact
+        coefficients.  The returned oracle yields ``None`` before starting an
+        expansion that would exceed the shared budget, so callers can preserve
+        an interrupted containment test as ``INCONCLUSIVE``.
+        """
+
+        return ExactCyclotomicCliffordOracle(self, max_coefficients)
+
+
+@dataclass
+class ExactCyclotomicCliffordOracle:
+    """Cumulative resource-bounded exact Clifford-membership oracle."""
+
+    backend: ExactCyclotomicConjugationBackend
+    max_coefficients: int
+    coefficients_computed: int = dataclass_field(init=False, default=0)
+    stop_reason: str | None = dataclass_field(init=False, default=None)
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.backend, ExactCyclotomicConjugationBackend):
+            raise TypeError("backend must be an ExactCyclotomicConjugationBackend")
+        if (
+            isinstance(self.max_coefficients, bool)
+            or not isinstance(self.max_coefficients, int)
+            or self.max_coefficients < 0
+        ):
+            raise ValueError("max_coefficients must be a nonnegative integer")
+
+    def __call__(self, value: CyclotomicMatrix) -> bool | None:
+        """Return exact membership, or ``None`` when the work cap interrupts it."""
+
+        self.backend._validate_shape(value)
         if not value.is_unitary():
             return False
-        width = 2 * self.num_qubits
+        width = 2 * self.backend.num_qubits
+        coefficients_per_expansion = 1 << width
         for generator_index in range(width):
+            if (
+                self.coefficients_computed + coefficients_per_expansion
+                > self.max_coefficients
+            ):
+                self.stop_reason = "coefficient_cap"
+                return None
             label = tuple(int(index == generator_index) for index in range(width))
             expansion = _pauli_conjugation_coefficients_validated(value, label)
+            self.coefficients_computed += coefficients_per_expansion
             if len(expansion.support) != 1:
                 return False
         return True

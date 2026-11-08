@@ -15,6 +15,7 @@ from generalized_semi_clifford.exact_cyclotomic import (  # noqa: E402
     EXACT_SEARCH_SCHEMA,
     CyclotomicField,
     CyclotomicMatrix,
+    ExactCyclotomicCliffordOracle,
     ExactCyclotomicConjugationBackend,
     ExactSearchStatus,
     ExactWitnessVerification,
@@ -142,6 +143,52 @@ def test_exact_cyclotomic_conjugation_backend_decides_clifford_membership() -> N
     assert ExactCyclotomicConjugationBackend(cnot(field)).is_clifford(cnot(field))
     assert backend.multiply(backend.seed, backend.adjoint(backend.seed)) == backend.identity()
     assert backend.pauli((1, 0)) == pauli_x(field)
+
+
+def test_exact_clifford_oracle_enforces_a_cumulative_coefficient_cap() -> None:
+    field = CyclotomicField(8)
+    backend = ExactCyclotomicConjugationBackend(t_gate(field))
+    oracle = backend.clifford_oracle(max_coefficients=12)
+
+    assert isinstance(oracle, ExactCyclotomicCliffordOracle)
+    assert oracle(hadamard(field)) is True
+    assert oracle.coefficients_computed == 8
+    assert oracle(hadamard(field)) is None
+    assert oracle.coefficients_computed == 12
+    assert oracle.stop_reason == "coefficient_cap"
+
+    early_rejection = backend.clifford_oracle(max_coefficients=4)
+    assert early_rejection(t_gate(field)) is False
+    assert early_rejection.coefficients_computed == 4
+
+
+def test_exact_clifford_oracle_cap_preserves_inconclusive_containment() -> None:
+    field = CyclotomicField(8)
+    backend = ExactCyclotomicConjugationBackend(t_gate(field))
+    oracle = backend.clifford_oracle(max_coefficients=4)
+
+    result = check_containment(
+        backend,
+        oracle,
+        depth=1,
+        oracle_is_exact=True,
+        seed=7,
+    )
+
+    assert result.status is ContainmentStatus.INCONCLUSIVE
+    assert result.oracle_calls == 1
+    assert result.rounds_completed == 0
+    assert result.rigorous_false_accept_bound is None
+    assert oracle.coefficients_computed == 4
+    assert oracle.stop_reason == "coefficient_cap"
+
+
+@pytest.mark.parametrize("invalid", [-1, True, 1.5])
+def test_exact_clifford_oracle_rejects_invalid_caps(invalid: object) -> None:
+    backend = ExactCyclotomicConjugationBackend(t_gate(CyclotomicField(8)))
+
+    with pytest.raises(ValueError, match="max_coefficients"):
+        backend.clifford_oracle(max_coefficients=invalid)  # type: ignore[arg-type]
 
 
 def test_exact_cyclotomic_backend_gives_recursive_test_a_rigorous_bound() -> None:
