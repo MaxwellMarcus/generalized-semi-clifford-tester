@@ -177,10 +177,16 @@ def test_exact_clifford_oracle_cap_preserves_inconclusive_containment() -> None:
 
     assert result.status is ContainmentStatus.INCONCLUSIVE
     assert result.oracle_calls == 1
+    assert result.exact_oracle_coefficients_computed == 4
     assert result.rounds_completed == 0
     assert result.rigorous_false_accept_bound is None
     assert oracle.coefficients_computed == 4
     assert oracle.stop_reason == "coefficient_cap"
+
+    unclaimed_oracle = backend.clifford_oracle(max_coefficients=4)
+    unclaimed = check_containment(backend, unclaimed_oracle, depth=1, seed=7)
+    assert unclaimed_oracle.coefficients_computed == 4
+    assert unclaimed.exact_oracle_coefficients_computed is None
 
 
 @pytest.mark.parametrize("invalid", [-1, True, 1.5])
@@ -204,6 +210,7 @@ def test_exact_cyclotomic_backend_gives_recursive_test_a_rigorous_bound() -> Non
     )
 
     assert result.status is ContainmentStatus.SUPPORTED
+    assert result.exact_oracle_coefficients_computed is None
     assert result.rigorous_false_accept_bound == 0.0
     assert result.arithmetic == "cyclotomic_exact"
 

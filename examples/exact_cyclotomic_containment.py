@@ -19,7 +19,6 @@ def _record(
     name: str,
     result: object,
     *,
-    exact_coefficients_computed: int | None = None,
     oracle_stop_reason: str | None = None,
 ) -> dict[str, object]:
     record = {
@@ -29,12 +28,12 @@ def _record(
         "rounds_completed": result.rounds_completed,
         "rounds_required": result.rounds_required,
         "oracle_calls": result.oracle_calls,
+        "exact_oracle_coefficients_computed": result.exact_oracle_coefficients_computed,
         "rigorous_false_accept_bound": result.rigorous_false_accept_bound,
         "has_violation_witness": result.witness is not None,
         "message": result.message,
     }
-    if exact_coefficients_computed is not None:
-        record["exact_coefficients_computed"] = exact_coefficients_computed
+    if result.exact_oracle_coefficients_computed is not None:
         record["oracle_stop_reason"] = oracle_stop_reason
     return record
 
@@ -79,7 +78,6 @@ def main() -> None:
         _record(
             "coefficient_capped_oracle",
             inconclusive,
-            exact_coefficients_computed=capped_oracle.coefficients_computed,
             oracle_stop_reason=capped_oracle.stop_reason,
         ),
     )

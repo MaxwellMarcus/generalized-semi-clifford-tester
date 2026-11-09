@@ -277,6 +277,7 @@ def test_probability_claim_requires_exact_backend_and_oracle():
     result = check_containment(backend, backend.is_clifford, depth=1)
     assert result.ideal_false_accept_bound == 0
     assert result.rigorous_false_accept_bound is None
+    assert result.exact_oracle_coefficients_computed is None
     backend.exact = False
     result = check_containment(backend, backend.is_clifford, depth=1, oracle_is_exact=True)
     assert result.rigorous_false_accept_bound is None

@@ -546,6 +546,14 @@ class ContainmentStatus(str, Enum):
 
 @dataclass(frozen=True)
 class ConjugationContainmentResult(Generic[T]):
+    """Containment outcome with separate sampler and exact-oracle work.
+
+    ``exact_oracle_coefficients_computed`` is populated only when the caller
+    declares the oracle exact and it exposes a nonnegative integer counter.
+    The counter is accounting metadata; it does not establish exactness or
+    change the status or probability claims.
+    """
+
     status: ContainmentStatus
     depth: int
     arithmetic: str
@@ -557,6 +565,7 @@ class ConjugationContainmentResult(Generic[T]):
     rigorous_false_accept_bound: float | None
     witness: ConjugationSample[T] | None
     message: str
+    exact_oracle_coefficients_computed: int | None = None
 
 
 def test_clifford_conjugation_containment(
@@ -606,6 +615,16 @@ def test_clifford_conjugation_containment(
             else None
         )
         rigorous = ideal if backend.exact and oracle_is_exact else None
+        exact_oracle_coefficients = getattr(
+            clifford_oracle, "coefficients_computed", None
+        )
+        if (
+            not oracle_is_exact
+            or isinstance(exact_oracle_coefficients, bool)
+            or not isinstance(exact_oracle_coefficients, int)
+            or exact_oracle_coefficients < 0
+        ):
+            exact_oracle_coefficients = None
         return ConjugationContainmentResult(
             status,
             depth,
@@ -618,6 +637,7 @@ def test_clifford_conjugation_containment(
             rigorous,
             witness,
             message,
+            exact_oracle_coefficients,
         )
 
     pool = sampler.generators()

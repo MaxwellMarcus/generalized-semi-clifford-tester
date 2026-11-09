@@ -16,6 +16,7 @@ def test_exact_cyclotomic_containment_example_preserves_claim_boundaries(capsys)
     assert supported["status"] == "containment_supported"
     assert supported["rigorous_false_accept_bound"] == 0.0
     assert supported["arithmetic"] == "cyclotomic_exact"
+    assert supported["exact_oracle_coefficients_computed"] is None
     assert not supported["has_violation_witness"]
 
     assert violating["status"] == "containment_violation"
@@ -25,6 +26,6 @@ def test_exact_cyclotomic_containment_example_preserves_claim_boundaries(capsys)
     assert inconclusive["status"] == "inconclusive"
     assert inconclusive["rigorous_false_accept_bound"] is None
     assert inconclusive["oracle_calls"] == 1
-    assert inconclusive["exact_coefficients_computed"] == 4
+    assert inconclusive["exact_oracle_coefficients_computed"] == 4
     assert inconclusive["oracle_stop_reason"] == "coefficient_cap"
     assert not inconclusive["has_violation_witness"]

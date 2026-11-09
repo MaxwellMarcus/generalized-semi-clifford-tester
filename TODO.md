@@ -1,6 +1,6 @@
 # Running TODO — Generalized Semi-Clifford Tester
 
-Last updated: 2026-11-08
+Last updated: 2026-11-09
 
 This is the operational queue for incremental development. Keep
 `docs/status-and-roadmap.md` as the higher-level scientific roadmap. Each
@@ -9,14 +9,13 @@ one coherent unit.
 
 ## Current focus
 
-- [ ] **Surface exact Clifford-oracle coefficient counts in containment reports.**
-  Let callers audit exact work independently of recursive sampler work while
-  retaining the existing result schema's claim boundaries.
+- [ ] **Add a checked two-qubit capped-oracle containment example.**
+  Exercise bounded exact work without implying that an interrupted oracle
+  establishes a completed classification.
 
 ## Next
 
-- [ ] Add a checked two-qubit capped-oracle containment example without
-  implying that bounded exact work establishes a completed classification.
+_No queued item beyond the current focus._
 
 ## Maintenance
 
@@ -29,6 +28,11 @@ one coherent unit.
   statistical conclusion is incomplete.
 
 ## Completed
+
+- [x] 2026-11-09 — Surface a declared exact Clifford oracle's cumulative
+  coefficient count in every containment result, keep it separate from
+  recursive sampler operations, and make clear that accounting metadata does
+  not itself prove exactness or alter any outcome or probability claim.
 
 - [x] 2026-11-08 — Add a stateful exact cyclotomic Clifford oracle with a
   cumulative coefficient cap, preserve an unfunded complete expansion as
