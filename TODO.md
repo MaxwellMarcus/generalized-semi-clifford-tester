@@ -1,6 +1,6 @@
 # Running TODO — Generalized Semi-Clifford Tester
 
-Last updated: 2026-11-09
+Last updated: 2026-11-10
 
 This is the operational queue for incremental development. Keep
 `docs/status-and-roadmap.md` as the higher-level scientific roadmap. Each
@@ -9,9 +9,10 @@ one coherent unit.
 
 ## Current focus
 
-- [ ] **Add a checked two-qubit capped-oracle containment example.**
-  Exercise bounded exact work without implying that an interrupted oracle
-  establishes a completed classification.
+- [ ] **Add a reproducible normalized seed-growth benchmark.**
+  Record stored DAG nodes, abstract operations, normalized program length, and
+  expanded seed calls across deterministic exact finite-group depth cases,
+  without extrapolating a polynomial-query bound from the measured prefix.
 
 ## Next
 
@@ -28,6 +29,11 @@ _No queued item beyond the current focus._
   statistical conclusion is incomplete.
 
 ## Completed
+
+- [x] 2026-11-10 — Extend the deterministic exact containment example with a
+  two-qubit `T tensor I` case whose 16-coefficient budget funds exactly one
+  indivisible Pauli expansion; preserve the interrupted oracle as
+  `INCONCLUSIVE` with no rigorous false-acceptance claim.
 
 - [x] 2026-11-09 — Surface a declared exact Clifford oracle's cumulative
   coefficient count in every containment result, keep it separate from

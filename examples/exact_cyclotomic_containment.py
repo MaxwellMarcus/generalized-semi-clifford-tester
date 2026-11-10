@@ -72,6 +72,21 @@ def main() -> None:
         seed=7,
     )
 
+    # A two-qubit Pauli expansion costs 16 exact coefficients.  T tensor I is
+    # still a supported exact seed, but this budget funds only the first of the
+    # four generator expansions required for a complete Clifford decision.
+    # The bounded prefix is resource evidence, not a completed classification.
+    two_qubit_seed = t_gate(field8).tensor(CyclotomicMatrix.identity(field8, 2))
+    two_qubit_backend = ExactCyclotomicConjugationBackend(two_qubit_seed)
+    two_qubit_capped_oracle = two_qubit_backend.clifford_oracle(max_coefficients=16)
+    two_qubit_inconclusive = test_clifford_conjugation_containment(
+        two_qubit_backend,
+        two_qubit_capped_oracle,
+        depth=1,
+        oracle_is_exact=True,
+        seed=7,
+    )
+
     records = (
         _record("t_gate_supported", supported),
         _record("eighth_turn_violation", violating),
@@ -79,6 +94,11 @@ def main() -> None:
             "coefficient_capped_oracle",
             inconclusive,
             oracle_stop_reason=capped_oracle.stop_reason,
+        ),
+        _record(
+            "two_qubit_coefficient_capped_oracle",
+            two_qubit_inconclusive,
+            oracle_stop_reason=two_qubit_capped_oracle.stop_reason,
         ),
     )
     print(json.dumps(records, indent=2, sort_keys=True))

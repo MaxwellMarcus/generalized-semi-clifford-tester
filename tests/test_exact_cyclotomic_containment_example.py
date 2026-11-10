@@ -12,6 +12,7 @@ def test_exact_cyclotomic_containment_example_preserves_claim_boundaries(capsys)
     supported = records["t_gate_supported"]
     violating = records["eighth_turn_violation"]
     inconclusive = records["coefficient_capped_oracle"]
+    two_qubit_inconclusive = records["two_qubit_coefficient_capped_oracle"]
 
     assert supported["status"] == "containment_supported"
     assert supported["rigorous_false_accept_bound"] == 0.0
@@ -29,3 +30,11 @@ def test_exact_cyclotomic_containment_example_preserves_claim_boundaries(capsys)
     assert inconclusive["exact_oracle_coefficients_computed"] == 4
     assert inconclusive["oracle_stop_reason"] == "coefficient_cap"
     assert not inconclusive["has_violation_witness"]
+
+    assert two_qubit_inconclusive["status"] == "inconclusive"
+    assert two_qubit_inconclusive["rigorous_false_accept_bound"] is None
+    assert two_qubit_inconclusive["rounds_completed"] == 0
+    assert two_qubit_inconclusive["oracle_calls"] == 1
+    assert two_qubit_inconclusive["exact_oracle_coefficients_computed"] == 16
+    assert two_qubit_inconclusive["oracle_stop_reason"] == "coefficient_cap"
+    assert not two_qubit_inconclusive["has_violation_witness"]
