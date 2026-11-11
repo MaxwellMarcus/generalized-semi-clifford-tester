@@ -1,6 +1,6 @@
 # Running TODO — Generalized Semi-Clifford Tester
 
-Last updated: 2026-11-10
+Last updated: 2026-11-11
 
 This is the operational queue for incremental development. Keep
 `docs/status-and-roadmap.md` as the higher-level scientific roadmap. Each
@@ -9,10 +9,10 @@ one coherent unit.
 
 ## Current focus
 
-- [ ] **Add a reproducible normalized seed-growth benchmark.**
-  Record stored DAG nodes, abstract operations, normalized program length, and
-  expanded seed calls across deterministic exact finite-group depth cases,
-  without extrapolating a polynomial-query bound from the measured prefix.
+- [ ] **Measure a bounded normalized seed-growth parameter grid.**
+  For depths 1--7, scan word lengths 1--4 and seeds 0--31 in the exact
+  dihedral backend, record the maximum normalized program length at each
+  depth, and keep the finite measurements distinct from a general bound.
 
 ## Next
 
@@ -29,6 +29,11 @@ _No queued item beyond the current focus._
   statistical conclusion is incomplete.
 
 ## Completed
+
+- [x] 2026-11-11 — Add a versioned, reproducible exact-dihedral seed-growth
+  benchmark over depths one through seven, recording stored DAG nodes,
+  abstract operations, normalized program length and seed calls, and expanded
+  seed calls without extrapolating a polynomial-query bound.
 
 - [x] 2026-11-10 — Extend the deterministic exact containment example with a
   two-qubit `T tensor I` case whose 16-coefficient budget funds exactly one
