@@ -1,0 +1,80 @@
+{
+  "arithmetic": "exact dihedral group coordinates",
+  "cases_scanned": 896,
+  "depths": [
+    1,
+    7
+  ],
+  "maxima": [
+    {
+      "depth": 1,
+      "first_maximizing_seed": 0,
+      "first_maximizing_word_length": 1,
+      "max_normalized_program_length": 3,
+      "maximizer_count": 116,
+      "normalized_seed_calls_at_first_maximizer": 2
+    },
+    {
+      "depth": 2,
+      "first_maximizing_seed": 13,
+      "first_maximizing_word_length": 4,
+      "max_normalized_program_length": 19,
+      "maximizer_count": 1,
+      "normalized_seed_calls_at_first_maximizer": 10
+    },
+    {
+      "depth": 3,
+      "first_maximizing_seed": 19,
+      "first_maximizing_word_length": 4,
+      "max_normalized_program_length": 123,
+      "maximizer_count": 1,
+      "normalized_seed_calls_at_first_maximizer": 62
+    },
+    {
+      "depth": 4,
+      "first_maximizing_seed": 18,
+      "first_maximizing_word_length": 4,
+      "max_normalized_program_length": 556,
+      "maximizer_count": 1,
+      "normalized_seed_calls_at_first_maximizer": 278
+    },
+    {
+      "depth": 5,
+      "first_maximizing_seed": 27,
+      "first_maximizing_word_length": 4,
+      "max_normalized_program_length": 4267,
+      "maximizer_count": 1,
+      "normalized_seed_calls_at_first_maximizer": 2134
+    },
+    {
+      "depth": 6,
+      "first_maximizing_seed": 25,
+      "first_maximizing_word_length": 4,
+      "max_normalized_program_length": 27051,
+      "maximizer_count": 1,
+      "normalized_seed_calls_at_first_maximizer": 13526
+    },
+    {
+      "depth": 7,
+      "first_maximizing_seed": 25,
+      "first_maximizing_word_length": 4,
+      "max_normalized_program_length": 144983,
+      "maximizer_count": 1,
+      "normalized_seed_calls_at_first_maximizer": 72492
+    }
+  ],
+  "resource_caps": {
+    "group_operations_per_case": 200000,
+    "materialized_factors_per_case": 100000000,
+    "replay_operations_per_case": 1000000
+  },
+  "schema_version": 2,
+  "seeds": [
+    0,
+    31
+  ],
+  "word_lengths": [
+    1,
+    4
+  ]
+}

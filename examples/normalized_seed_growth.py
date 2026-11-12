@@ -6,7 +6,6 @@ import json
 from dataclasses import dataclass
 
 from generalized_semi_clifford import (
-    compile_conjugation_word,
     evaluate_conjugation_seed_program,
     resynthesize_conjugation_word,
     sample_conjugation_word,
@@ -43,25 +42,49 @@ class DihedralBackend:
 
 
 def benchmark_records() -> list[dict[str, int | str]]:
-    """Return a fixed depth prefix without extrapolating a growth bound."""
+    """Return maxima over a fixed parameter grid without extrapolating a bound."""
 
     backend = DihedralBackend()
     records: list[dict[str, int | str]] = []
     for depth in range(1, 8):
-        sample = sample_conjugation_word(backend, depth=depth, word_length=2, seed=19)
-        plan = compile_conjugation_word(sample.word)
-        program = resynthesize_conjugation_word(
-            sample.word, max_materialized_factors=1_000_000
-        )
-        assert evaluate_conjugation_seed_program(program, backend) == sample.value
+        maximum = -1
+        first_maximizer: tuple[int, int, int] | None = None
+        maximizer_count = 0
+        for word_length in range(1, 5):
+            for seed in range(32):
+                sample = sample_conjugation_word(
+                    backend,
+                    depth=depth,
+                    word_length=word_length,
+                    seed=seed,
+                    max_operations=200_000,
+                )
+                program = resynthesize_conjugation_word(
+                    sample.word, max_materialized_factors=100_000_000
+                )
+                assert (
+                    evaluate_conjugation_seed_program(
+                        program, backend, max_operations=1_000_000
+                    )
+                    == sample.value
+                )
+                program_length = len(program.factors)
+                if program_length > maximum:
+                    maximum = program_length
+                    first_maximizer = (word_length, seed, program.seed_uses)
+                    maximizer_count = 1
+                elif program_length == maximum:
+                    maximizer_count += 1
+        assert first_maximizer is not None
+        word_length, seed, seed_calls = first_maximizer
         records.append(
             {
-                "abstract_operations": plan.group_operations,
                 "depth": depth,
-                "expanded_seed_calls": plan.expanded_seed_uses,
-                "normalized_program_length": len(program.factors),
-                "normalized_seed_calls": program.seed_uses,
-                "stored_dag_nodes": plan.stored_nodes,
+                "first_maximizing_seed": seed,
+                "first_maximizing_word_length": word_length,
+                "max_normalized_program_length": maximum,
+                "maximizer_count": maximizer_count,
+                "normalized_seed_calls_at_first_maximizer": seed_calls,
             }
         )
     return records
@@ -70,10 +93,17 @@ def benchmark_records() -> list[dict[str, int | str]]:
 def main() -> None:
     report = {
         "arithmetic": DihedralBackend.arithmetic,
-        "cases": benchmark_records(),
-        "schema_version": 1,
-        "seed": 19,
-        "word_length": 2,
+        "cases_scanned": 7 * 4 * 32,
+        "depths": [1, 7],
+        "maxima": benchmark_records(),
+        "resource_caps": {
+            "group_operations_per_case": 200_000,
+            "materialized_factors_per_case": 100_000_000,
+            "replay_operations_per_case": 1_000_000,
+        },
+        "schema_version": 2,
+        "seeds": [0, 31],
+        "word_lengths": [1, 4],
     }
     print(json.dumps(report, indent=2, sort_keys=True))
 

@@ -1,6 +1,6 @@
 # Running TODO — Generalized Semi-Clifford Tester
 
-Last updated: 2026-11-11
+Last updated: 2026-11-12
 
 This is the operational queue for incremental development. Keep
 `docs/status-and-roadmap.md` as the higher-level scientific roadmap. Each
@@ -9,10 +9,10 @@ one coherent unit.
 
 ## Current focus
 
-- [ ] **Measure a bounded normalized seed-growth parameter grid.**
-  For depths 1--7, scan word lengths 1--4 and seeds 0--31 in the exact
-  dihedral backend, record the maximum normalized program length at each
-  depth, and keep the finite measurements distinct from a general bound.
+- [ ] **Prototype cap-aware normalized-length summaries.**
+  Compute normalized program length and seed-call count without retaining the
+  final factor tuple, cross-check the summary against materialized programs on
+  the checked depth-1--7 grid, and preserve explicit cap exhaustion.
 
 ## Next
 
@@ -29,6 +29,11 @@ _No queued item beyond the current focus._
   statistical conclusion is incomplete.
 
 ## Completed
+
+- [x] 2026-11-12 — Scan the 896-case exact-dihedral grid over depths 1--7,
+  word lengths 1--4, and seeds 0--31; check in the per-depth maximum normalized
+  program lengths and maximizing parameters while making no general growth
+  claim.
 
 - [x] 2026-11-11 — Add a versioned, reproducible exact-dihedral seed-growth
   benchmark over depths one through seven, recording stored DAG nodes,
