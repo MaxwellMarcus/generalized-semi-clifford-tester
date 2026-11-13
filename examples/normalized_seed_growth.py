@@ -9,6 +9,7 @@ from generalized_semi_clifford import (
     evaluate_conjugation_seed_program,
     resynthesize_conjugation_word,
     sample_conjugation_word,
+    summarize_conjugation_word,
 )
 
 
@@ -62,16 +63,24 @@ def benchmark_records() -> list[dict[str, int | str]]:
                 program = resynthesize_conjugation_word(
                     sample.word, max_materialized_factors=100_000_000
                 )
+                summary = summarize_conjugation_word(
+                    sample.word,
+                    max_normalized_factors=1_000_000,
+                    max_expanded_factors=10_000_000,
+                )
                 assert (
                     evaluate_conjugation_seed_program(
                         program, backend, max_operations=1_000_000
                     )
                     == sample.value
                 )
-                program_length = len(program.factors)
+                assert summary.length == len(program.factors)
+                assert summary.seed_uses == program.seed_uses
+                assert summary.pauli_uses == program.pauli_uses
+                program_length = summary.length
                 if program_length > maximum:
                     maximum = program_length
-                    first_maximizer = (word_length, seed, program.seed_uses)
+                    first_maximizer = (word_length, seed, summary.seed_uses)
                     maximizer_count = 1
                 elif program_length == maximum:
                     maximizer_count += 1
@@ -100,8 +109,10 @@ def main() -> None:
             "group_operations_per_case": 200_000,
             "materialized_factors_per_case": 100_000_000,
             "replay_operations_per_case": 1_000_000,
+            "summary_expanded_factors_per_case": 10_000_000,
+            "summary_normalized_factors_per_case": 1_000_000,
         },
-        "schema_version": 2,
+        "schema_version": 3,
         "seeds": [0, 31],
         "word_lengths": [1, 4],
     }

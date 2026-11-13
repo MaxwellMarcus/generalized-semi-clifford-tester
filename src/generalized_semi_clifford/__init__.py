@@ -22,6 +22,7 @@ from .conjugation_sampling import (
     ConjugationSample,
     ConjugationSeedFactor,
     ConjugationSeedProgram,
+    ConjugationSeedSummary,
     ConjugationWord,
     ConjugationWordNode,
     ConjugationWordPlan,
@@ -34,6 +35,7 @@ from .conjugation_sampling import (
     resynthesize_conjugation_word,
     sample_conjugation_word,
     sample_subgroup_escape_word,
+    summarize_conjugation_word,
     test_clifford_conjugation_containment,
 )
 from .conjugation_tester import (
@@ -116,6 +118,7 @@ __all__ = [
     "ConjugationSample",
     "ConjugationSeedFactor",
     "ConjugationSeedProgram",
+    "ConjugationSeedSummary",
     "ConjugationWord",
     "ConjugationWordNode",
     "ConjugationWordPlan",
@@ -194,6 +197,7 @@ __all__ = [
     "resynthesize_conjugation_word",
     "sample_conjugation_word",
     "sample_subgroup_escape_word",
+    "summarize_conjugation_word",
     "semi_clifford_distance_lower_bound",
     "standard_form",
     "symplectic_pairing",

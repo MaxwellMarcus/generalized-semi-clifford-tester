@@ -1,6 +1,6 @@
 # Running TODO — Generalized Semi-Clifford Tester
 
-Last updated: 2026-11-12
+Last updated: 2026-11-13
 
 This is the operational queue for incremental development. Keep
 `docs/status-and-roadmap.md` as the higher-level scientific roadmap. Each
@@ -9,10 +9,10 @@ one coherent unit.
 
 ## Current focus
 
-- [ ] **Prototype cap-aware normalized-length summaries.**
-  Compute normalized program length and seed-call count without retaining the
-  final factor tuple, cross-check the summary against materialized programs on
-  the checked depth-1--7 grid, and preserve explicit cap exhaustion.
+- [ ] **Avoid repeated expansion of shared summary subgraphs.**
+  Prototype memoized boundary summaries that can combine shared normalized
+  subgraphs without revisiting every expanded leaf, retain exact length and
+  seed-call counts, and preserve explicit cap exhaustion.
 
 ## Next
 
@@ -29,6 +29,11 @@ _No queued item beyond the current focus._
   statistical conclusion is incomplete.
 
 ## Completed
+
+- [x] 2026-11-13 — Add capped, run-compressed normalized-program summaries
+  that do not retain the final factor tuple; cross-check exact length, seed,
+  and Pauli counts against materialized programs over the 896-case depth-1--7
+  grid while preserving explicit expansion and reduced-prefix exhaustion.
 
 - [x] 2026-11-12 — Scan the 896-case exact-dihedral grid over depths 1--7,
   word lengths 1--4, and seeds 0--31; check in the per-depth maximum normalized

@@ -122,6 +122,21 @@ class ConjugationSeedProgram:
 
 
 @dataclass(frozen=True)
+class ConjugationSeedSummary:
+    """Exact size counters for a freely reduced sequential seed program.
+
+    The summary does not retain the final factor tuple. ``expanded_factors``
+    records the number of unitary and Pauli leaves streamed from the expression
+    DAG, including repeated visits to shared nodes.
+    """
+
+    length: int
+    seed_uses: int
+    pauli_uses: int
+    expanded_factors: int
+
+
+@dataclass(frozen=True)
 class ConjugationSample(Generic[T]):
     value: T
     word: ConjugationWord
@@ -510,6 +525,119 @@ def resynthesize_conjugation_word(
         leaf_counts.append(leaf_count)
         programs.append(tuple(factors))
     return ConjugationSeedProgram(programs[plan.root])
+
+
+def summarize_conjugation_word(
+    word: ConjugationWord,
+    *,
+    max_normalized_factors: int = 1_000_000,
+    max_expanded_factors: int = 10_000_000,
+) -> ConjugationSeedSummary:
+    """Count a freely reduced seed program without retaining its factor tuple.
+
+    The expression DAG is streamed in execution order while adjoints reverse
+    products and seed orientation. Consecutive seed calls are stored as one
+    signed run, and consecutive Paulis as one XOR-combined label. Thus the
+    working normal form retains neither repeated seed factors nor the final
+    :class:`ConjugationSeedProgram` tuple.
+
+    ``max_expanded_factors`` caps repeated leaf visits, while
+    ``max_normalized_factors`` caps the length of every reduced prefix. A cap
+    interruption raises :class:`SamplingLimitExceeded`; a later cancellation
+    is not used to make an interrupted computation conclusive. Streaming the
+    DAG can still take exponential work, so this function establishes no
+    polynomial physical-query or runtime bound.
+    """
+    _integer(max_normalized_factors, "max_normalized_factors")
+    _integer(max_expanded_factors, "max_expanded_factors")
+    plan = compile_conjugation_word(word)
+    pending = [(plan.root, False)]
+    runs: list[tuple[str, int | PauliLabel]] = []
+    length = 0
+    seed_uses = 0
+    pauli_uses = 0
+    expanded_factors = 0
+
+    def charge_factor() -> None:
+        nonlocal expanded_factors
+        if expanded_factors >= max_expanded_factors:
+            raise SamplingLimitExceeded(
+                "seed-program summary expanded-factor budget exhausted"
+            )
+        expanded_factors += 1
+
+    def check_normalized_cap() -> None:
+        if length > max_normalized_factors:
+            raise SamplingLimitExceeded(
+                "seed-program summary normalized-factor budget exhausted"
+            )
+
+    while pending:
+        index, take_adjoint = pending.pop()
+        node = plan.nodes[index]
+        if node.kind == "identity":
+            continue
+        if node.kind == "product":
+            left, right = node.children
+            if take_adjoint:
+                pending.extend(((left, True), (right, True)))
+            else:
+                pending.extend(((right, False), (left, False)))
+            continue
+        if node.kind == "adjoint":
+            pending.append((node.children[0], not take_adjoint))
+            continue
+        if node.kind == "unitary":
+            charge_factor()
+            exponent = -1 if take_adjoint else 1
+            if runs and runs[-1][0] == "unitary":
+                previous = runs.pop()
+                previous_exponent = previous[1]
+                assert isinstance(previous_exponent, int)
+                combined = previous_exponent + exponent
+                length -= abs(previous_exponent)
+                seed_uses -= abs(previous_exponent)
+                if combined:
+                    runs.append(("unitary", combined))
+                    length += abs(combined)
+                    seed_uses += abs(combined)
+            else:
+                runs.append(("unitary", exponent))
+                length += 1
+                seed_uses += 1
+            check_normalized_cap()
+            continue
+        if node.kind == "pauli":
+            charge_factor()
+            label = node.label
+            assert label is not None
+            if not label or any(bit not in (0, 1) for bit in label):
+                raise ValueError("Pauli labels must be nonempty binary tuples")
+            if runs and runs[-1][0] == "pauli":
+                previous = runs.pop()
+                previous_label = previous[1]
+                assert not isinstance(previous_label, int)
+                if len(previous_label) != len(label):
+                    raise ValueError("inconsistent Pauli-label widths")
+                combined = tuple(
+                    left ^ right
+                    for left, right in zip(previous_label, label, strict=True)
+                )
+                length -= 1
+                pauli_uses -= 1
+                if any(combined):
+                    runs.append(("pauli", combined))
+                    length += 1
+                    pauli_uses += 1
+            elif any(label):
+                runs.append(("pauli", label))
+                length += 1
+                pauli_uses += 1
+            check_normalized_cap()
+            continue
+        raise ValueError("malformed conjugation-word node")
+
+    return ConjugationSeedSummary(length, seed_uses, pauli_uses, expanded_factors)
 
 
 def evaluate_conjugation_seed_program(

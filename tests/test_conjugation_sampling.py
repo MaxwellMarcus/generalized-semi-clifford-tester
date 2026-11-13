@@ -19,6 +19,7 @@ from generalized_semi_clifford import (
     resynthesize_conjugation_word,
     sample_conjugation_word,
     sample_subgroup_escape_word,
+    summarize_conjugation_word,
 )
 from generalized_semi_clifford import (
     test_clifford_conjugation_containment as check_containment,
@@ -155,8 +156,12 @@ def test_seed_program_resynthesis_preserves_exact_short_samples(depth):
     backend = DihedralBackend(64)
     sample = sample_conjugation_word(backend, depth=depth, word_length=2, seed=19)
     program = resynthesize_conjugation_word(sample.word)
+    summary = summarize_conjugation_word(sample.word)
 
     assert evaluate_conjugation_seed_program(program, backend) == sample.value
+    assert summary.length == len(program.factors)
+    assert summary.seed_uses == program.seed_uses
+    assert summary.pauli_uses == program.pauli_uses
     assert program.seed_uses <= sample.expanded_seed_uses
     if depth >= 2:
         assert program.seed_uses < sample.expanded_seed_uses
@@ -208,6 +213,29 @@ def test_seed_program_resynthesis_caps_normalized_intermediates():
     sample = sample_conjugation_word(backend, depth=3, word_length=2, seed=19)
     with pytest.raises(SamplingLimitExceeded, match="normalized-materialization"):
         resynthesize_conjugation_word(sample.word, max_materialized_factors=1)
+
+
+def test_seed_program_summary_preserves_explicit_caps():
+    backend = DihedralBackend(64)
+    sample = sample_conjugation_word(backend, depth=3, word_length=2, seed=19)
+    with pytest.raises(SamplingLimitExceeded, match="normalized-factor"):
+        summarize_conjugation_word(sample.word, max_normalized_factors=1)
+    with pytest.raises(SamplingLimitExceeded, match="expanded-factor"):
+        summarize_conjugation_word(sample.word, max_expanded_factors=1)
+
+
+def test_seed_program_summary_does_not_expand_shared_cancellation_without_budget():
+    unitary = ConjugationWord("unitary", seed_uses=1)
+    word = unitary
+    for _ in range(40):
+        word = ConjugationWord(
+            "product",
+            (word, ConjugationWord("adjoint", (word,), seed_uses=word.seed_uses)),
+            seed_uses=2 * word.seed_uses,
+        )
+
+    with pytest.raises(SamplingLimitExceeded, match="expanded-factor"):
+        summarize_conjugation_word(word, max_expanded_factors=100)
 
 
 def test_escape_sampler_small_target_uses_paulis_at_any_depth():

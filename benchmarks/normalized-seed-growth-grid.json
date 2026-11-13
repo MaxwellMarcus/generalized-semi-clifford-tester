@@ -66,9 +66,11 @@
   "resource_caps": {
     "group_operations_per_case": 200000,
     "materialized_factors_per_case": 100000000,
-    "replay_operations_per_case": 1000000
+    "replay_operations_per_case": 1000000,
+    "summary_expanded_factors_per_case": 10000000,
+    "summary_normalized_factors_per_case": 1000000
   },
-  "schema_version": 2,
+  "schema_version": 3,
   "seeds": [
     0,
     31
