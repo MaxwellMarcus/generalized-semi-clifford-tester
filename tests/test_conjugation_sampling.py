@@ -6,6 +6,7 @@ import numpy as np
 import pytest
 
 from generalized_semi_clifford import (
+    ConjugationSeedSummary,
     ConjugationWord,
     ConjugationWordNode,
     ConjugationWordPlan,
@@ -236,6 +237,25 @@ def test_seed_program_summary_does_not_expand_shared_cancellation_without_budget
 
     with pytest.raises(SamplingLimitExceeded, match="expanded-factor"):
         summarize_conjugation_word(word, max_expanded_factors=100)
+
+    summary = summarize_conjugation_word(
+        word,
+        max_expanded_factors=2**40,
+        max_memoized_runs=100,
+    )
+    assert summary == ConjugationSeedSummary(
+        length=0,
+        seed_uses=0,
+        pauli_uses=0,
+        expanded_factors=2**40,
+    )
+
+
+def test_seed_program_summary_caps_cumulative_memoized_runs():
+    backend = DihedralBackend(64)
+    sample = sample_conjugation_word(backend, depth=3, word_length=2, seed=19)
+    with pytest.raises(SamplingLimitExceeded, match="memoized-run"):
+        summarize_conjugation_word(sample.word, max_memoized_runs=1)
 
 
 def test_escape_sampler_small_target_uses_paulis_at_any_depth():

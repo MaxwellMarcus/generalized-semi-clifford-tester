@@ -1,6 +1,6 @@
 # Running TODO — Generalized Semi-Clifford Tester
 
-Last updated: 2026-11-13
+Last updated: 2026-11-14
 
 This is the operational queue for incremental development. Keep
 `docs/status-and-roadmap.md` as the higher-level scientific roadmap. Each
@@ -9,10 +9,10 @@ one coherent unit.
 
 ## Current focus
 
-- [ ] **Avoid repeated expansion of shared summary subgraphs.**
-  Prototype memoized boundary summaries that can combine shared normalized
-  subgraphs without revisiting every expanded leaf, retain exact length and
-  seed-call counts, and preserve explicit cap exhaustion.
+- [ ] **Share unchanged interiors between memoized summary nodes.**
+  Prototype a persistent run-rope representation so product and adjoint
+  summaries can reuse unchanged child interiors instead of copying complete
+  run tuples, while retaining exact counters and explicit construction caps.
 
 ## Next
 
@@ -29,6 +29,12 @@ _No queued item beyond the current focus._
   statistical conclusion is incomplete.
 
 ## Completed
+
+- [x] 2026-11-14 — Summarize every shared conjugation-word DAG node once with
+  run-compressed boundary reduction, compute the exact expanded-factor count
+  without visiting repeated leaves, and separately cap expanded count,
+  normalized length, and cumulative memoized runs; regress a `2**40`-leaf
+  cancellation DAG that completes with only bounded memoized summaries.
 
 - [x] 2026-11-13 — Add capped, run-compressed normalized-program summaries
   that do not retain the final factor tuple; cross-check exact length, seed,
