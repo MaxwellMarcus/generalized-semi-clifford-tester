@@ -1,6 +1,6 @@
 # Running TODO — Generalized Semi-Clifford Tester
 
-Last updated: 2026-11-14
+Last updated: 2026-11-15
 
 This is the operational queue for incremental development. Keep
 `docs/status-and-roadmap.md` as the higher-level scientific roadmap. Each
@@ -9,10 +9,10 @@ one coherent unit.
 
 ## Current focus
 
-- [ ] **Share unchanged interiors between memoized summary nodes.**
-  Prototype a persistent run-rope representation so product and adjoint
-  summaries can reuse unchanged child interiors instead of copying complete
-  run tuples, while retaining exact counters and explicit construction caps.
+- [ ] **Record persistent-rope storage in the checked growth grid.**
+  Expose a stable construction-node count from normalized summaries and add it
+  to the exact-dihedral benchmark without conflating shared storage with
+  logical runs, normalized factors, or expanded physical work.
 
 ## Next
 
@@ -29,6 +29,12 @@ _No queued item beyond the current focus._
   statistical conclusion is incomplete.
 
 ## Completed
+
+- [x] 2026-11-15 — Replace copied run tuples in normalized summaries with a
+  balanced persistent rope: products share unchanged child interiors,
+  adjoints use constant-storage reversed/inverted views, boundary reductions
+  rebuild only affected edge paths, and a separate construction-node cap
+  guards storage while exact logical counters retain their prior caps.
 
 - [x] 2026-11-14 — Summarize every shared conjugation-word DAG node once with
   run-compressed boundary reduction, compute the exact expanded-factor count

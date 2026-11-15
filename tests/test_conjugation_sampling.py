@@ -258,6 +258,40 @@ def test_seed_program_summary_caps_cumulative_memoized_runs():
         summarize_conjugation_word(sample.word, max_memoized_runs=1)
 
 
+def test_seed_program_summary_shares_persistent_run_rope_interiors():
+    unitary = ConjugationWord("unitary", seed_uses=1)
+    pauli = ConjugationWord("pauli", label=(1, 0))
+    word = ConjugationWord("product", (unitary, pauli), seed_uses=1)
+    for _ in range(30):
+        word = ConjugationWord(
+            "product", (word, word), seed_uses=2 * word.seed_uses
+        )
+    word = ConjugationWord("adjoint", (word,), seed_uses=word.seed_uses)
+
+    summary = summarize_conjugation_word(
+        word,
+        max_normalized_factors=2**31,
+        max_expanded_factors=2**31,
+        max_memoized_runs=3 * 2**31,
+        max_rope_nodes=33,
+    )
+
+    assert summary == ConjugationSeedSummary(
+        length=2**31,
+        seed_uses=2**30,
+        pauli_uses=2**30,
+        expanded_factors=2**31,
+    )
+    with pytest.raises(SamplingLimitExceeded, match="rope-node"):
+        summarize_conjugation_word(
+            word,
+            max_normalized_factors=2**31,
+            max_expanded_factors=2**31,
+            max_memoized_runs=3 * 2**31,
+            max_rope_nodes=32,
+        )
+
+
 def test_escape_sampler_small_target_uses_paulis_at_any_depth():
     backend = DihedralBackend()
     sample = sample_subgroup_escape_word(backend, depth=7, subgroup_log2_bound=1, seed=7)

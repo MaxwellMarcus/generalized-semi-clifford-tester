@@ -68,6 +68,7 @@ def benchmark_records() -> list[dict[str, int | str]]:
                     max_normalized_factors=1_000_000,
                     max_expanded_factors=10_000_000,
                     max_memoized_runs=100_000_000,
+                    max_rope_nodes=100_000_000,
                 )
                 assert (
                     evaluate_conjugation_seed_program(
@@ -113,8 +114,9 @@ def main() -> None:
             "summary_expanded_factors_per_case": 10_000_000,
             "summary_memoized_runs_per_case": 100_000_000,
             "summary_normalized_factors_per_case": 1_000_000,
+            "summary_rope_nodes_per_case": 100_000_000,
         },
-        "schema_version": 4,
+        "schema_version": 5,
         "seeds": [0, 31],
         "word_lengths": [1, 4],
     }

@@ -153,6 +153,49 @@ class SamplingLimitExceeded(RuntimeError):
     """A work cap was reached; this is not mathematical evidence either way."""
 
 
+@dataclass(frozen=True, repr=False)
+class _RunRopeNode:
+    """One persistent run-rope node with exact subtree counters."""
+
+    value: tuple[str, int | PauliLabel] | None
+    left: _RunRope | None
+    right: _RunRope | None
+    height: int
+    runs: int
+    length: int
+    seed_uses: int
+    pauli_uses: int
+
+
+@dataclass(frozen=True, repr=False)
+class _RunRope:
+    """A possibly reversed/inverted immutable view of a run-rope node."""
+
+    node: _RunRopeNode | None
+    reverse: bool = False
+    invert_unitary: bool = False
+
+    @property
+    def height(self) -> int:
+        return 0 if self.node is None else self.node.height
+
+    @property
+    def runs(self) -> int:
+        return 0 if self.node is None else self.node.runs
+
+    @property
+    def length(self) -> int:
+        return 0 if self.node is None else self.node.length
+
+    @property
+    def seed_uses(self) -> int:
+        return 0 if self.node is None else self.node.seed_uses
+
+    @property
+    def pauli_uses(self) -> int:
+        return 0 if self.node is None else self.node.pauli_uses
+
+
 def _integer(value: int, name: str, minimum: int = 1) -> None:
     if isinstance(value, bool) or not isinstance(value, int) or value < minimum:
         raise ValueError(f"{name} must be an integer >= {minimum}")
@@ -534,155 +577,261 @@ def summarize_conjugation_word(
     max_normalized_factors: int = 1_000_000,
     max_expanded_factors: int = 10_000_000,
     max_memoized_runs: int = 1_000_000,
+    max_rope_nodes: int = 1_000_000,
 ) -> ConjugationSeedSummary:
-    """Memoize exact run-compressed normal forms and return root size counters.
+    """Memoize persistent run-compressed normal forms and return size counters.
 
     Every shared DAG node is summarized once in child-first order. Products
     join their child normal forms with boundary reduction; adjoints reverse a
-    memoized child and flip its seed orientation. Consecutive seed calls are
-    represented by one signed run and consecutive Paulis by one XOR-combined
-    label, so a large repeated leaf expansion can collapse without being
-    streamed. The final :class:`ConjugationSeedProgram` factor tuple is not
-    retained.
+    memoized child and flip its seed orientation through a constant-storage
+    view. Unchanged child interiors are shared by a balanced persistent rope;
+    only paths affected by product-boundary reduction are rebuilt.
+    Consecutive seed calls are represented by one signed run and consecutive
+    Paulis by one XOR-combined label, so a large repeated leaf expansion can
+    collapse without being streamed. The final
+    :class:`ConjugationSeedProgram` factor tuple is not retained.
 
     ``max_expanded_factors`` caps the exact expanded leaf count computed from
     the DAG, ``max_normalized_factors`` caps every memoized node's reduced
     factor length, and ``max_memoized_runs`` caps the cumulative number of
-    run records retained across node summaries. A cap interruption raises
-    :class:`SamplingLimitExceeded`. Run counts can still grow exponentially,
-    so this function establishes no polynomial physical-query or runtime
-    bound.
+    logical runs across node summaries. ``max_rope_nodes`` separately caps all
+    persistent leaf and branch nodes constructed, including discarded edge
+    paths created during cancellation. A cap interruption raises
+    :class:`SamplingLimitExceeded`. Exact lengths and logical run counts can
+    still grow exponentially even when storage is shared, so this function
+    establishes no polynomial physical-query or runtime bound.
     """
     _integer(max_normalized_factors, "max_normalized_factors")
     _integer(max_expanded_factors, "max_expanded_factors")
     _integer(max_memoized_runs, "max_memoized_runs")
+    _integer(max_rope_nodes, "max_rope_nodes")
     plan = compile_conjugation_word(word)
     expanded_counts: list[int] = []
-    summaries: list[
-        tuple[tuple[tuple[str, int | PauliLabel], ...], int, int, int]
-    ] = []
+    summaries: list[_RunRope] = []
     memoized_runs = 0
+    rope_nodes = 0
 
-    def append_run(
-        runs: list[tuple[str, int | PauliLabel]],
-        length: int,
-        seed_uses: int,
-        pauli_uses: int,
-        kind: str,
-        value: int | PauliLabel,
-    ) -> tuple[int, int, int]:
+    def charge_rope_node() -> None:
+        nonlocal rope_nodes
+        if rope_nodes >= max_rope_nodes:
+            raise SamplingLimitExceeded(
+                "seed-program summary rope-node construction budget exhausted"
+            )
+        rope_nodes += 1
+
+    def view(
+        rope: _RunRope, *, reverse: bool = False, invert_unitary: bool = False
+    ) -> _RunRope:
+        if rope.node is None:
+            return rope
+        return _RunRope(
+            rope.node,
+            reverse=rope.reverse ^ reverse,
+            invert_unitary=rope.invert_unitary ^ invert_unitary,
+        )
+
+    def leaf(kind: str, value: int | PauliLabel) -> _RunRope:
         if kind == "unitary":
-            if not isinstance(value, int) or value == 0:
+            if not isinstance(value, int) or isinstance(value, bool) or value == 0:
                 raise ValueError("malformed unitary summary run")
-            if runs and runs[-1][0] == "unitary":
-                previous = runs[-1][1]
-                assert isinstance(previous, int)
-                combined = previous + value
-                length -= abs(previous)
-                seed_uses -= abs(previous)
-                if combined:
-                    runs[-1] = ("unitary", combined)
-                    length += abs(combined)
-                    seed_uses += abs(combined)
-                else:
-                    runs.pop()
-            else:
-                runs.append(("unitary", value))
-                length += abs(value)
-                seed_uses += abs(value)
+            length = seed_uses = abs(value)
+            pauli_uses = 0
         elif kind == "pauli":
             if isinstance(value, int) or not value:
                 raise ValueError("malformed Pauli summary run")
             if any(bit not in (0, 1) for bit in value):
                 raise ValueError("Pauli labels must be nonempty binary tuples")
-            if runs and runs[-1][0] == "pauli":
-                previous = runs[-1][1]
-                assert not isinstance(previous, int)
-                if len(previous) != len(value):
-                    raise ValueError("inconsistent Pauli-label widths")
-                combined = tuple(
-                    left ^ right
-                    for left, right in zip(previous, value, strict=True)
-                )
-                length -= 1
-                pauli_uses -= 1
-                if any(combined):
-                    runs[-1] = ("pauli", combined)
-                    length += 1
-                    pauli_uses += 1
-                else:
-                    runs.pop()
-            elif any(value):
-                runs.append(("pauli", value))
-                length += 1
-                pauli_uses += 1
+            if not any(value):
+                return _RunRope(None)
+            length = pauli_uses = 1
+            seed_uses = 0
         else:
             raise ValueError("malformed summary run")
-        if length > max_normalized_factors:
+        charge_rope_node()
+        return _RunRope(
+            _RunRopeNode(
+                (kind, value),
+                None,
+                None,
+                1,
+                1,
+                length,
+                seed_uses,
+                pauli_uses,
+            )
+        )
+
+    def children(rope: _RunRope) -> tuple[_RunRope, _RunRope]:
+        node = rope.node
+        if node is None or node.value is not None:
+            raise ValueError("summary rope node has no children")
+        assert node.left is not None and node.right is not None
+        ordered = (node.right, node.left) if rope.reverse else (node.left, node.right)
+        return tuple(
+            view(
+                child,
+                reverse=rope.reverse,
+                invert_unitary=rope.invert_unitary,
+            )
+            for child in ordered
+        )  # type: ignore[return-value]
+
+    def branch(left: _RunRope, right: _RunRope) -> _RunRope:
+        if left.node is None or right.node is None:
+            raise ValueError("summary rope branch children must be nonempty")
+        charge_rope_node()
+        return _RunRope(
+            _RunRopeNode(
+                None,
+                left,
+                right,
+                1 + max(left.height, right.height),
+                left.runs + right.runs,
+                left.length + right.length,
+                left.seed_uses + right.seed_uses,
+                left.pauli_uses + right.pauli_uses,
+            )
+        )
+
+    def balance(left: _RunRope, right: _RunRope) -> _RunRope:
+        if left.height > right.height + 1:
+            left_left, left_right = children(left)
+            if left_left.height >= left_right.height:
+                return branch(left_left, branch(left_right, right))
+            middle_left, middle_right = children(left_right)
+            return branch(
+                branch(left_left, middle_left), branch(middle_right, right)
+            )
+        if right.height > left.height + 1:
+            right_left, right_right = children(right)
+            if right_right.height >= right_left.height:
+                return branch(branch(left, right_left), right_right)
+            middle_left, middle_right = children(right_left)
+            return branch(
+                branch(left, middle_left), branch(middle_right, right_right)
+            )
+        return branch(left, right)
+
+    def join(left: _RunRope, right: _RunRope) -> _RunRope:
+        if left.node is None:
+            return right
+        if right.node is None:
+            return left
+        if left.height > right.height + 1:
+            left_left, left_right = children(left)
+            return balance(left_left, join(left_right, right))
+        if right.height > left.height + 1:
+            right_left, right_right = children(right)
+            return balance(join(left, right_left), right_right)
+        return branch(left, right)
+
+    def end_run(rope: _RunRope, *, last: bool) -> tuple[str, int | PauliLabel]:
+        node = rope.node
+        if node is None:
+            raise ValueError("empty summary rope has no end run")
+        if node.value is not None:
+            kind, value = node.value
+            if kind == "unitary" and rope.invert_unitary:
+                assert isinstance(value, int)
+                value = -value
+            return kind, value
+        left, right = children(rope)
+        return end_run(right if last else left, last=last)
+
+    def pop_end(rope: _RunRope, *, last: bool) -> _RunRope:
+        node = rope.node
+        if node is None:
+            raise ValueError("cannot pop an empty summary rope")
+        if node.value is not None:
+            return _RunRope(None)
+        left, right = children(rope)
+        if last:
+            return join(left, pop_end(right, last=True))
+        return join(pop_end(left, last=False), right)
+
+    def reduced_join(left: _RunRope, right: _RunRope) -> _RunRope:
+        while left.node is not None and right.node is not None:
+            left_kind, left_value = end_run(left, last=True)
+            right_kind, right_value = end_run(right, last=False)
+            if left_kind != right_kind:
+                break
+            left = pop_end(left, last=True)
+            right = pop_end(right, last=False)
+            if left_kind == "unitary":
+                assert isinstance(left_value, int) and isinstance(right_value, int)
+                combined: int | PauliLabel = left_value + right_value
+                if not combined:
+                    continue
+            else:
+                assert not isinstance(left_value, int)
+                assert not isinstance(right_value, int)
+                if len(left_value) != len(right_value):
+                    raise ValueError("inconsistent Pauli-label widths")
+                combined = tuple(
+                    first ^ second
+                    for first, second in zip(left_value, right_value, strict=True)
+                )
+                if not any(combined):
+                    continue
+            return join(join(left, leaf(left_kind, combined)), right)
+        return join(left, right)
+
+    def checked_run(
+        kind: str,
+        value: int | PauliLabel,
+    ) -> _RunRope:
+        rope = leaf(kind, value)
+        if rope.length > max_normalized_factors:
             raise SamplingLimitExceeded(
                 "seed-program summary normalized-factor budget exhausted"
             )
-        return length, seed_uses, pauli_uses
+        return rope
 
     for node in plan.nodes:
-        runs: list[tuple[str, int | PauliLabel]] = []
-        length = 0
-        seed_uses = 0
-        pauli_uses = 0
-
         if node.kind == "identity":
+            rope = _RunRope(None)
             expanded_factors = 0
         elif node.kind == "unitary":
-            length, seed_uses, pauli_uses = append_run(
-                runs, length, seed_uses, pauli_uses, "unitary", 1
-            )
+            rope = checked_run("unitary", 1)
             expanded_factors = 1
         elif node.kind == "pauli":
             label = node.label
             assert label is not None
-            length, seed_uses, pauli_uses = append_run(
-                runs, length, seed_uses, pauli_uses, "pauli", label
-            )
+            rope = checked_run("pauli", label)
             expanded_factors = 1
         elif node.kind == "product":
             left, right = node.children
-            left_runs, length, seed_uses, pauli_uses = summaries[left]
-            runs.extend(left_runs)
-            for kind, value in summaries[right][0]:
-                length, seed_uses, pauli_uses = append_run(
-                    runs, length, seed_uses, pauli_uses, kind, value
-                )
+            rope = reduced_join(summaries[left], summaries[right])
             expanded_factors = expanded_counts[left] + expanded_counts[right]
         elif node.kind == "adjoint":
             (child,) = node.children
-            for kind, value in reversed(summaries[child][0]):
-                if kind == "unitary":
-                    assert isinstance(value, int)
-                    value = -value
-                else:
-                    assert not isinstance(value, int)
-                length, seed_uses, pauli_uses = append_run(
-                    runs, length, seed_uses, pauli_uses, kind, value
-                )
+            rope = view(summaries[child], reverse=True, invert_unitary=True)
             expanded_factors = expanded_counts[child]
         else:
             raise ValueError("malformed conjugation-word node")
 
+        if rope.length > max_normalized_factors:
+            raise SamplingLimitExceeded(
+                "seed-program summary normalized-factor budget exhausted"
+            )
         if expanded_factors > max_expanded_factors:
             raise SamplingLimitExceeded(
                 "seed-program summary expanded-factor budget exhausted"
             )
-        if memoized_runs + len(runs) > max_memoized_runs:
+        if memoized_runs + rope.runs > max_memoized_runs:
             raise SamplingLimitExceeded(
                 "seed-program summary memoized-run budget exhausted"
             )
-        memoized_runs += len(runs)
+        memoized_runs += rope.runs
         expanded_counts.append(expanded_factors)
-        summaries.append((tuple(runs), length, seed_uses, pauli_uses))
+        summaries.append(rope)
 
-    _, length, seed_uses, pauli_uses = summaries[plan.root]
+    root = summaries[plan.root]
     return ConjugationSeedSummary(
-        length, seed_uses, pauli_uses, expanded_counts[plan.root]
+        root.length,
+        root.seed_uses,
+        root.pauli_uses,
+        expanded_counts[plan.root],
     )
 
 
