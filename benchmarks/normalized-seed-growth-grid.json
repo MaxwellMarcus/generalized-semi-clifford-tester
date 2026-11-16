@@ -7,57 +7,71 @@
   ],
   "maxima": [
     {
+      "constructed_rope_nodes_at_first_length_maximizer": 4,
       "depth": 1,
       "first_maximizing_seed": 0,
       "first_maximizing_word_length": 1,
+      "max_constructed_rope_nodes": 4,
       "max_normalized_program_length": 3,
       "maximizer_count": 116,
       "normalized_seed_calls_at_first_maximizer": 2
     },
     {
+      "constructed_rope_nodes_at_first_length_maximizer": 42,
       "depth": 2,
       "first_maximizing_seed": 13,
       "first_maximizing_word_length": 4,
+      "max_constructed_rope_nodes": 85,
       "max_normalized_program_length": 19,
       "maximizer_count": 1,
       "normalized_seed_calls_at_first_maximizer": 10
     },
     {
+      "constructed_rope_nodes_at_first_length_maximizer": 276,
       "depth": 3,
       "first_maximizing_seed": 19,
       "first_maximizing_word_length": 4,
+      "max_constructed_rope_nodes": 404,
       "max_normalized_program_length": 123,
       "maximizer_count": 1,
       "normalized_seed_calls_at_first_maximizer": 62
     },
     {
+      "constructed_rope_nodes_at_first_length_maximizer": 1166,
       "depth": 4,
       "first_maximizing_seed": 18,
       "first_maximizing_word_length": 4,
+      "max_constructed_rope_nodes": 2552,
       "max_normalized_program_length": 556,
       "maximizer_count": 1,
       "normalized_seed_calls_at_first_maximizer": 278
     },
     {
+      "constructed_rope_nodes_at_first_length_maximizer": 5662,
       "depth": 5,
       "first_maximizing_seed": 27,
       "first_maximizing_word_length": 4,
+      "max_constructed_rope_nodes": 20090,
       "max_normalized_program_length": 4267,
       "maximizer_count": 1,
       "normalized_seed_calls_at_first_maximizer": 2134
     },
     {
+      "constructed_rope_nodes_at_first_length_maximizer": 24771,
       "depth": 6,
       "first_maximizing_seed": 25,
       "first_maximizing_word_length": 4,
+      "max_constructed_rope_nodes": 155379,
       "max_normalized_program_length": 27051,
       "maximizer_count": 1,
       "normalized_seed_calls_at_first_maximizer": 13526
     },
     {
+      "constructed_rope_nodes_at_first_length_maximizer": 225019,
       "depth": 7,
       "first_maximizing_seed": 25,
       "first_maximizing_word_length": 4,
+      "max_constructed_rope_nodes": 1121306,
       "max_normalized_program_length": 144983,
       "maximizer_count": 1,
       "normalized_seed_calls_at_first_maximizer": 72492
@@ -72,7 +86,7 @@
     "summary_normalized_factors_per_case": 1000000,
     "summary_rope_nodes_per_case": 100000000
   },
-  "schema_version": 5,
+  "schema_version": 6,
   "seeds": [
     0,
     31

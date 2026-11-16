@@ -1,6 +1,6 @@
 # Running TODO — Generalized Semi-Clifford Tester
 
-Last updated: 2026-11-15
+Last updated: 2026-11-16
 
 This is the operational queue for incremental development. Keep
 `docs/status-and-roadmap.md` as the higher-level scientific roadmap. Each
@@ -9,10 +9,10 @@ one coherent unit.
 
 ## Current focus
 
-- [ ] **Record persistent-rope storage in the checked growth grid.**
-  Expose a stable construction-node count from normalized summaries and add it
-  to the exact-dihedral benchmark without conflating shared storage with
-  logical runs, normalized factors, or expanded physical work.
+- [ ] **Separate retained rope storage from cumulative construction.**
+  Count unique rope nodes reachable from the memoized summaries after
+  reduction, keeping that live-storage measure distinct from the cumulative
+  construction count and its cap.
 
 ## Next
 
@@ -29,6 +29,11 @@ _No queued item beyond the current focus._
   statistical conclusion is incomplete.
 
 ## Completed
+
+- [x] 2026-11-16 — Expose cumulative persistent-rope node construction in
+  normalized summaries and record both its per-depth grid maximum and its
+  value at the first normalized-length maximizer, separately from logical
+  runs, normalized factors, and expanded physical work.
 
 - [x] 2026-11-15 — Replace copied run tuples in normalized summaries with a
   balanced persistent rope: products share unchanged child interiors,

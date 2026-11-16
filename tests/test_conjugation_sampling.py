@@ -248,6 +248,7 @@ def test_seed_program_summary_does_not_expand_shared_cancellation_without_budget
         seed_uses=0,
         pauli_uses=0,
         expanded_factors=2**40,
+        constructed_rope_nodes=1,
     )
 
 
@@ -281,6 +282,7 @@ def test_seed_program_summary_shares_persistent_run_rope_interiors():
         seed_uses=2**30,
         pauli_uses=2**30,
         expanded_factors=2**31,
+        constructed_rope_nodes=33,
     )
     with pytest.raises(SamplingLimitExceeded, match="rope-node"):
         summarize_conjugation_word(

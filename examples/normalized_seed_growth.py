@@ -49,7 +49,8 @@ def benchmark_records() -> list[dict[str, int | str]]:
     records: list[dict[str, int | str]] = []
     for depth in range(1, 8):
         maximum = -1
-        first_maximizer: tuple[int, int, int] | None = None
+        maximum_constructed_rope_nodes = -1
+        first_maximizer: tuple[int, int, int, int] | None = None
         maximizer_count = 0
         for word_length in range(1, 5):
             for seed in range(32):
@@ -80,21 +81,32 @@ def benchmark_records() -> list[dict[str, int | str]]:
                 assert summary.seed_uses == program.seed_uses
                 assert summary.pauli_uses == program.pauli_uses
                 program_length = summary.length
+                maximum_constructed_rope_nodes = max(
+                    maximum_constructed_rope_nodes,
+                    summary.constructed_rope_nodes,
+                )
                 if program_length > maximum:
                     maximum = program_length
-                    first_maximizer = (word_length, seed, summary.seed_uses)
+                    first_maximizer = (
+                        word_length,
+                        seed,
+                        summary.seed_uses,
+                        summary.constructed_rope_nodes,
+                    )
                     maximizer_count = 1
                 elif program_length == maximum:
                     maximizer_count += 1
         assert first_maximizer is not None
-        word_length, seed, seed_calls = first_maximizer
+        word_length, seed, seed_calls, rope_nodes = first_maximizer
         records.append(
             {
                 "depth": depth,
                 "first_maximizing_seed": seed,
                 "first_maximizing_word_length": word_length,
                 "max_normalized_program_length": maximum,
+                "max_constructed_rope_nodes": maximum_constructed_rope_nodes,
                 "maximizer_count": maximizer_count,
+                "constructed_rope_nodes_at_first_length_maximizer": rope_nodes,
                 "normalized_seed_calls_at_first_maximizer": seed_calls,
             }
         )
@@ -116,7 +128,7 @@ def main() -> None:
             "summary_normalized_factors_per_case": 1_000_000,
             "summary_rope_nodes_per_case": 100_000_000,
         },
-        "schema_version": 5,
+        "schema_version": 6,
         "seeds": [0, 31],
         "word_lengths": [1, 4],
     }

@@ -129,12 +129,16 @@ class ConjugationSeedSummary:
     records the exact number of unitary and Pauli leaves in the expanded
     expression, including repeated uses of shared nodes. The count can be
     computed from the DAG without visiting those leaves individually.
+    ``constructed_rope_nodes`` records cumulative persistent leaf and branch
+    construction, including transient edge paths discarded after boundary
+    reduction. It is an allocation-work counter, not a live-memory estimate.
     """
 
     length: int
     seed_uses: int
     pauli_uses: int
     expanded_factors: int
+    constructed_rope_nodes: int = 0
 
 
 @dataclass(frozen=True)
@@ -832,6 +836,7 @@ def summarize_conjugation_word(
         root.seed_uses,
         root.pauli_uses,
         expanded_counts[plan.root],
+        rope_nodes,
     )
 
 
