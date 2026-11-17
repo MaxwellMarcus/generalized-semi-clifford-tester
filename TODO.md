@@ -1,6 +1,6 @@
 # Running TODO — Generalized Semi-Clifford Tester
 
-Last updated: 2026-11-16
+Last updated: 2026-11-17
 
 This is the operational queue for incremental development. Keep
 `docs/status-and-roadmap.md` as the higher-level scientific roadmap. Each
@@ -9,10 +9,10 @@ one coherent unit.
 
 ## Current focus
 
-- [ ] **Separate retained rope storage from cumulative construction.**
-  Count unique rope nodes reachable from the memoized summaries after
-  reduction, keeping that live-storage measure distinct from the cumulative
-  construction count and its cap.
+- [ ] **Add an independent retained-rope storage cap.**
+  Enforce a limit on unique rope nodes reachable from memoized summaries after
+  each completed DAG summary, without conflating retained storage with the
+  existing cumulative construction cap.
 
 ## Next
 
@@ -29,6 +29,11 @@ _No queued item beyond the current focus._
   statistical conclusion is incomplete.
 
 ## Completed
+
+- [x] 2026-11-17 — Count unique rope nodes reachable from all memoized
+  summaries after reduction, separately from cumulative construction; expose
+  both measures in summaries and the version-seven exact-dihedral grid while
+  preserving the construction cap as an allocation-work limit.
 
 - [x] 2026-11-16 — Expose cumulative persistent-rope node construction in
   normalized summaries and record both its per-depth grid maximum and its

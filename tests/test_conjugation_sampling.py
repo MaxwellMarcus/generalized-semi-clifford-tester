@@ -249,6 +249,7 @@ def test_seed_program_summary_does_not_expand_shared_cancellation_without_budget
         pauli_uses=0,
         expanded_factors=2**40,
         constructed_rope_nodes=1,
+        retained_rope_nodes=1,
     )
 
 
@@ -283,6 +284,7 @@ def test_seed_program_summary_shares_persistent_run_rope_interiors():
         pauli_uses=2**30,
         expanded_factors=2**31,
         constructed_rope_nodes=33,
+        retained_rope_nodes=33,
     )
     with pytest.raises(SamplingLimitExceeded, match="rope-node"):
         summarize_conjugation_word(
@@ -292,6 +294,17 @@ def test_seed_program_summary_shares_persistent_run_rope_interiors():
             max_memoized_runs=3 * 2**31,
             max_rope_nodes=32,
         )
+
+
+def test_seed_program_summary_separates_retained_from_discarded_rope_nodes():
+    sample = sample_conjugation_word(
+        DihedralBackend(), depth=2, word_length=4, seed=13
+    )
+
+    summary = summarize_conjugation_word(sample.word)
+
+    assert summary.constructed_rope_nodes == 42
+    assert summary.retained_rope_nodes == 35
 
 
 def test_escape_sampler_small_target_uses_paulis_at_any_depth():

@@ -131,7 +131,9 @@ class ConjugationSeedSummary:
     computed from the DAG without visiting those leaves individually.
     ``constructed_rope_nodes`` records cumulative persistent leaf and branch
     construction, including transient edge paths discarded after boundary
-    reduction. It is an allocation-work counter, not a live-memory estimate.
+    reduction. ``retained_rope_nodes`` instead counts unique underlying nodes
+    reachable from all memoized summaries after reduction. The former is an
+    allocation-work counter; only the latter measures retained rope storage.
     """
 
     length: int
@@ -139,6 +141,7 @@ class ConjugationSeedSummary:
     pauli_uses: int
     expanded_factors: int
     constructed_rope_nodes: int = 0
+    retained_rope_nodes: int = 0
 
 
 @dataclass(frozen=True)
@@ -600,7 +603,10 @@ def summarize_conjugation_word(
     factor length, and ``max_memoized_runs`` caps the cumulative number of
     logical runs across node summaries. ``max_rope_nodes`` separately caps all
     persistent leaf and branch nodes constructed, including discarded edge
-    paths created during cancellation. A cap interruption raises
+    paths created during cancellation. The returned ``retained_rope_nodes``
+    separately counts unique underlying nodes reachable from every memoized
+    summary after reduction; reversed/inverted views do not duplicate storage.
+    A cap interruption raises
     :class:`SamplingLimitExceeded`. Exact lengths and logical run counts can
     still grow exponentially even when storage is shared, so this function
     establishes no polynomial physical-query or runtime bound.
@@ -830,6 +836,19 @@ def summarize_conjugation_word(
         expanded_counts.append(expanded_factors)
         summaries.append(rope)
 
+    retained_node_ids: set[int] = set()
+    pending_nodes = [summary.node for summary in summaries if summary.node is not None]
+    while pending_nodes:
+        retained_node = pending_nodes.pop()
+        retained_node_id = id(retained_node)
+        if retained_node_id in retained_node_ids:
+            continue
+        retained_node_ids.add(retained_node_id)
+        if retained_node.value is None:
+            assert retained_node.left is not None and retained_node.right is not None
+            assert retained_node.left.node is not None and retained_node.right.node is not None
+            pending_nodes.extend((retained_node.left.node, retained_node.right.node))
+
     root = summaries[plan.root]
     return ConjugationSeedSummary(
         root.length,
@@ -837,6 +856,7 @@ def summarize_conjugation_word(
         root.pauli_uses,
         expanded_counts[plan.root],
         rope_nodes,
+        len(retained_node_ids),
     )
 
 

@@ -25,3 +25,9 @@ def test_normalized_seed_growth_example_records_exact_parameter_grid(capsys) -> 
         >= case["constructed_rope_nodes_at_first_length_maximizer"]
         for case in report["maxima"]
     )
+    assert all(
+        case["max_retained_rope_nodes"] <= case["max_constructed_rope_nodes"]
+        and case["retained_rope_nodes_at_first_length_maximizer"]
+        <= case["constructed_rope_nodes_at_first_length_maximizer"]
+        for case in report["maxima"]
+    )
